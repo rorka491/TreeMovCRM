@@ -1,0 +1,39 @@
+{% load static %}
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>тест</title>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Блок слева (например, навигация или сайдбар) -->
+        {% include '../elements/navbar.html' with disable_src=True %}
+    
+        <!-- Блок справа (основной функционал или контент) -->
+        <div class="flex-1 flex flex-col items-center justify-start px-10 py-4 h-screen overflow-y-auto">
+            <div class="space-y-4 w-full max-w-[1800px]">
+                {% include '../elements/frame2.html' with disable_src=True %}
+                {% include '../elements/frame3.html' with disable_src=True %}
+                {% include '../elements/frame1.html' with disable_src=True %}
+                {% include '../elements/frame4.html' with disable_src=True %}
+    
+                <div class="space-y-4 w-full">
+                    {% include '../elements/table1.html' with disable_src=True %}
+                </div>
+                {% include '../elements/frame10.html' with disable_src=True %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,15 @@
+{% load static %}
+
+{% if not disable_src %}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endif %}
+
+
+<div x-show="open" x-transition class="absolute mt-2 w-full bg-white border border-gray-300 rounded-[12px] shadow-lg">
+    <ul>
+        <li class="px-4 py-2 hover:bg-[f0e5fb] hover:text-white">Текст 1</li>
+        <li class="px-4 py-2 hover:bg-[f0e5fb] hover:text-white">Текст 2</li>
+        <li class="px-4 py-2 hover:bg-[f0e5fb] hover:text-white">Текст 3</li>
+    </ul>
+</div>

@@ -1,0 +1,16 @@
+{% load static %}
+
+{% if not disable_src %}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endif %}
+
+
+
+<div class="flex space-x-4">
+    {% include '../elements/frame9.html' with disable_src=True %}
+    {% include '../elements/frame9.html' with disable_src=True %}
+    {% include '../elements/frame9.html' with disable_src=True %}
+    {% include '../elements/frame9.html' with disable_src=True %}
+</div>
+
