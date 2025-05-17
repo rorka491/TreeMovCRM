@@ -51,7 +51,7 @@ class StudentGroup(models.Model):
 class Subscription(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='subscriptions')
     price = models.DecimalField(max_digits=10, decimal_places=0)
-    start_date = models.DateField(default=timezone.now)
+    start_date = models.DateField()
     end_date = models.DateTimeField()
     due_date = models.DateField()
     is_active = models.BooleanField(default=True)
