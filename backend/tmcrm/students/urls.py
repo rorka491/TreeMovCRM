@@ -1,10 +1,11 @@
-from django.urls import path
-from mainapp.views import *
-from django.conf.urls.static import static
-from django.conf import settings
-from django.contrib.auth import views as auth_views
+from django.urls import path  
+from rest_framework.routers import DefaultRouter  
+from .views import *
 
 
-urlpatterns = [
-    
-]
+student_router = DefaultRouter()  
+student_router.register(r'', StudentViewSet, basename='students') 
+student_router.register(r'', StudentGroupViewSet, basename='students_group')
+
+
+urlpatterns = student_router.urls
