@@ -33,40 +33,36 @@ class Subject(models.Model):
         return self.name
 
 
-class Schedule(models.Model):
-    title = models.CharField(max_length=100)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    date = models.DateField(default='2025-01-01')
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="schedules")
-    week_day = models.PositiveSmallIntegerField(blank=False)
-    classroom = models.CharField(max_length=100, default='Not assigned', blank=True, null=True)
-    group = models.ForeignKey(StudentGroup, on_delete=models.CASCADE, related_name='schedules', blank=True, null=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
-    is_canceled = models.BooleanField(default=False, blank=True)
-    is_completed = models.BooleanField(default=False, blank=True)
+class Schedule(models.Model):  
+    title = models.CharField(max_length=100)  
+    start_time = models.TimeField()  
+    end_time = models.TimeField()  
+    date = models.DateField(default='2025-01-01')  
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="schedules")  
+    week_day = models.PositiveSmallIntegerField(blank=False)  
+    classroom = models.CharField(max_length=100, default='Not assigned', blank=True, null=True)  
+    group = models.ForeignKey(StudentGroup, on_delete=models.CASCADE, related_name='schedules', blank=True, null=True)  
+    subject = models.ForeignKey('Subject', on_delete=models.CASCADE, null=True, blank=True)  
+    is_canceled = models.BooleanField(default=False, blank=True)  
+    is_completed = models.BooleanField(default=False, blank=True)  
 
+    class Meta:  
+        verbose_name = "Занятие"  
+        verbose_name_plural = "Занятия"  
+        ordering = ["date", "start_time"]  
 
-    class Meta:
-        verbose_name = "Занятие"
-        verbose_name_plural = "Занятие"
-        ordering = ["date", "start_time"]
+    def clean(self):  
+        if self.start_time >= self.end_time:  
+            raise ValidationError("Конечное время должно быть позже начального")  
 
-    def clean(self):
-        if self.start_time >= self.end_time:
-            raise ValidationError("Конечное время должно быть позже начального")
-        super().clean()
+    def save(self, *args, **kwargs):  
+        if self.date:  
+            self.week_day = self.date.weekday()  # 0=Monday, 6=Sunday  
+        super().save(*args, **kwargs)  
 
-    def save(self, *args, **kwargs):
-        if self.date:
-            self.week_day = self.date.weekday()
-        
-        super().save(*args, **kwargs)
+    def __str__(self):  
+        return f'{self.teacher} {self.title} {self.subject}' 
     
-    def __str__(self):
-        return f'{self.teacher} {self.title} {self.subject}'
-    
-
 
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendances')

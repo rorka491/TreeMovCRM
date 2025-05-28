@@ -25,7 +25,7 @@ class Teacher(models.Model):
         verbose_name_plural = 'Преподаватели'
         
     def __str__(self):
-        return f'Преподаватель {self.employer.name, self.employer.surname}'
+        return f'Преподаватель {self.employer.name} {self.employer.surname}'
     
 class JobTitle(models.Model):
     title = models.CharField(max_length=100)

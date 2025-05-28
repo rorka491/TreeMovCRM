@@ -7,8 +7,10 @@ from .views import *
 
 
 schedule_router = DefaultRouter()
-schedule_router.register(r'', ScheduleViewSet, basename='schedule')
-schedule_router.register(r'', ScheduleByTeacherViewSet, basename='schedule/by_teachers')
+schedule_router.register(r'', ScheduleViewSet, basename='schedules') 
+schedule_router.register(r'subjects', SubjectViewSet, basename='subjects')  
+schedule_router.register(r'attendances', AttendanceViewSet, basename='attendances')  
+schedule_router.register(r'grades', GradeViewSet, basename='grades') 
 
 
 urlpatterns = schedule_router.urls
