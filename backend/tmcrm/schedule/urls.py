@@ -5,12 +5,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import ScheduleViewSet
 
-router = DefaultRouter()
-router.register(r'schedules', ScheduleViewSet, basename='schedule')
+schedule_router = DefaultRouter()
+schedule_router.register(r'schedules', ScheduleViewSet, basename='schedule')
 
-urlpatterns = router.urls
-
-
-
-
-
+urlpatterns = schedule_router.urls

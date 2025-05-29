@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import Sidebar from './Sidebar'
 import Frame1 from './frame1'; 
+import CategoryBar from '../shedule/CategoryBar';
 import React, { useEffect, useState } from 'react';
 
 
@@ -32,6 +33,9 @@ const Base = () => {
         <div className="flex-1 flex flex-col items-center justify-start px-10 py-4 h-screen overflow-y-auto">
           <div className="space-y-4 w-full max-w-[1800px]">
             <Frame1 path={section}/>    
+            
+            <CategoryBar activeSection={section}/>
+
             {schedules.map(schedule => (
               <div key={schedule.id}>
                 <strong>{schedule.title}</strong><br />

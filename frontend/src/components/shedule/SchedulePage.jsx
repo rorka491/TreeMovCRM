@@ -1,6 +1,7 @@
 
 
 const SchedulePage = ({ schedules }) => (
+  
     <div>
       <h2>Занятия</h2>
       {schedules.map(schedule => (

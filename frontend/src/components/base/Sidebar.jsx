@@ -18,6 +18,7 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
     { path: '/api/settings', label: 'Настройки' }
   ];
 
+
   useEffect(() => {
     const currentLink = links.find(link => location.pathname.startsWith(link.path));
     if (currentLink) {
