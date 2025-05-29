@@ -1,7 +1,8 @@
 from django.db import models
+from mainapp.models import BaseModelOrg
 
 
-class Employer(models.Model):
+class Employer(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)
     patronymic = models.CharField(max_length=100, blank=True, null=True)
@@ -17,7 +18,7 @@ class Employer(models.Model):
 
 
 
-class Teacher(models.Model):
+class Teacher(BaseModelOrg):
     employer = models.OneToOneField(Employer, on_delete=models.CASCADE, primary_key=True)
 
     class Meta: 
@@ -27,7 +28,7 @@ class Teacher(models.Model):
     def __str__(self):
         return f'Преподаватель {self.employer.name, self.employer.surname}'
     
-class JobTitle(models.Model):
+class JobTitle(BaseModelOrg):
     title = models.CharField(max_length=100)
 
     class Meta:
@@ -41,7 +42,7 @@ class LeaveType(models.TextChoices):
     SICK = "sick", "Больничный"
     UNPAID = "unpaid", "За свой счет"
 
-class LeaveRequest(models.Model):
+class LeaveRequest(BaseModelOrg):
     employee = models.ForeignKey(Employer, on_delete=models.CASCADE)
     leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
     start_date = models.DateField()

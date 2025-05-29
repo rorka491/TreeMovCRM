@@ -21,7 +21,7 @@ GRADE_CHOICES = (
     (5, 'Отлично'),
 )
 
-class Subject(models.Model):
+class Subject(BaseModelOrg):
     name = models.CharField(max_length=100)
     teacher = models.ManyToManyField(Teacher)
 
@@ -33,7 +33,7 @@ class Subject(models.Model):
         return self.name
 
 
-class Schedule(models.Model):
+class Schedule(BaseModelOrg):
     title = models.CharField(max_length=100)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -68,7 +68,7 @@ class Schedule(models.Model):
     
 
 
-class Attendance(models.Model):
+class Attendance(BaseModelOrg):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendances')
     lesson = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='attendances')
     was_present = models.BooleanField(default=False)
@@ -81,7 +81,7 @@ class Attendance(models.Model):
     def __str__(self):
         return f'{self.student.name} присутствовал на {self.lesson.date} по предмету {self.lesson.subject}' if self.was_present else f'{self.student.name} не присутствовал на {self.lesson.date} по предмету {self.lesson.subject}'
 
-class Grade(models.Model):
+class Grade(BaseModelOrg):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='grades')
     lesson = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='grades')
     value = models.IntegerField(choices=GRADE_CHOICES, null=True, blank=True)

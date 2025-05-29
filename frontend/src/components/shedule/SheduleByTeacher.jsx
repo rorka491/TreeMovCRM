@@ -1,5 +1,4 @@
 
-
 const ScheduleByTeacher = () => {
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);

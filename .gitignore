@@ -26,3 +26,5 @@ yarn-error.log*
 Thumbs.db
 
 .git/
+*/migrations/*
+!*/migrations/__init__.py

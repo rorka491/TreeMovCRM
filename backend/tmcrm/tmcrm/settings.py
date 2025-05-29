@@ -143,3 +143,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'mainapp.permissions.IsSameOrganization',
+    ]
+}
+
+AUTH_USER_MODEL = 'mainapp.User'
+
+
