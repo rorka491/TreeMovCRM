@@ -33,7 +33,8 @@ class Subject(BaseModelOrg):
         return self.name
 
 
-<<<<<<< HEAD
+
+'''
 class Schedule(models.Model):  
     title = models.CharField(max_length=100)  
     start_time = models.TimeField()  
@@ -46,7 +47,8 @@ class Schedule(models.Model):
     subject = models.ForeignKey('Subject', on_delete=models.CASCADE, null=True, blank=True)  
     is_canceled = models.BooleanField(default=False, blank=True)  
     is_completed = models.BooleanField(default=False, blank=True)  
-=======
+'''
+
 class Schedule(BaseModelOrg):
     title = models.CharField(max_length=100)
     start_time = models.TimeField()
@@ -59,7 +61,7 @@ class Schedule(BaseModelOrg):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
     is_canceled = models.BooleanField(default=False, blank=True)
     is_completed = models.BooleanField(default=False, blank=True)
->>>>>>> main
+
 
     class Meta:  
         verbose_name = "Занятие"  

@@ -5,7 +5,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter, SimpleRouter
 from .views import *
 
-<<<<<<< HEAD
+
 
 schedule_router = DefaultRouter()
 schedule_router.register(r'', ScheduleViewSet, basename='schedules') 
@@ -19,9 +19,9 @@ urlpatterns = schedule_router.urls
 
 
 
-=======
+
+"""
 schedule_router = DefaultRouter()
 schedule_router.register(r'schedules', ScheduleViewSet, basename='schedule')
->>>>>>> main
+"""
 
-urlpatterns = schedule_router.urls

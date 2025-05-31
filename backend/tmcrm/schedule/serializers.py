@@ -17,7 +17,7 @@ class SubjectSerializer(serializers.ModelSerializer):
         model = Subject
         fields = '__all__'
 
-<<<<<<< HEAD
+
 class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
@@ -28,6 +28,4 @@ class GradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Grade
         fields = '__all__'
-=======
 
->>>>>>> main
