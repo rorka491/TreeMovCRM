@@ -3,8 +3,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from mainapp.models import BaseModelOrg
 
-class Student(models.Model):
+class Student(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)
     progress = models.DecimalField(max_digits=5, decimal_places=2, default=0)
@@ -19,7 +20,7 @@ class Student(models.Model):
     def __str__(self):
         return self.name
     
-class Parent(models.Model):
+class Parent(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)
     phone_number = models.CharField(
@@ -36,7 +37,7 @@ class Parent(models.Model):
 
 
 
-class StudentGroup(models.Model):
+class StudentGroup(BaseModelOrg):
     name = models.CharField(max_length=100, verbose_name='Название группы', unique=True)
     students = models.ManyToManyField(Student, related_name='groups')
     
@@ -53,7 +54,7 @@ class Subscription(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=0)
     start_date = models.DateField()
     end_date = models.DateTimeField()
-    due_date = models.DateField()
+    due_date = models.DateField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     class Meta: 
