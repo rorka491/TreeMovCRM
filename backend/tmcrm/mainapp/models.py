@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 
 class Organization(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -28,18 +29,6 @@ class User(AbstractUser):
         blank=True,
         related_name='users'
     )
-
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='custom_user_set',
-        blank=True,
-    )
-
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='custom_user_set',
-        blank=True,
-    )
     
     def __str__(self):
         return f"{self.username} ({self.role})"
@@ -50,4 +39,22 @@ class BaseModelOrg(models.Model):
     
     class Meta:
         abstract = True
+
+    def clean(self):
+        errors = {}
+
+        for field in self._meta.get_fields():
+
+            if isinstance(field, (models.ForeignKey, models.OneToOneField)):
+                related_obj = getattr(self, field.name, None)
+                
+                if related_obj and hasattr(related_obj, 'org'):
+                    related_org = getattr(related_obj, 'org', None)
+                    if related_org != self.org:
+                        errors[field.name] = (
+                            f"Поле '{field.name}' ссылается на объект с другой организации: "
+                            f" (ожидалось: {related_org})"
+                        )
+        if errors:
+            raise ValidationError(errors)
     

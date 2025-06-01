@@ -2,16 +2,16 @@ from django.db import models
 from students.models import *
 from employers.models import *
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from datetime import datetime, date 
 
 WEEK_DAY_CHOICES = (
-    (0, "Monday"),
-    (1, "Tuesday"),
-    (2, "Wednesday"),
-    (3, "Thursday"),
-    (4, "Friday"),
-    (5, "Saturday"),
-    (6, "Sunday"),
+    (1, "Monday"),
+    (2, "Tuesday"),
+    (3, "Wednesday"),
+    (4, "Thursday"),
+    (5, "Friday"),
+    (6, "Saturday"),
+    (0, "Sunday"),
 )
 
 GRADE_CHOICES = (
@@ -37,7 +37,7 @@ class Schedule(BaseModelOrg):
     title = models.CharField(max_length=100)
     start_time = models.TimeField()
     end_time = models.TimeField()
-    date = models.DateField(default='2025-01-01')
+    date = models.DateField(default=date.today())
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="schedules")
     week_day = models.PositiveSmallIntegerField(blank=False)
     classroom = models.CharField(max_length=100, default='Not assigned', blank=True, null=True)
@@ -45,6 +45,7 @@ class Schedule(BaseModelOrg):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
     is_canceled = models.BooleanField(default=False, blank=True)
     is_completed = models.BooleanField(default=False, blank=True)
+    lesson = models.PositiveSmallIntegerField(blank=True, null=True)
 
 
     class Meta:
@@ -55,6 +56,15 @@ class Schedule(BaseModelOrg):
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Конечное время должно быть позже начального")
+        
+        overlapping = Schedule.objects.filter(
+            teacher=self.teacher,
+            date=self.date,
+            lesson=self.lesson
+        )
+        if overlapping.exists():
+            raise ValidationError('У этого преподавателя на эту пару и дату занятие')
+        
         super().clean()
 
     def save(self, *args, **kwargs):

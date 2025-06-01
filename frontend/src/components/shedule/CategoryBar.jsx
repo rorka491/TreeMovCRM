@@ -1,27 +1,25 @@
-
-
-const CategoryBar = ({ activeSection }) => {
-    // список категорий для удобства
+const CategoryBar = ({ activeSection, setActiveSection }) => {
     const categories = [
-        { key: 'teacher', label: 'По преподавателям', href: '#' },
-        { key: 'group', label: 'По группам', href: '#' },
-        { key: 'classroom', label: 'По аудиториям', href: '#' },
-        { key: 'edit', label: 'Редактировать расписание', href: '#' },
+        { key: 'teacher', label: 'По преподавателям' },
+        { key: 'group', label: 'По группам' },
+        { key: 'classroom', label: 'По аудиториям' },
+        { key: 'edit', label: 'Редактировать расписание' },
     ];
 
     return (
-        <div className="border-b border-t border-gray-300 py-2">
+        <div className="border-b border-t border-black py-2">
             <ul className="flex space-x-5">
-                {categories.map(({ key, label, href }) => (
+                {categories.map(({ key, label }) => (
                     <li
                         key={key}
-                        className={`border-b-2 ${
+                        className={`cursor-pointer border-b-2 ${
                             activeSection === key
-                                ? 'border-[7816db]'
-                                : 'border-transparent hover:border-[7816db]'
+                                ? 'border-[#7816db]'
+                                : 'border-transparent hover:border-[#7816db]'
                         }`}
+                        onClick={() => setActiveSection(key)}
                     >
-                        <a href={href}>{label}</a>
+                        {label}
                     </li>
                 ))}
             </ul>

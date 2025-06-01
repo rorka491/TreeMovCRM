@@ -19,7 +19,7 @@ class Employer(BaseModelOrg):
 
 
 class Teacher(BaseModelOrg):
-    employer = models.OneToOneField(Employer, on_delete=models.CASCADE, primary_key=True)
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, primary_key=True)
 
     class Meta: 
         verbose_name = 'Преподаватель'

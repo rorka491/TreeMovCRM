@@ -7,19 +7,14 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('mainapp.urls')),
-    path('api/analysis/', include('analisys.urls')),
-    path('api/financial_reporting/', include('financial_reporting.urls')),
-    path('api/students/', include('students.urls')),
-    path('api/', include('schedule.urls')),
+    path('api/schedules/', include('schedule.urls')),
+    path('api/employers/', include('employers.urls')),
 ]
 
 
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-
 
 
 
