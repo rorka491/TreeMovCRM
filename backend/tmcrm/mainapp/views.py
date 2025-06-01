@@ -22,21 +22,11 @@ class BaseViewSetWithOrdByOrg(ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-<<<<<<< HEAD
-        user = self.request.user
-        print(user, user.is_superuser)
-        return queryset
-    
-        # Если пользователь админ - показываем все записи
-        if user.is_superuser or user.role == 'admin':
-            return queryset
-=======
         # user = self.request.user
         
         # # Если пользователь админ - показываем все записи
         # if user.is_superuser or user.role == 'admin':
         #     return queryset
->>>>>>> main
             
         # Для обычных пользователей - фильтр по организации
         # if hasattr(user, 'org') and user.org:
@@ -69,4 +59,3 @@ class LogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({'detail': 'Выход выполнен'})
-

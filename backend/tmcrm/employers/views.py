@@ -1,13 +1,4 @@
 from django.shortcuts import render
-<<<<<<< HEAD
-from rest_framework import viewsets
-from .models import Employer
-from .serializers import EmployerSerializer
-
-class EmployerViewSet(viewsets.ModelViewSet):
-    queryset = Employer.objects.all()
-    serializer_class = EmployerSerializer
-=======
 from employers.serializers import TeacherSerializer, EmployerSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg
 from .models import Teacher, Employer
@@ -20,8 +11,14 @@ class EmployerViewSet(BaseViewSetWithOrdByOrg):
     queryset = Employer.objects.all()
     serializer_class = EmployerSerializer
 
+'''
+from rest_framework import viewsets
+from .models import Employer
+from .serializers import EmployerSerializer
+
+class EmployerViewSet(viewsets.ModelViewSet):
+    queryset = Employer.objects.all()
+    serializer_class = EmployerSerializer
+'''
 
 
-
-
->>>>>>> main
