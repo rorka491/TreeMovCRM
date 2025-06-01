@@ -1,20 +1,17 @@
 from django.shortcuts import render
 from rest_framework.decorators import action
 from rest_framework import viewsets
+from .models import Schedule
+from .serializers import ScheduleSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import *
-from .serializers import *
 from mainapp.views import BaseViewSetWithOrdByOrg
 from collections import defaultdict
-
-
 
 
 class ScheduleViewSet(BaseViewSetWithOrdByOrg):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-
 
     grouped_fields = {
         'by-teachers': 'teacher_id',
@@ -51,8 +48,14 @@ class ScheduleViewSet(BaseViewSetWithOrdByOrg):
     def by_classrooms(self, request):
         return self._grouped_response(self.grouped_fields['by-classrooms'])
     
+        
 
+class WomenAPIView(APIView):
 
+    def get(self, request):
+        return Response({'title': 'Angelina Jolie'})
+
+"""
 class SubjectViewSet(viewsets.ModelViewSet):  
     queryset = Subject.objects.all()  
     serializer_class = SubjectSerializer 
@@ -66,7 +69,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 class GradeViewSet(viewsets.ModelViewSet):  
     queryset = Grade.objects.all()  
     serializer_class = GradeSerializer 
-
+"""
 '''
 from .models import *
 from .serializers import *

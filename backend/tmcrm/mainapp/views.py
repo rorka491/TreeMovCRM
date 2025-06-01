@@ -14,7 +14,9 @@ class BaseViewSetWithOrdByOrg(ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
-        
+        print(user, user.is_superuser)
+        return queryset
+    
         # Если пользователь админ - показываем все записи
         if user.is_superuser or user.role == 'admin':
             return queryset

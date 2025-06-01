@@ -1,15 +1,26 @@
+'''
 from rest_framework import serializers
 from .models import *
 from employers.models import *
 from students.models import *  
 from schedule.models import Subject
 from employers.serializers import *
+'''
+from rest_framework import serializers
+from .models import *
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
-        fields = ('id', 'title', 'start_time', 'end_time', 'date', 'teacher') 
+        fields = '__all__'
+
+
+'''
+class ScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Schedule
+        fields = '__all__' # ('id', 'title', 'start_time', 'end_time', 'date', 'teacher') 
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -29,3 +40,4 @@ class GradeSerializer(serializers.ModelSerializer):
         model = Grade
         fields = '__all__'
 
+'''

@@ -5,7 +5,8 @@
   "proxy": "http://127.0.0.1:8000",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "react-scripts start"
+    "start": "react-scripts start",
+    "build": "react-scripts build"
   },
   "keywords": [],
   "author": "",
