@@ -1,16 +1,25 @@
+import { useState } from 'react';
+import CategoryBar from './CategoryBar';
+import ScheduleByTeacher from './ScheduleByTeacher';
+import ScheduleByGroup from './ScheduleByGroup'
+import ScheduleByClassroom from './ScheduleByClassroom'
 
 
-const SchedulePage = ({ schedules }) => (
-  
-    <div>
-      <h2>Занятия</h2>
-      {schedules.map(schedule => (
-        <div key={schedule.id}>
-          <strong>{schedule.title}</strong><br />
-          {schedule.start_time} — {schedule.end_time}
+function SchedulePage() {
+    const [activeSection, setActiveSection] = useState('teacher');
+
+    return (
+        <div>
+            <CategoryBar activeSection={activeSection} setActiveSection={setActiveSection} />
+
+            <div className="mt-4">
+                {activeSection === 'teacher' && <ScheduleByTeacher/>}
+                {activeSection === 'group' && <ScheduleByGroup/>}
+                {activeSection === 'classroom' && <ScheduleByClassroom/>}
+                {activeSection === 'edit' && '...'}
+            </div>
         </div>
-      ))}
-    </div>
-  );
-  
-  export default SchedulePage;
+    );
+}
+
+export default SchedulePage;

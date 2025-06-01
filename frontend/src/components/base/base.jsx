@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import Sidebar from './Sidebar'
 import Frame1 from './frame1'; 
-import CategoryBar from '../shedule/CategoryBar';
+import SchedulePage from '../shedule/SchedulePage';
 import React, { useEffect, useState } from 'react';
 
 
@@ -10,8 +10,9 @@ import React, { useEffect, useState } from 'react';
 
 const Base = () => {
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-    const [section, setSection] = useState("analytics");
-    const [schedules, setSchedules] = useState([])
+    const [section, setSection] = useState("Расписание");
+
+
 
 
     useEffect(() => {
@@ -34,14 +35,10 @@ const Base = () => {
           <div className="space-y-4 w-full max-w-[1800px]">
             <Frame1 path={section}/>    
             
-            <CategoryBar activeSection={section}/>
 
-            {schedules.map(schedule => (
-              <div key={schedule.id}>
-                <strong>{schedule.title}</strong><br />
-                {schedule.start_time} — {schedule.end_time}
-              </div>
-            ))}
+            <div className="mt-2">
+                {section === 'Расписание' && <SchedulePage />}
+            </div>
           </div>
         </div>
         </div>

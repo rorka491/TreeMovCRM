@@ -35,6 +35,7 @@ class ScheduleViewSet(BaseViewSetWithOrdByOrg):
                 'schedules': serialized.data
             })
         return Response(response_data)
+    
 
     @action(detail=False, methods=['get'], url_path='by-teachers')
     def by_teachers(self, request):
@@ -48,12 +49,21 @@ class ScheduleViewSet(BaseViewSetWithOrdByOrg):
     def by_classrooms(self, request):
         return self._grouped_response(self.grouped_fields['by-classrooms'])
     
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        filters = request.query_params.dict()
+        print(filters)
+        schedules = Schedule.objects.filter(**filters)
+        serializer = ScheduleSerializer(schedules, many=True)
+        return Response(serializer.data)
+
+
         
 
-class WomenAPIView(APIView):
+    
+        
 
-    def get(self, request):
-        return Response({'title': 'Angelina Jolie'})
+
 
 """
 class SubjectViewSet(viewsets.ModelViewSet):  
@@ -108,7 +118,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         
 
 
-    
+
      
     
 

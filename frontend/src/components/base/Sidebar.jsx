@@ -10,12 +10,12 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
 
 
   const links = [
-    { path: '/api/analytics', label: 'Аналитика' },
-    { path: '/api/schedule', label: 'Расписание' },
-    { path: '/api/empoloyers', label: 'Сотрудники' },
-    { path: '/api/students', label: 'Ученики' },
-    { path: '/api/financial_reporting', label: 'Финансовая отчётность' },
-    { path: '/api/settings', label: 'Настройки' }
+    { path: '/analytics', label: 'Аналитика' },
+    { path: '/schedule', label: 'Расписание' },
+    { path: '/empoloyers', label: 'Сотрудники' },
+    { path: '/students', label: 'Ученики' },
+    { path: '/financial_reporting', label: 'Финансовая отчётность' },
+    { path: '/settings', label: 'Настройки' }
   ];
 
 
