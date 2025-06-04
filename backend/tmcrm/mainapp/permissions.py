@@ -7,6 +7,7 @@ class IsSameOrganization(permissions.BasePermission):
             return True
         
         return obj.org == request.user.org
+    
 
 
 

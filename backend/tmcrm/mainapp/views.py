@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 class BaseViewAuthPermission(ModelViewSet):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSameOrganization]
 
 
 class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
@@ -21,7 +21,6 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
     Базовый ViewSet с автоматической фильтрацией по организации пользователя
     и дополнительными проверками прав доступа
     """
-    permission_classes += [IsSameOrganization, IsAuthenticated]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -35,8 +34,6 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
         if hasattr(user, 'org') and user.org:
             return queryset.filter(org=user.org)
 
-        if hasattr(user, 'org') and user.org:
-            return queryset  
 
         return queryset
     
