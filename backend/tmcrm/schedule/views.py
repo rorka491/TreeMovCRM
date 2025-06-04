@@ -2,70 +2,61 @@ from django.shortcuts import render
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from .models import Schedule
-from .serializers import ScheduleSerializer
+from .serializers import ScheduleSerializer, TeacherScheduleSerializer, GroupScheduleSerializer, ClassroomScheduleSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from mainapp.views import BaseViewSetWithOrdByOrg
+from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
 from collections import defaultdict
+import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
+from types import SimpleNamespace
+from .utils import _grouped_response
 
+#filters 
+class ScheduleFilter(django_filters.FilterSet):
+    start_date = django_filters.DateFilter(field_name='date', lookup_expr='gte')
+    end_date = django_filters.DateFilter(field_name='date', lookup_expr='lte')
 
-class ScheduleViewSet(BaseViewSetWithOrdByOrg):
+    class Meta:
+        model = Schedule
+        fields = '__all__'
+        
+
+#views
+class ScheduleViewSet(BaseViewSetWithOrdByOrg, SelectRelatedViewSet):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ScheduleFilter
 
+    select_related_fields = [
+        'teacher',
+        'teacher__employer',
+        'subject',
+        'group',
+        'org',
+        'classroom',
+    ]
+    
     grouped_fields = {
-        'by-teachers': 'teacher_id',
-        'by-groups': 'group_id',
-        'by-classrooms': 'classroom',
+        'by-teachers': ('teacher', TeacherScheduleSerializer),
+        'by-groups': ('group', GroupScheduleSerializer),
+        'by-classrooms': ('classroom', ClassroomScheduleSerializer),
     }
 
-    def _grouped_response(self, field_name):
-        schedules = self.get_queryset().exclude(**{field_name + '__isnull': True})
-        grouped = defaultdict(list)
-
-        for schedule in schedules:
-            key = getattr(schedule, field_name)
-            grouped[key].append(schedule)
-
-        response_data = []
-        for key, schedule_list in grouped.items():
-            serialized = self.get_serializer(schedule_list, many=True)
-            response_data.append({
-                field_name: key,
-                'schedules': serialized.data
-            })
-        return Response(response_data)
-    
+    def _grouped_action(self, key):
+        field_name, serializer = self.grouped_fields[key]
+        return _grouped_response(self, field_name, serializer)
 
     @action(detail=False, methods=['get'], url_path='by-teachers')
     def by_teachers(self, request):
-        return self._grouped_response(self.grouped_fields['by-teachers'])
+        return self._grouped_action('by-teachers')
 
     @action(detail=False, methods=['get'], url_path='by-groups')
     def by_groups(self, request):
-        return self._grouped_response(self.grouped_fields['by-groups'])
+        return self._grouped_action('by-groups')
 
     @action(detail=False, methods=['get'], url_path='by-classrooms')
     def by_classrooms(self, request):
-        return self._grouped_response(self.grouped_fields['by-classrooms'])
+        return self._grouped_action('by-classrooms')
     
-    @action(detail=False, methods=['get'])
-    def search(self, request):
-        filters = request.query_params.dict()
-        print(filters)
-        schedules = Schedule.objects.filter(**filters)
-        serializer = ScheduleSerializer(schedules, many=True)
-        return Response(serializer.data)
-
-
-        
-
-    
-        
-
-    
-     
-    
-
-
-

@@ -23,29 +23,31 @@ function ScheduleByGroup() {
       });
   }, []);
 
-  const getDayOfWeek = (dateStr) => {
+  // Возвращает индекс дня недели от 0 (Пн) до 6 (Вс)
+  const getDayOfWeekIndex = (dateStr) => {
     const date = new Date(dateStr);
-    const day = date.getDay();
-    return day === 0 ? 6 : day - 1; 
+    const day = date.getDay(); // 0 — Вс, 1 — Пн, ...
+    return day === 0 ? 6 : day - 1;
   };
 
+  // Группируем расписание по урокам и дням недели
   const groupByLessonAndDay = (schedules) => {
-    const result = {};
-    schedules.forEach(s => {
-      const lesson = s.lesson;
-      const dayIndex = getDayOfWeek(s.date);
-      if (!result[lesson]) result[lesson] = {};
-      result[lesson][dayIndex] = s;
+    const grouped = {};
+    schedules.forEach(item => {
+      const lessonNum = item.lesson;
+      const dayIdx = getDayOfWeekIndex(item.date);
+      if (!grouped[lessonNum]) grouped[lessonNum] = {};
+      grouped[lessonNum][dayIdx] = item;
     });
-    return result;
+    return grouped;
   };
 
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error}</div>;
+  if (!data.length) return <div>Данные не найдены</div>;
 
   return (
     <div>
-      {data.length === 0 && <div>Данные не найдены</div>}
       {data.map(({ group, schedules }) => {
         const grid = groupByLessonAndDay(schedules);
         const lessons = Object.keys(grid)
@@ -59,8 +61,8 @@ function ScheduleByGroup() {
               <thead>
                 <tr>
                   <th className="border px-2 py-1">Пара</th>
-                  {DAYS.map((day, i) => (
-                    <th key={i} className="border px-2 py-1">{day}</th>
+                  {DAYS.map((day, idx) => (
+                    <th key={idx} className="border px-2 py-1">{day}</th>
                   ))}
                 </tr>
               </thead>
@@ -69,14 +71,21 @@ function ScheduleByGroup() {
                   <tr key={lesson}>
                     <td className="border px-2 py-1 font-medium">{lesson}</td>
                     {DAYS.map((_, dayIdx) => {
-                      const cell = grid[lesson][dayIdx];
+                      const cell = grid[lesson]?.[dayIdx];
+
                       return (
                         <td key={dayIdx} className="border px-2 py-1 align-top">
                           {cell ? (
                             <>
                               <strong>{cell.title}</strong><br />
-                              Преп: {cell.teacher}<br />
-                              Ауд: {cell.classroom}<br />
+                              Преп: {cell.teacher?.employer?.surname} {cell.teacher?.employer?.name} {cell.teacher?.employer?.patronymic}<br />
+                              {cell.classroom ? (
+                              <>
+                                Ауд: {typeof cell.classroom.title === 'string' ? cell.classroom.title : JSON.stringify(cell.classroom.title)}, 
+                                этаж {cell.classroom.floor}, 
+                                корпус {cell.classroom.building}
+                              </>
+                              ) : '-'}
                               Время: {cell.start_time} — {cell.end_time}
                             </>
                           ) : (

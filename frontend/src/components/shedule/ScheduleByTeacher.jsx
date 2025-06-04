@@ -48,11 +48,11 @@ function ScheduleByTeacher() {
       {data.length === 0 && <div>Данные не найдены</div>}
       {data.map(({ teacher_id, schedules }) => {
         const grid = groupByLessonAndDay(schedules);
-        const lessons = Object.keys(grid).sort((a, b) => a - b); // сортируем пары по номеру
-
+        const lessons = Object.keys(grid).sort((a, b) => a - b);
+        const teacher = schedules.teacher.employer
         return (
           <div key={teacher_id} className="mb-12">
-            <h2 className="text-xl font-semibold mb-4">Преподаватель: {teacher_id}</h2>
+            <h2 className="text-xl font-semibold mb-4">Преподаватель: {teacher.name}</h2>
             <table className="table-auto border border-collapse w-full text-sm">
               <thead>
                 <tr>
@@ -74,7 +74,8 @@ function ScheduleByTeacher() {
                             <>
                               <strong>{cell.title}</strong><br />
                               Время: {cell.start_time} — {cell.end_time}<br />
-                              Ауд: {cell.classroom}
+                              Ауд: {cell.classroom.title}<br />
+                              Пара: {cell.lesson}
                             </>
                           ) : (
                             '-'
@@ -92,5 +93,8 @@ function ScheduleByTeacher() {
     </div>
   );
 }
+
+
+
 
 export default ScheduleByTeacher;

@@ -11,7 +11,7 @@ WEEK_DAY_CHOICES = (
     (4, "Thursday"),
     (5, "Friday"),
     (6, "Saturday"),
-    (0, "Sunday"),
+    (7, "Sunday"),
 )
 
 GRADE_CHOICES = (
@@ -31,6 +31,18 @@ class Subject(BaseModelOrg):
     
     def __str__(self):
         return self.name
+    
+class Classroom(BaseModelOrg):
+    title = models.CharField(max_length=100)
+    floor = models.SmallIntegerField(null=True, blank=True)
+    building = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Аудитория'
+        verbose_name_plural = 'Аудиории'
+
+    def __str__(self):
+        return f'Аудитория {self.title}'
 
 
 class Schedule(BaseModelOrg):
@@ -40,7 +52,7 @@ class Schedule(BaseModelOrg):
     date = models.DateField(default=date.today())
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="schedules")
     week_day = models.PositiveSmallIntegerField(blank=False)
-    classroom = models.CharField(max_length=100, default='Not assigned', blank=True, null=True)
+    classroom = models.ForeignKey(Classroom, blank=True, null=True, on_delete=models.SET_NULL, related_name="schedules")
     group = models.ForeignKey(StudentGroup, on_delete=models.CASCADE, related_name='schedules', blank=True, null=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
     is_canceled = models.BooleanField(default=False, blank=True)
@@ -50,26 +62,37 @@ class Schedule(BaseModelOrg):
 
     class Meta:
         verbose_name = "Занятие"
-        verbose_name_plural = "Занятие"
+        verbose_name_plural = "Занятия"
         ordering = ["date", "start_time"]
 
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Конечное время должно быть позже начального")
         
-        overlapping = Schedule.objects.filter(
-            teacher=self.teacher,
-            date=self.date,
-            lesson=self.lesson
-        )
-        if overlapping.exists():
+        filters = {
+            "date": self.date,
+            "lesson": self.lesson,
+        }
+
+        if self.pk:
+            exclude = {"pk": self.pk}
+        else:
+            exclude = {}
+
+        teacher_qs = Schedule.objects.filter(teacher=self.teacher, **filters).exclude(**exclude)
+        group_qs = Schedule.objects.filter(group=self.group, **filters).exclude(**exclude)
+
+        if teacher_qs.exists():
             raise ValidationError('У этого преподавателя на эту пару и дату занятие')
+        if group_qs.exists():
+            raise ValidationError('У этой группы на эту пару и дату занятие')
+
         
         super().clean()
 
     def save(self, *args, **kwargs):
         if self.date:
-            self.week_day = self.date.weekday()
+            self.week_day = self.date.isoweekday()
         
         super().save(*args, **kwargs)
     
@@ -121,4 +144,10 @@ class Grade(BaseModelOrg):
         
 
         return super().save(*args, **kwargs)
+    
+
+
+    
+
+
 
