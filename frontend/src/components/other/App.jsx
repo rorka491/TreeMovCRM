@@ -1,6 +1,6 @@
 import React from 'react';
-import Calendar from './components/Calendar/Calendar';
-import './App.css';
+import './App.css';  // Импорт из той же папки
+import Calendar from './Calendar/Calendar';  // Путь относительно текущей папки
 
 function App() {
   const handleDateSelect = (date) => {

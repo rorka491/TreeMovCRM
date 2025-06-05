@@ -12,27 +12,23 @@ const Calendar = ({ onDateSelect }) => {
 
   const dayHeaders = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 
-  // Проверка на високосный год
   const isLeapYear = (year) => {
     return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   };
 
-  // Получение количества дней в месяце
   const getDaysInMonth = (year, month) => {
     const daysInMonth = [
-      31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30,
+      31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 
       31, 31, 30, 31, 30, 31
     ];
     return daysInMonth[month];
   };
 
-  // Определение дня недели для 1-го числа месяца
   const getFirstDayOfMonth = (year, month) => {
     const date = new Date(year, month, 1);
     return date.getDay() === 0 ? 6 : date.getDay() - 1;
   };
 
-  // Генерация календаря на месяц
   const generateCalendar = (year, month) => {
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
@@ -40,7 +36,6 @@ const Calendar = ({ onDateSelect }) => {
     let week = Array(7).fill(null);
 
     let day = 1;
-    // Заполняем первую неделю
     for (let i = 0; i < 7; i++) {
       if (i >= firstDay && day <= daysInMonth) {
         week[i] = day++;
@@ -48,7 +43,6 @@ const Calendar = ({ onDateSelect }) => {
     }
     weeks.push(week);
 
-    // Заполняем остальные недели
     while (day <= daysInMonth) {
       week = Array(7).fill(null);
       for (let i = 0; i < 7 && day <= daysInMonth; i++) {
@@ -60,7 +54,6 @@ const Calendar = ({ onDateSelect }) => {
     return weeks;
   };
 
-  // Переключение на предыдущий месяц
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() - 1);
@@ -69,7 +62,6 @@ const Calendar = ({ onDateSelect }) => {
     }
   };
 
-  // Переключение на следующий месяц
   const handleNextMonth = () => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + 1);
@@ -78,7 +70,6 @@ const Calendar = ({ onDateSelect }) => {
     }
   };
 
-  // Изменение года
   const handleYearChange = (e) => {
     const year = parseInt(e.target.value);
     if (year >= 0 && year <= 9999) {
@@ -88,7 +79,6 @@ const Calendar = ({ onDateSelect }) => {
     }
   };
 
-  // Изменение месяца
   const handleMonthChange = (e) => {
     const month = parseInt(e.target.value);
     const newDate = new Date(currentDate);
@@ -96,7 +86,6 @@ const Calendar = ({ onDateSelect }) => {
     setCurrentDate(newDate);
   };
 
-  // Выбор даты
   const handleDateClick = (day) => {
     if (day) {
       const newSelectedDate = new Date(
@@ -111,7 +100,6 @@ const Calendar = ({ onDateSelect }) => {
     }
   };
 
-  // Рендер календаря
   const renderCalendar = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
