@@ -82,7 +82,7 @@ const headers = [
     '',
 ]
 
-const DepartmentsTable = () => {
+function DepartmentsTable() {
     return (
         <section>
             <div className="grid grid-cols-[2fr_repeat(5,1fr)] mb-4 text-gray-600">

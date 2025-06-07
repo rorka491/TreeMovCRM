@@ -12,7 +12,7 @@ const kpi = [
     },
 ]
 
-const KpiCard = () => {
+function KPICard() {
     return (
         <div className="p-2.5 bg-white rounded-[12.5px] text-xs">
             {kpi.map((section) => (
@@ -40,4 +40,4 @@ const KpiCard = () => {
     )
 }
 
-export default KpiCard
+export default KPICard
