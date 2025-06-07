@@ -7,6 +7,7 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
 }
 
 .calendar-header {
@@ -17,13 +18,18 @@
 }
 
 .calendar-header button {
-  background: #4CAF50;
+  background: #722ed1;
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.calendar-header button:hover {
+  background: #5c26b9; /* Слегка темнее фиолетовый при наведении */
 }
 
 .calendar-header button:disabled {
@@ -32,10 +38,37 @@
 }
 
 .month-select {
-  padding: 8px;
+  background-color: #ffffff;
+  color: #333; /* цвет текста в рамке месяца */
+  border: 1px solid #ddd; /* покраска рамки выбора месяца */
+  padding: 8px 16px;
   border-radius: 4px;
-  border: 1px solid #ddd;
   font-size: 16px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23722ed1' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px top 50%;
+  background-size: 12px auto;
+  padding-right: 30px;
+}
+
+.month-select option {
+  background-color: #f2f2f2;
+  color: #333;   /* тут идет выбор месяца - цвет списка */
+  padding: 8px;
+}
+
+.month-select option:hover {
+  background-color: #722ed1; /* Фиолетовый фон при наведении */
+  color: white; /* Белый текст */
+}
+
+.month-select option:checked {
+  background-color: #4B0096; /*когда выбрал месяц, получается */
+  color: white;
 }
 
 .year-input {
@@ -73,13 +106,13 @@
 }
 
 .calendar-table td.selected {
-  background-color: #1890ff;
+  background-color: #722ed1;
   color: white;
   font-weight: bold;
 }
 
 .calendar-table td.current {
-  border: 2px solid #ff4d4f;
+  border: 2px solid #4B0096;
 }
 
 .selected-date {
