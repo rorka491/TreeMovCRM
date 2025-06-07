@@ -30,7 +30,7 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
     <div className="relative">
       <aside
         id="sidebar"
-        className={`w-80 h-screen text-white flex flex-col justify-between transition-transform duration-300 bg-[#7816db] ease-in-out top-0 left-0 ${
+        className={`w-[272px] h-screen text-white flex flex-col justify-between transition-transform duration-300 bg-[#7816db] ease-in-out top-0 left-0 ${
           isVisible ? '' : 'hidden'
         }`}
       >
@@ -48,7 +48,7 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
                 <Link 
                   to={link.path} 
                   onClick={() => setSection(link.label)}
-                  className={`block px-6 py-3 rounded-lg hover:bg-purple-600 ${location.pathname === link.path ? 'bg-[#4b0096]' : ''}`}
+                  className={`block px-6 py-3 w-[222px] rounded-xl hover:bg-purple-600 ${location.pathname === link.path ? 'bg-[#4b0096]' : ''}`}
                 >
                   {link.label}
                 </Link>
@@ -67,7 +67,7 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
         <button
           id="hideBtn"
           onClick={() => setIsVisible(false)}
-          className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-100 text-white p-2 rounded-l-[15px] h-[130px]"
+          className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-100 text-white p-1 rounded-l-[15px] h-[120px] w-[24px]"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-16" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -80,7 +80,7 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
         <button
           id="showBtn"
           onClick={() => setIsVisible(true)}
-          className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-[#7816db] text-white p-2 rounded-r-[15px] h-[130px]"
+          className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-[#7816db] text-white p-1 rounded-r-[15px] h-[120px] w-[24px]"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

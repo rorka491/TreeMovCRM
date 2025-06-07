@@ -5,7 +5,7 @@ from .views import *
 
 student_router = DefaultRouter()  
 student_router.register(r'', StudentViewSet, basename='students') 
-student_router.register(r'', StudentGroupViewSet, basename='students_group')
+student_router.register(r'students_group', StudentGroupViewSet, basename='students_group')
 
 
 urlpatterns = student_router.urls

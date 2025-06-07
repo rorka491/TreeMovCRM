@@ -7,19 +7,22 @@ const CategoryBar = ({ activeSection, setActiveSection }) => {
     ];
 
     return (
-        <div className="border-b border-t border-black py-2">
-            <ul className="flex space-x-5">
+        <div className="border-b border-t border-[#D9D9D9]">
+            <ul className="flex">
                 {categories.map(({ key, label }) => (
                     <li
                         key={key}
-                        className={`cursor-pointer border-b-2 ${
-                            activeSection === key
-                                ? 'border-[#7816db]'
-                                : 'border-transparent hover:border-[#7816db]'
-                        }`}
+                        className={`group relative flex items-center justify-center h-10 px-4 cursor-pointer`}
                         onClick={() => setActiveSection(key)}
                     >
-                        {label}
+                        <span className="text-center">{label}</span>
+                        <div
+                            className={`absolute bottom-0 left-0 h-[1px] w-full transition-all duration-200 ${
+                                activeSection === key
+                                    ? 'bg-[#7816db]'
+                                    : 'bg-transparent group-hover:bg-[#7816db]'
+                            }`}
+                        />
                     </li>
                 ))}
             </ul>
@@ -27,4 +30,9 @@ const CategoryBar = ({ activeSection, setActiveSection }) => {
     );
 };
 
+
+
+
 export default CategoryBar;
+
+

@@ -1,0 +1,50 @@
+/* components/other/css/Calendar.css */
+.custom-calendar {
+  background-color: white;
+  border: 1px solid #D9D9D9;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.custom-calendar .react-datepicker__header {
+  background-color: #f3f3f3;
+  border-bottom: 1px solid #ccc;
+}
+
+.custom-calendar .react-datepicker__day--selected {
+  background-color: #7816db;
+  color: white;
+  font-weight: bold;
+}
+
+.custom-calendar .react-datepicker__day--keyboard-selected {
+  background-color: #d0b3f7;
+}
+
+.custom-calendar .react-datepicker__day--today {
+  border: 1px solid #7816db;
+}
+
+.custom-calendar .react-datepicker__day {
+  border-radius: 50%;
+  transition: 0.2s ease;
+}
+
+.custom-calendar .react-datepicker__day:hover {
+  background-color: #eee;
+  cursor: pointer;
+}
+
+.custom-input {
+  width: 200px;
+  padding: 8px 12px;
+  border: 1px solid #7816db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  background: #fff;
+  outline: none;
+}

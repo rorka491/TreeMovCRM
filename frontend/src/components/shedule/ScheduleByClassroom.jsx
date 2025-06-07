@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 
 function ScheduleByClassroom() {
   const [data, setData] = useState([]);
@@ -74,7 +74,7 @@ function ScheduleByClassroom() {
                           {cell ? (
                             <>
                               <strong>{cell.title}</strong><br />
-                              Преподаватель: {cell.teacher}<br />
+                              Преподаватель: {cell.teacher.name}<br />
                               Время: {cell.start_time} — {cell.end_time}<br />
                             </>
                           ) : (

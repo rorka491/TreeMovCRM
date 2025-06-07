@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import CategoryBar from './CategoryBar';
+import FilterBar from './FilterBar';
 import ScheduleByTeacher from './ScheduleByTeacher';
 import ScheduleByGroup from './ScheduleByGroup'
 import ScheduleByClassroom from './ScheduleByClassroom'
@@ -11,6 +12,7 @@ function SchedulePage() {
     return (
         <div>
             <CategoryBar activeSection={activeSection} setActiveSection={setActiveSection} />
+            <FilterBar activeSection={activeSection} setActiveSection={setActiveSection} />
 
             <div className="mt-4">
                 {activeSection === 'teacher' && <ScheduleByTeacher/>}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 
 function ScheduleByGroup() {
   const [data, setData] = useState([]);
@@ -75,7 +75,7 @@ function ScheduleByGroup() {
                           {cell ? (
                             <>
                               <strong>{cell.title}</strong><br />
-                              Преп: {cell.teacher}<br />
+                              Преп: {cell.teacher.name}<br />
                               Ауд: {cell.classroom}<br />
                               Время: {cell.start_time} — {cell.end_time}
                             </>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 
 function ScheduleByTeacher() {
   const [data, setData] = useState([]);
