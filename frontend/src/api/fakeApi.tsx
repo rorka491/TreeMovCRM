@@ -1,21 +1,46 @@
-let baseLatency = parseFloat(localStorage.getItem('fakeApi:fakeLatency') ?? 0)
+let baseLatency = parseFloat(localStorage.getItem('fakeApi:fakeLatency') ?? '0')
 let latencyVariance = parseFloat(
-    localStorage.getItem('fakeApi:latencyVariance') ?? 0
+    localStorage.getItem('fakeApi:latencyVariance') ?? '0'
 )
 
 // в консоли браузера можно контролировать задержку у фейкового апи
 // просто пишешь:
 // setFakeLatency(<Тут задержка нужная>)
-globalThis.setFakeLatency = (base, variance = 0) => {
+// @ts-ignore
+globalThis.setFakeLatency = (base: number, variance = 0) => {
     baseLatency = base
     localStorage.setItem('fakeApi:fakeLatency', base + '')
     latencyVariance = variance
     localStorage.setItem('fakeApi:latencyVariance', variance + '')
 }
 
+type Students = {
+    id: string | number
+    fullName: number
+    img: number
+    dateOfBirth: number
+    groups: string[]
+    phone: string
+    email: string
+    parentFullName: string
+    parentPhone: string
+    grades: {
+        subject: string
+        group: string
+        score: string
+    }[]
+    studies: {
+        subject: string
+        startDate: string
+    }[]
+    subscriptionActive: boolean
+    debt: number
+    nextPaymentDate: string
+}
+
 const baseApi = {
     students: {
-        getAll() {
+        getAll(): Students[] {
             return [
                 {
                     id: 1,
@@ -485,25 +510,38 @@ const baseApi = {
     },
 }
 
-function goThroughKeys(obj) {
-    const result = {}
+type SpecialObject = {
+    [k: string]: SpecialObject | ((...args: any[]) => any)
+}
+
+function goThroughKeys(obj: SpecialObject) {
+    const result: SpecialObject = {}
 
     for (const key in obj) {
-        if (typeof obj[key] === 'function') {
+        const val = obj[key]
+
+        if (typeof val === 'function') {
             result[key] = (...args) =>
-                new Promise((resolve, reject) => {
-                    const result = obj[key](...args)
+                new Promise((resolve) => {
+                    const result = val(...args)
                     const timeout =
                         baseLatency + Math.random() * latencyVariance
 
                     setTimeout(() => resolve(result), timeout)
                 })
         } else {
-            result[key] = goThroughKeys(obj[key])
+            result
+            result[key] = goThroughKeys(val)
         }
     }
 
     return result
 }
 
-export const fakeApi = goThroughKeys(baseApi)
+type MapToAsync<T> = {
+    [key in keyof T]: T[key] extends (...args: infer A) => infer R
+        ? (...args: A) => Promise<R>
+        : T[key]
+}
+
+export const fakeApi = goThroughKeys(baseApi) as MapToAsync<typeof baseApi>
