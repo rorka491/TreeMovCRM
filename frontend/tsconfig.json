@@ -1,14 +1,7 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "importHelpers": true,
-        "isolatedModules": true,
-        "noEmit": true,
-        "allowJs": true,
-        "jsx": "react"
-    },
-    "include": ["**/*"],
-    "exclude": []
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }
