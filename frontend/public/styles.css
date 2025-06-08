@@ -1,12 +1,14 @@
 @font-face {
     font-family: TTNorms;
-    src: url('/TTNorms-Black.otf') format('opentype');
-    font-weight: bold;
+    src: url('/TTNorms-Bold.ttf') format('opentype');
+    font-style: normal;
+    font-weight: 700;
 }
 
 @font-face {
     font-family: TTNorms;
     src: url('/TTNorms-Medium.ttf') format('opentype');
+    font-style: normal;
     font-weight: 400;
 }
 

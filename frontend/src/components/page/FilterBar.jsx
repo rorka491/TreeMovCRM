@@ -11,7 +11,7 @@ export function FilterBar({ filterData }) {
 			</button>
 
 			{filterData.map((props, index) => (
-				<label key={props.id} className="flex flex-auto min-w-0 gap-2 flex-col h-[100%] m-0 justify-between text-xs text-[#616161]">
+				<label key={props.id} className="flex max-w-[400px] flex-auto min-w-0 gap-2 flex-col h-[100%] m-0 justify-between text-xs text-[#616161]">
 					<span className="pl-2 text-[14px] font-[700]">{props.label}</span>
 					<Select
 						multiple={props.multiple}

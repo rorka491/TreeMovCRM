@@ -18,7 +18,7 @@ export function Base() {
                 <div className="flex flex-col space-y-4 w-full h-[100%] max-w-[1800px]">
                     <PageHeader />
 
-                    <div className="mt-2 h-[100%]">
+                    <div className="overflow-hidden mt-2 h-[100%]">
                         <Outlet />
                     </div>
                 </div>
