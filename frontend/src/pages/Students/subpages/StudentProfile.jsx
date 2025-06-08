@@ -86,7 +86,7 @@ export function StudentProfile() {
                                 <h3 className="inline font-[900] text-3xl">
                                     {student?.fullName},{' '}
                                     <span className="font-normal">
-                                        {age}{' '}
+                                        {age}
                                         {russianPlural(
                                             age,
                                             'год',
@@ -342,7 +342,7 @@ export function StudentProfile() {
                     </tbody>
                 </table>
             </div>
-            <div className='flex justify-between col-start-1 col-end-3'>
+            <div className="flex justify-between col-start-1 col-end-3">
                 <button className="bg-[#5810A1] text-white rounded-2xl flex-auto max-w-[270px]">
                     Изменить профиль
                 </button>
