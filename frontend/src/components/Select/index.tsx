@@ -1,17 +1,32 @@
 import { useEffect, useRef, useState } from 'react'
 
-function optionValue(option) {
+export type SelectOption =
+    | {
+          key: string
+          value: string
+      }
+    | string
+
+function optionValue(option: SelectOption) {
     return typeof option === 'object' && option !== null && 'value' in option
         ? option.value
         : option + ''
 }
-function optionKey(option) {
+function optionKey(option: SelectOption) {
     return typeof option === 'object' && option !== null && 'key' in option
         ? option.key
         : option + ''
 }
 
-export function RadioButton({ onChange, checked, avoidButton }) {
+export function RadioButton({
+    onChange,
+    checked,
+    avoidButton,
+}: {
+    onChange?: (b: boolean) => void
+    checked?: boolean
+    avoidButton?: boolean
+}) {
     const inner = (
         <svg
             width="17"
@@ -54,15 +69,25 @@ export function RadioButton({ onChange, checked, avoidButton }) {
         <div>{inner}</div>
     ) : (
         <button
-            onClick={() => onChange(!checked)}
-            onKeyDown={() => onChange(!checked)}
+            onClick={() => onChange?.(!checked)}
+            onKeyDown={() => onChange?.(!checked)}
         >
             {inner}
         </button>
     )
 }
 
-export function Option({ option, selected, checkMark, onClick }) {
+export function Option({
+    option,
+    selected,
+    checkMark,
+    onClick,
+}: {
+    option: SelectOption
+    selected?: boolean
+    checkMark?: 'square' | 'circle' | boolean
+    onClick: React.MouseEventHandler<HTMLButtonElement>
+}) {
     const value = optionValue(option)
     const key = optionKey(option)
 
@@ -123,10 +148,19 @@ export function Select({
     selected,
     checkMarks,
     className,
+}: {
+    options: SelectOption[]
+    setSelected?: (o: SelectOption | SelectOption[]) => void
+    top?: string | boolean
+    placeholder?: string
+    multiple?: boolean
+    selected?: SelectOption | SelectOption[]
+    checkMarks?: 'square' | 'circle' | boolean
+    className?: string
 }) {
     const [open, setOpen] = useState(false)
 
-    const optionsRef = useRef()
+    const optionsRef = useRef<HTMLDivElement>(null)
 
     if (multiple && !selected) {
         selected = []
@@ -136,12 +170,17 @@ export function Select({
         selected = [selected]
     }
 
-    function onOptionClick(option) {
+    function onOptionClick(option: SelectOption) {
         if (!setSelected) {
             return
         }
 
-        if (multiple) {
+        if (!selected) {
+            setSelected(multiple ? [option] : option)
+            return
+        }
+
+        if (multiple && Array.isArray(selected)) {
             const index = selected.indexOf(option)
 
             if (index !== -1) {
@@ -155,11 +194,11 @@ export function Select({
             return
         }
 
-        setSelected(option)
+        setSelected(multiple ? [option] : option)
         setOpen(false)
     }
 
-    function isOptionSelected(option) {
+    function isOptionSelected(option: SelectOption) {
         if (!selected) {
             return
         }
@@ -167,16 +206,18 @@ export function Select({
         const key = optionKey(option)
         const value = optionValue(option)
 
-        if (!multiple && (selected === key || selected === value)) {
-            return true
+        if (Array.isArray(selected)) {
+            return (
+                selected.indexOf(key) !== -1 || selected.indexOf(value) !== -1
+            )
         }
 
-        return selected.indexOf(key) !== -1 || selected.indexOf(value) !== -1
+        return selected === key || selected === value
     }
 
     useEffect(() => {
-        function handleClickOutside(e) {
-            if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+        function handleClickOutside(e: MouseEvent) {
+            if (optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
                 setOpen(false)
             }
         }
@@ -199,12 +240,15 @@ export function Select({
                 }}
                 className="min-w-0 w-full max-w-[none] border-2 border-solid p-2 rounded-2xl flex items-center justify-between gap-3"
             >
-                <span className='min-w-0 w-[calc(90%)] text-left truncate'>
+                <span className="min-w-0 w-[calc(90%)] text-left truncate">
                     {Array.isArray(selected)
                         ? selected.length !== 0
                             ? selected.join(', ')
                             : (placeholder ?? 'Выберите')
-                        : (selected ?? placeholder ?? 'Выберите')}
+                        : ((selected as any)?.key ??
+                          selected ??
+                          placeholder ??
+                          'Выберите')}
                 </span>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

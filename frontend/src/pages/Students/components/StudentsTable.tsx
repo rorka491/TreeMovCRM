@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../../api'
 import { PopUpMenu } from '../../../components/PopUpMenu'
+import { Student } from '../../../api/fakeApi'
 
-const keyToLabel = {
+const keyToLabel: { [k in keyof Student]?: string } = {
     fullName: 'Ученик',
     dateOfBirth: 'Дата рождения',
     groups: 'Группа',
@@ -11,12 +12,12 @@ const keyToLabel = {
     email: 'Почта',
 }
 
-const keys = Object.keys(keyToLabel)
+const keys = Object.keys(keyToLabel) as (keyof Student)[]
 
 export function StudentsTable() {
-    const [students, setStudents] = useState([])
+    const [students, setStudents] = useState<Student[]>([])
     const [loaded, setLoaded] = useState(false)
-    const [popupOpen, setPopupOpen] = useState(-1)
+    const [popupOpen, setPopupOpen] = useState<string | number>(-1)
     const navigate = useNavigate()
 
     useEffect(() => {

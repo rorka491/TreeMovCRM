@@ -29,7 +29,7 @@ const monthsPlural = [
 ]
 
 export function formatDate(
-    date,
+    date: Date,
     format = 'DD.MM.YYYY',
     options = { padDay: false, monthPlural: false }
 ) {

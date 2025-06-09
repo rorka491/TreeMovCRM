@@ -14,11 +14,11 @@ globalThis.setFakeLatency = (base: number, variance = 0) => {
     localStorage.setItem('fakeApi:latencyVariance', variance + '')
 }
 
-type Students = {
+export type Student = {
     id: string | number
-    fullName: number
-    img: number
-    dateOfBirth: number
+    fullName: string
+    img: string
+    dateOfBirth: string
     groups: string[]
     phone: string
     email: string
@@ -40,7 +40,7 @@ type Students = {
 
 const baseApi = {
     students: {
-        getAll(): Students[] {
+        getAll(): Student[] {
             return [
                 {
                     id: 1,
@@ -492,17 +492,18 @@ const baseApi = {
                 },
             ]
         },
-        getById(id) {
+        getById(id: string | number) {
             return this.getAll().find(
                 (student) => student.id === id || student.id + '' === id
             )
         },
         getAllGroups() {
+            // @ts-ignore
             return Array.from(
                 new Set(
                     this.getAll().reduce(
                         (result, current) => [...result, ...current.groups],
-                        []
+                        [] as string[]
                     )
                 )
             )
@@ -541,7 +542,7 @@ function goThroughKeys(obj: SpecialObject) {
 type MapToAsync<T> = {
     [key in keyof T]: T[key] extends (...args: infer A) => infer R
         ? (...args: A) => Promise<R>
-        : T[key]
+        : MapToAsync<T[key]>
 }
 
 export const fakeApi = goThroughKeys(baseApi) as MapToAsync<typeof baseApi>
