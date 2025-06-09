@@ -89,7 +89,7 @@ export function Option({
     onClick: React.MouseEventHandler<HTMLButtonElement>
 }) {
     const value = optionValue(option)
-    const key = optionKey(option)
+    //const key = optionKey(option)
 
     if (!checkMark) {
         return (

@@ -50,6 +50,7 @@ function App() {
                         <Route path="*" element={<Navigate to="../main" />} />
                     </Route>
                 </Route>
+                <Route />
             </Routes>
         </Router>
     )

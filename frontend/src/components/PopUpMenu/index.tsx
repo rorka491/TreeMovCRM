@@ -3,7 +3,6 @@ import React, {
     useEffect,
     useState,
     useLayoutEffect,
-    SetStateAction,
 } from 'react'
 
 export function PopUpMenu({

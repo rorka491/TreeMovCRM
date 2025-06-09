@@ -501,7 +501,7 @@ const baseApi = {
             // @ts-ignore
             return Array.from(
                 new Set(
-                    this.getAll().reduce(
+                    baseApi.students.getAll().reduce(
                         (result, current) => [...result, ...current.groups],
                         [] as string[]
                     )

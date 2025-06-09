@@ -1,55 +1,59 @@
 {
-  "name": "frontend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "options": {
-    "allowedHosts": [
-      "127.0.0.1"
-    ],
-    "proxy": "http://127.0.0.1:8000"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^7.5.3",
-    "react-scripts": "^5.0.1"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@svgr/core": "^8.1.0",
-    "@svgr/plugin-jsx": "^8.1.0",
-    "@types/react": "^19.1.6",
-    "@vitejs/plugin-react": "^4.4.1",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.6.0",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "prettier": "3.5.3",
-    "vite": "^6.3.5"
-  }
+    "name": "frontend",
+    "version": "1.0.0",
+    "main": "index.js",
+    "options": {
+        "allowedHosts": [
+            "127.0.0.1"
+        ],
+        "proxy": "http://127.0.0.1:8000"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "vite",
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@tailwindcss/vite": "^4.1.8",
+        "postcss": "^8.5.4",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^7.5.3",
+        "react-scripts": "^5.0.1",
+        "tailwindcss": "^4.1.8"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "@svgr/core": "^8.1.0",
+        "@svgr/plugin-jsx": "^8.1.0",
+        "@types/css-modules": "^1.0.5",
+        "@types/react": "^19.1.6",
+        "@vitejs/plugin-react": "^4.4.1",
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-config-standard": "^17.1.0",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-jsx-a11y": "^6.10.2",
+        "eslint-plugin-n": "^16.6.2",
+        "eslint-plugin-promise": "^6.6.0",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "prettier": "3.5.3",
+        "vite": "^6.3.5"
+    }
 }
