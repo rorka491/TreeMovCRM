@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { api } from '../../../api'
 import { russianPlural } from '../../../lib/russianPlural'
 import { formatDate } from '../../../lib/formatDate'
 import { getDifferenceMonthsAndYears } from '../../../lib/getDifferenceMonthsAndYears'
+import { Student } from '../../../api/fakeApi'
 
 const listKeys = {
     dateOfBirth: 'Дата рождения',
@@ -49,7 +50,7 @@ function formatDateDifference(months, years) {
 
 export function StudentProfile() {
     const { studentId } = useParams()
-    const [student, setStudent] = useState(null)
+    const [student, setStudent] = useState<Student | undefined>(undefined)
 
     let age = 0
 
@@ -60,7 +61,7 @@ export function StudentProfile() {
         )
     }
 
-    useState(() => {
+    useEffect(() => {
         api.students.getById(studentId).then(setStudent)
     }, [])
 
@@ -137,7 +138,7 @@ export function StudentProfile() {
                         >
                             <div className="text-nowrap">{listKeys[key]}</div>
                             <div className="text-[#6B7280] flex items-end text-right w-[100%]">
-                                {student?.[key] ? (
+                                {student && key in student ? (
                                     <div className="ml-auto">
                                         {student[key]}
                                     </div>

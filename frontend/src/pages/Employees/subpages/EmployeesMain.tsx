@@ -5,7 +5,7 @@ const filterData = [
 	{
 		id: "department",
 		label: "Отдел",
-		data: ["Отдел продаж", "Бухгалтерия", "IT", "HR"],
+		options: ["Отдел продаж", "Бухгалтерия", "IT", "HR"],
 		top: "Все",
 		multiple: true,
         placeholder: "Все"
@@ -13,18 +13,18 @@ const filterData = [
 	{
 		id: "employees",
 		label: "Сотрудник",
-		data: ["Иванов И.И.", "Петров П.П.", "Сидоров С.С."],
+		options: ["Иванов И.И.", "Петров П.П.", "Сидоров С.С."],
         placeholder: "Все"
 	},
 	{
 		id: "filters",
 		label: "Фильтр",
-		data: ["Активные", "Неактивные"],
+		options: ["Активные", "Неактивные"],
 	},
 	{
 		id: "exportTypes",
 		label: "Экспорт",
-		data: ["xlsx", "csv", "pdf"],
+		options: ["xlsx", "csv", "pdf"],
 		default: "xlsx",
 	},
 ]

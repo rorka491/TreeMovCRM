@@ -13,5 +13,5 @@ export function getDifferenceMonthsAndYears(date1: Date, date2: Date) {
         m += 12
     }
 
-    return [m, years]
+    return [m, years] as const
 }

@@ -8,32 +8,32 @@ export function StudentsMain() {
         {
             id: 'group',
             label: 'Группа',
-            data: ['A', 'B'],
+            options: ['A', 'B'],
             multiple: true,
         },
         {
             id: 'student',
             label: 'Ученик',
-            data: ['Иванов'],
+            options: ['Иванов'],
             multiple: true,
         },
         {
             id: 'filters',
             label: 'Фильтр',
-            data: ['Активные', 'Неактивные'],
+            options: ['Активные', 'Неактивные'],
         },
         {
             id: 'exportTypes',
             label: 'Экспорт',
-            data: ['xlsx', 'csv', 'pdf'],
+            options: ['xlsx', 'csv', 'pdf'],
             default: 'xlsx',
         },
     ])
 
     useEffect(() => {
         ;(async () => {
-            filterData[0].data = await api.students.getAllGroups()
-            filterData[1].data = (await api.students.getAll()).map(
+            filterData[0].options = await api.students.getAllGroups()
+            filterData[1].options = (await api.students.getAll()).map(
                 (student) => student.fullName
             )
             setFilterData([...filterData])
