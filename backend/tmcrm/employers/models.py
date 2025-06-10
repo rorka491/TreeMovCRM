@@ -2,12 +2,26 @@ from django.db import models
 from mainapp.models import BaseModelOrg
 
 
+
+class Department(BaseModelOrg):
+    title = models.CharField(max_length=100, )
+    code = models.IntegerField()
+
+    class Meta:
+        verbose_name = 'Отдел'
+        verbose_name_plural = 'Отделы'
+
 class Employer(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)
     patronymic = models.CharField(max_length=100, blank=True, null=True)
     birthday = models.DateField(blank=True, null=True)
-
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, blank=True, null=True)
+    email = models.EmailField(null=True, blank=True)
+    passport_series = models.CharField(max_length=4, null=True, blank=True) 
+    passport_num = models.CharField(max_length=6, null=True, blank=True)      
+    inn = models.CharField(max_length=12, null=True, blank=True) 
+    
 
     class Meta: 
         verbose_name = 'Сотрудник'
@@ -32,7 +46,7 @@ class JobTitle(BaseModelOrg):
     title = models.CharField(max_length=100)
 
     class Meta:
-        verbose_name = ''
+        verbose_name = 'Должность'
         verbose_name_plural = 'Должности'
 
 
@@ -41,6 +55,8 @@ class LeaveType(models.TextChoices):
     VACATION = "vacation", "Отпуск"
     SICK = "sick", "Больничный"
     UNPAID = "unpaid", "За свой счет"
+
+
 
 class LeaveRequest(BaseModelOrg):
     employee = models.ForeignKey(Employer, on_delete=models.CASCADE)
@@ -55,5 +71,32 @@ class LeaveRequest(BaseModelOrg):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+class DocumentsTypes(BaseModelOrg):
+    title = models.CharField(max_length=100)
+
+
+    class Meta: 
+        verbose_name = 'Тип документа'
+        verbose_name_plural = 'Типы документов'
+
+    def __str__(self):
+        return f'{self.title} ORG: {self.org}'
+
+
+
+
+class Documents(BaseModelOrg):
+    from mainapp.models import User
+
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
+    file_path = models.FileField(upload_to='documents/')
+    upload_at = models.DateTimeField(auto_now_add=True)
+    access_to_document = models.ManyToManyField(User) 
+    doc_type = models.ForeignKey(DocumentsTypes, on_delete=models.CASCADE, blank=True, null=True)
+    
+
+    class Meta: 
+        verbose_name = 'Документ'
+        verbose_name_plural = 'Документы'
 
 

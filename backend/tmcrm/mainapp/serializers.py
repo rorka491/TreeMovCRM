@@ -1,11 +1,32 @@
 from rest_framework import serializers
 
 
-class BaseSerilizeWithOutOrg(serializers.ModelSerializer):
+class BaseSerializerWithoutOrg(serializers.ModelSerializer):
+    """
+    Пока этот класс бесполезен
+    """
     class Meta:
         exclude = ['id', 'org']
 
 class BaseSerializerExcludeFields(serializers.ModelSerializer):
+    """
+    Класс при наследовании дает возможность указать какмие поля можно исключить 
+    передав аргумент exclude_fields
+    Например:
+
+    class GroupScheduleSerializer(ScheduleStudentGroupSerializer):
+        group = StudentGroupSerializer(exclude_fields=['students'])
+        exclude_fields = ['group']
+
+        class Meta: 
+            fields = ['group', 'schedules']
+
+    таким образом группа будет сереализоована без студентов
+    """
+
+    class Meta:
+        model = None
+        fields = '__all__'
 
     def __init__(self, instance=None, *args, **kwargs):
         exclude_fields = kwargs.pop('exclude_fields', [])

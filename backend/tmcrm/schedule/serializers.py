@@ -1,22 +1,27 @@
 from rest_framework import serializers
-from mainapp.serializers import BaseSerializerExcludeFields, BaseSerilizeWithOutOrg
+from mainapp.serializers import BaseSerializerExcludeFields, BaseSerializerWithoutOrg
 from .models import *
 from employers.serializers import TeacherSerializer
-from students.serializers import GroupSerializer 
+from students.serializers import StudentGroupSerializer 
 
 class ClassroomSerializer(BaseSerializerExcludeFields):
 
     class Meta:
         model = Classroom
-        exclude = ['org', 'id']
+        exclude = ['id', 'org']
+
+class SubjectSerializer(BaseSerializerExcludeFields):
+
+    class Meta:
+        model = Subject
+        exclude = ['id', 'org']
+
+
 
 class ScheduleSerializer(BaseSerializerExcludeFields):
     teacher = TeacherSerializer()
-    subject = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
-    group = GroupSerializer()
+    subject = SubjectSerializer()
+    group = StudentGroupSerializer()
 
     org = serializers.SlugRelatedField(
         slug_field='name',
@@ -30,12 +35,11 @@ class ScheduleSerializer(BaseSerializerExcludeFields):
         fields = '__all__'
 
 
-class ScheduleGroupSerializer(serializers.Serializer):
+class ScheduleStudentGroupSerializer(serializers.Serializer):
     schedules = serializers.SerializerMethodField()
     exclude_fields = []
 
     def get_schedules(self, obj):
-        print(f'класс obj {type(obj)}')
         schedules_qs = obj['schedules']
         return ScheduleSerializer(
             schedules_qs,
@@ -43,22 +47,22 @@ class ScheduleGroupSerializer(serializers.Serializer):
             exclude_fields = self.exclude_fields
         ).data 
 
-class TeacherScheduleSerializer(ScheduleGroupSerializer):
+class TeacherScheduleSerializer(ScheduleStudentGroupSerializer):
     teacher = TeacherSerializer()
     exclude_fields = ['teacher']
 
     class Meta: 
         fields = ['teacher', 'schedules']
 
-class ClassroomScheduleSerializer(ScheduleGroupSerializer):
+class ClassroomScheduleSerializer(ScheduleStudentGroupSerializer):
     classroom = ClassroomSerializer()
     exclude_fields = ['classroom']
 
     class Meta: 
         fields = ['classroom', 'schedules']
 
-class GroupScheduleSerializer(ScheduleGroupSerializer):
-    group = GroupSerializer(exclude_fields=['students'])
+class GroupScheduleSerializer(ScheduleStudentGroupSerializer):
+    group = StudentGroupSerializer(exclude_fields=['students'])
     exclude_fields = ['group']
 
     class Meta: 

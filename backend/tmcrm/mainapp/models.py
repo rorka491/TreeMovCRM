@@ -40,6 +40,7 @@ class BaseModelOrg(models.Model):
     class Meta:
         abstract = True
 
+
     def clean(self):
         errors = {}
 
@@ -49,6 +50,7 @@ class BaseModelOrg(models.Model):
                 related_obj = getattr(self, field.name, None)
                 
                 if related_obj and hasattr(related_obj, 'org'):
+                    
                     related_org = getattr(related_obj, 'org', None)
                     if related_org != self.org:
                         errors[field.name] = (
@@ -57,4 +59,18 @@ class BaseModelOrg(models.Model):
                         )
         if errors:
             raise ValidationError(errors)
+        
+    def save(self, *args, **kwargs):
+        org = kwargs.get('org', None)
+        if org:
+            self.org = org
+
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def create_with_user_org(cls, user, **kwargs):
+        obj = cls(**kwargs)
+        obj.save(org=user.org)
+        return obj
+
     
