@@ -177,6 +177,7 @@ export function StudentProfileEdit() {
 
                                         setStudent({ ...student })
                                     }}
+                                    searchQuery="Поиск"
                                     onSelected={(val) => {
                                         student.groups.splice(i, 1, val)
 

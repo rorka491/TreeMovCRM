@@ -88,7 +88,12 @@ export function Option({
         return (
             <button
                 onClick={onClick}
-                className={(selected ? "bg-[#7A75FF] text-white" : "hover:bg-gray-200") + " cursor-pointer text-left px-3 py-2"}
+                className={
+                    (selected
+                        ? 'bg-[#7A75FF] text-white'
+                        : 'hover:bg-gray-200') +
+                    ' cursor-pointer text-left px-3 py-2'
+                }
             >
                 {value}
             </button>
@@ -176,9 +181,13 @@ export function Select<T>({
     onlyArrow,
     topButton,
     onTopButtonClick,
+    search,
+    searchQuery,
 }: SelectProps<T>) {
     const [open, setOpen] = useState(false)
+    const [searchValue, setSearchValue] = useState('')
 
+    const searchRef = useRef<HTMLInputElement>(null)
     const optionsRef = useRef<HTMLDivElement>(null)
 
     if (multiple && !selected) {
@@ -255,6 +264,14 @@ export function Select<T>({
         return () => document.removeEventListener('click', handleClickOutside)
     }, [open])
 
+    useEffect(() => {
+        if (open) {
+            searchRef.current?.select()
+        } else {
+            setSearchValue("")
+        }
+    }, [open])
+
     return (
         <div
             ref={optionsRef}
@@ -268,19 +285,40 @@ export function Select<T>({
                     setOpen(true)
                 }}
                 type="button"
-                className="min-w-0 max-w-[none] w-full h-full border-2 border-solid p-2 rounded-2xl flex items-center justify-between gap-3"
+                className="relative min-w-0 max-w-[none] w-full h-full border-2 border-solid p-2 rounded-2xl flex items-center justify-between gap-3"
             >
                 {!onlyArrow && (
-                    <span className="min-w-0 w-[calc(90%)] text-left truncate">
-                        {Array.isArray(selected)
-                            ? selected.length !== 0
-                                ? selected.join(', ')
-                                : (placeholder ?? 'Выберите')
-                            : ((selected as any)?.key ??
-                              selected ??
-                              placeholder ??
-                              'Выберите')}
-                    </span>
+                    <>
+                        {(search || searchQuery) && open && (
+                            <input
+                                ref={searchRef}
+                                name="selectSearch"
+                                className="absolute inset-0 p-2 rounded-2xl z-10"
+                                placeholder={searchQuery ?? 'Поиск'}
+                                value={searchValue}
+                                onChange={(e) => {
+                                    setSearchValue(e.target.value)
+                                }}
+                            />
+                        )}
+                        <span
+                            className={
+                                ((search || searchQuery) && open
+                                    ? 'opacity-0'
+                                    : '') +
+                                ' min-w-0 w-[calc(90%)] text-left truncate'
+                            }
+                        >
+                            {Array.isArray(selected)
+                                ? selected.length !== 0
+                                    ? selected.join(', ')
+                                    : (placeholder ?? 'Выберите')
+                                : ((selected as any)?.key ??
+                                  selected ??
+                                  placeholder ??
+                                  'Выберите')}
+                        </span>
+                    </>
                 )}
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -288,6 +326,9 @@ export function Select<T>({
                     height={onlyArrow ? '19' : '16'}
                     fill="currentColor"
                     viewBox="0 0 16 16"
+                    className={
+                        (search || searchQuery) && open ? 'opacity-0' : ''
+                    }
                 >
                     <path
                         fillRule="evenodd"
@@ -320,7 +361,7 @@ export function Select<T>({
                             </div>
                         )
                     ) : null}
-                    {options.map((option) => (
+                    {options.filter(option => (searchValue === "") || (optionValue(option) + "").includes(searchValue)).map((option) => (
                         <Option
                             selected={isOptionSelected(option)}
                             checkMark={multiple ? 'square' : checkMarks}
