@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { api } from '../../../api'
 import { russianPlural } from '../../../lib/russianPlural'
 import { formatDate } from '../../../lib/formatDate'
 import { getDifferenceMonthsAndYears } from '../../../lib/getDifferenceMonthsAndYears'
 import { Student } from '../../../api/fakeApi'
+import { parseDate } from '../../../lib/parseDate'
 
 const listKeys = {
     dateOfBirth: 'Дата рождения',
@@ -12,15 +13,6 @@ const listKeys = {
     phone: 'Телефон',
     parentFullName: 'Родитель',
     parentPhone: 'Телефон родителя',
-}
-
-function parseDate(date /* DD.MM.YYYY */) {
-    const parts = date.split(/[/.-]/)
-    return new Date(
-        parseInt(parts[2], 10),
-        parseInt(parts[1], 10) - 1,
-        parseInt(parts[0], 10)
-    )
 }
 
 const gradeToColor = {
@@ -71,7 +63,7 @@ export function StudentProfile() {
 
     return (
         <div className="border-t-2 h-[100%] p-4 grid gap-[20px] grid-cols-[10fr_9fr] grid-rows-[0.56fr_0.72fr_1fr_50px]">
-            <div className="p-3 flex flex-col bg-white rounded-3xl row-start-1 row-end-3">
+            <div className="min-h-0 overflow-hidden p-3 flex flex-col bg-white rounded-3xl row-start-1 row-end-3">
                 <div className="flex gap-5">
                     <div className="relative min-w-[170px] rounded-full overflow-hidden w-[170px] h-[170px]">
                         <div className="absolute content-placeholder inset-0"></div>
@@ -81,7 +73,7 @@ export function StudentProfile() {
                             alt={student?.fullName}
                         />
                     </div>
-                    <div className="w-[100%] flex flex-col gap-3">
+                    <div className="w-full flex flex-col gap-3">
                         {student?.fullName ? (
                             <div className="max-h-[112px] overflow-hidden">
                                 <h3 className="inline font-[900] text-3xl">
@@ -101,7 +93,7 @@ export function StudentProfile() {
                             <>
                                 <div
                                     style={{ animationDelay: '0.8s' }}
-                                    className="content-placeholder rounded-lg max-w-[none] w-[100%] h-8"
+                                    className="content-placeholder rounded-lg max-w-[none] w-full h-8"
                                 />
                                 <div className="flex gap-2">
                                     <div
@@ -137,20 +129,20 @@ export function StudentProfile() {
                             key={key}
                         >
                             <div className="text-nowrap">{listKeys[key]}</div>
-                            <div className="text-[#6B7280] flex items-end text-right w-[100%]">
+                            <div className="text-[#6B7280] flex items-end text-right w-full">
                                 {student && key in student ? (
                                     <div className="ml-auto">
                                         {student[key]}
                                     </div>
                                 ) : (
-                                    <div className="ml-auto w-[30%] h-[100%] content-placeholder"></div>
+                                    <div className="ml-auto w-[30%] h-[1.2em] content-placeholder"></div>
                                 )}
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
-            <div className="bg-white rounded-3xl p-3 flex flex-col">
+            <div className="min-h-0 overflow-hidden bg-white rounded-3xl p-3 flex flex-col">
                 <div className="flex items-center justify-between">
                     <div className="text-[24px] font-[900]">
                         Абонементы и оплаты
@@ -173,7 +165,7 @@ export function StudentProfile() {
                 <div className="ttnorms flex flex-col h-[100%]">
                     <div className="border-b flex h-[100%] items-center justify-between">
                         <div className="text-nowrap">Статус абонемента</div>
-                        <div className="flex items-end text-right w-[100%]">
+                        <div className="flex items-end text-right w-full">
                             {typeof student?.subscriptionActive ===
                             'boolean' ? (
                                 <div className="ml-auto flex items-center gap-1">
@@ -200,13 +192,13 @@ export function StudentProfile() {
                                         : 'неактивен'}
                                 </div>
                             ) : (
-                                <div className="ml-auto w-[30%] h-[100%] content-placeholder"></div>
+                                <div className="ml-auto w-[30%] h-[1.2em] content-placeholder"></div>
                             )}
                         </div>
                     </div>
                     <div className="border-b flex h-[100%] items-center justify-between">
                         <div className="text-nowrap">Задолженность</div>
-                        <div className="flex items-end text-right w-[100%]">
+                        <div className="flex items-end text-right w-full">
                             {typeof student?.debt !== 'undefined' ? (
                                 <div
                                     className={
@@ -219,13 +211,13 @@ export function StudentProfile() {
                                     {student.debt} р
                                 </div>
                             ) : (
-                                <div className="ml-auto w-[30%] h-[100%] content-placeholder"></div>
+                                <div className="ml-auto w-[30%] h-[1.2em] content-placeholder"></div>
                             )}
                         </div>
                     </div>
                     <div className="flex h-[100%] items-center justify-between">
                         <div className="text-nowrap">Дата следующей оплаты</div>
-                        <div className="flex items-end text-right w-[100%]">
+                        <div className="flex items-end text-right w-full">
                             {typeof student?.nextPaymentDate === 'string' ? (
                                 <div className="ml-auto">
                                     {student.nextPaymentDate.length === 0
@@ -233,60 +225,82 @@ export function StudentProfile() {
                                         : student.nextPaymentDate}
                                 </div>
                             ) : (
-                                <div className="ml-auto w-[30%] h-[100%] content-placeholder"></div>
+                                <div className="ml-auto w-[30%] h-[1.2em] content-placeholder"></div>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="bg-white rounded-3xl p-3 flex flex-col">
+            <div className="min-h-0 overflow-hidden bg-white rounded-3xl p-3 flex flex-col">
                 <div className="flex items-center justify-between">
                     <div className="text-[24px] pb-1 font-[900]">
                         Период обучения
                     </div>
                 </div>
-                <table
-                    className={`max-h-[${30 + 40 * (student?.studies?.length ?? 2)}px] w-[100%] h-[100%] text-left ttnorms text-[14px]`}
-                >
-                    <thead>
-                        <tr className="font-[700]">
-                            <th>Предмет</th>
-                            <th>Начало занятий</th>
-                            <th>Прошло с начала</th>
-                        </tr>
-                    </thead>
-                    <tbody className="font-[400]">
-                        {student?.studies &&
-                            student?.studies.map((study, i) => (
-                                <tr
-                                    className={
-                                        i !== student.studies.length - 1
-                                            ? 'border-y'
-                                            : ''
-                                    }
-                                    key={study.subject + study.startDate}
-                                >
-                                    <td>{study.subject}</td>
-                                    <td>
-                                        {formatDate(
-                                            parseDate(study.startDate),
-                                            'dd m_short yyyy'
-                                        )}
-                                    </td>
-                                    <td className="text-[#6B7280]">
-                                        {formatDateDifference(
-                                            ...getDifferenceMonthsAndYears(
-                                                parseDate(study.startDate),
-                                                new Date()
-                                            )
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
+                <div className="h-[100%] min-w-0 flex flex-col overflow-y-auto special-scroll">
+                    <table
+                        className="w-full h-[100%] min-w-0 text-left ttnorms text-[14px]"
+                        style={{
+                            maxHeight:
+                                30 + 40 * (student?.studies?.length ?? 13),
+                        }}
+                    >
+                        <thead>
+                            <tr className="font-[700]">
+                                <th>Предмет</th>
+                                <th>Начало занятий</th>
+                                <th>Прошло с начала</th>
+                            </tr>
+                        </thead>
+                        <tbody className="font-[400]">
+                            {student?.studies
+                                ? student?.studies.map((study, i) => (
+                                      <tr
+                                          className={
+                                              i !== student.studies.length - 1
+                                                  ? 'border-y'
+                                                  : ''
+                                          }
+                                          key={study.subject + study.startDate}
+                                      >
+                                          <td>{study.subject}</td>
+                                          <td className="py-1">
+                                              {formatDate(
+                                                  parseDate(study.startDate),
+                                                  'dd m_short yyyy',
+                                                  { padDay: false }
+                                              )}
+                                          </td>
+                                          <td className="text-[#6B7280]">
+                                              {formatDateDifference(
+                                                  ...getDifferenceMonthsAndYears(
+                                                      parseDate(
+                                                          study.startDate
+                                                      ),
+                                                      new Date()
+                                                  )
+                                              )}
+                                          </td>
+                                      </tr>
+                                  ))
+                                : Array.from({ length: 13 }).map((_, i) => (
+                                      <tr key={i}>
+                                          <td className="max-h-[60px] min-h-0">
+                                              <div className="mr-auto w-[170px] h-[1.6em] content-placeholder"></div>
+                                          </td>
+                                          <td className="py-1 flex h-[100%] items-center justify-center text-[12px] text-center">
+                                              <div className="my-auto w-[60%] h-[1.6em] content-placeholder"></div>
+                                          </td>
+                                          <td className={`text-center`}>
+                                              <div className="ml-auto mr-7 w-[90%] h-[1.6em] content-placeholder"></div>
+                                          </td>
+                                      </tr>
+                                  ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div className="bg-white flex flex-col rounded-3xl row-start-2 row-end-4 p-3">
+            <div className="min-h-0 overflow-hidden bg-white flex flex-col rounded-3xl row-start-2 row-end-4 p-3">
                 <div className="flex items-center justify-between">
                     <div className="text-[24px] font-[900]">
                         Последние оценки
@@ -306,47 +320,71 @@ export function StudentProfile() {
                         </svg>
                     </button>
                 </div>
-                <table
-                    className={`max-h-[${30 + 40 * (student?.grades?.length ?? 2)}px] w-[100%] h-[100%] text-left ttnorms text-[14px]`}
-                >
-                    <thead>
-                        <tr className="font-[700]">
-                            <th>Предмет</th>
-                            <th className="text-center">Группа</th>
-                            <th className="text-center">Оценка</th>
-                        </tr>
-                    </thead>
-                    <tbody className="font-[400]">
-                        {student?.grades &&
-                            student?.grades.map((study, i) => (
-                                <tr
-                                    className={
-                                        (i !== student.studies.length - 1
-                                            ? 'border-y'
-                                            : '') + ' min-h-0 max-h-[60px]'
-                                    }
-                                    key={i}
-                                >
-                                    <td className="max-h-[60px] min-h-0">
-                                        {study.subject}
-                                    </td>
-                                    <td className="text-[12px] text-center">
-                                        {study.group}
-                                    </td>
-                                    <td
-                                        className={`text-[${gradeToColor[study.score]}] text-center`}
-                                    >
-                                        {study.score}
-                                    </td>
-                                </tr>
-                            ))}
-                    </tbody>
-                </table>
+
+                <div className="h-[100%] min-w-0 flex flex-col overflow-y-auto special-scroll">
+                    <table
+                        className={`w-full h-[100%] text-left ttnorms text-[14px]`}
+                        style={{
+                            maxHeight:
+                                30 + 35 * (student?.grades?.length ?? 90),
+                        }}
+                    >
+                        <thead>
+                            <tr className="font-[700]">
+                                <th>Предмет</th>
+                                <th className="text-center">Группа</th>
+                                <th className="text-center">Оценка</th>
+                            </tr>
+                        </thead>
+                        <tbody className="font-[400]">
+                            {student?.grades
+                                ? student?.grades.map((study, i) => (
+                                      <tr
+                                          className={
+                                              (i !== student.studies.length - 1
+                                                  ? 'border-y'
+                                                  : '') +
+                                              ' min-h-0 max-h-[60px]'
+                                          }
+                                          key={i}
+                                      >
+                                          <td className="max-h-[60px] py-1 min-h-0">
+                                              {study.subject}
+                                          </td>
+                                          <td className="text-[12px] py-1 text-center">
+                                              {study.group}
+                                          </td>
+                                          <td
+                                              className={`text-[${gradeToColor[study.score]}] py-1 text-center`}
+                                          >
+                                              {study.score}
+                                          </td>
+                                      </tr>
+                                  ))
+                                : Array.from({ length: 90 }).map((_, i) => (
+                                      <tr key={i}>
+                                          <td className="max-h-[60px] py-1 min-h-0">
+                                              <div className="mr-auto w-[90%] h-[1.6em] content-placeholder"></div>
+                                          </td>
+                                          <td className="flex h-[100%] items-center justify-center text-[12px] text-center">
+                                              <div className="my-auto w-[60%] h-[1.6em] content-placeholder"></div>
+                                          </td>
+                                          <td className={`text-center`}>
+                                              <div className="ml-auto w-[90%] h-[1.6em] content-placeholder"></div>
+                                          </td>
+                                      </tr>
+                                  ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div className="flex justify-between col-start-1 col-end-3">
-                <button className="bg-[#5810A1] text-white rounded-2xl flex-auto max-w-[270px]">
-                    Изменить профиль
-                </button>
+            <div className="min-h-0 overflow-hidden flex justify-between col-start-1 col-end-3">
+                <Link
+                    className="bg-[#5810A1] flex items-center justify-center text-white rounded-2xl flex-auto max-w-[270px]"
+                    to={'./edit'}
+                >
+                    <span>Изменить профиль</span>
+                </Link>
                 <button className="bg-[#2F213E] self-right rounded-2xl px-3.5 flex-auto text-white max-w-[200px] flex justify-between items-center">
                     <svg
                         width="16"

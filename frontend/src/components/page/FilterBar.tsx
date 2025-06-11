@@ -41,7 +41,7 @@ export function FilterBar({ filterData }: { filterData: FilterPart[] }) {
                         className={'text-black text-sm'}
                         options={props.options}
                         top={props.top}
-                        setSelected={(newSelected) => {
+                        onSelected={(newSelected) => {
                             selected[filterData[index].id] = newSelected
                             setSelected({ ...selected })
                         }}

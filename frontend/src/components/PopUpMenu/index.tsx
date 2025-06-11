@@ -1,9 +1,4 @@
-import React, {
-    useRef,
-    useEffect,
-    useState,
-    useLayoutEffect,
-} from 'react'
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react'
 
 export function PopUpMenu({
     open,
@@ -23,7 +18,10 @@ export function PopUpMenu({
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
-            if (ref.current && !ref.current.parentNode?.contains(e.target as Node)) {
+            if (
+                ref.current &&
+                !ref.current.parentNode?.contains(e.target as Node)
+            ) {
                 setOpen?.(false)
 
                 if (open) {
@@ -51,11 +49,11 @@ export function PopUpMenu({
 
         const selfPosX = Math.min(
             selfRect.x,
-            window.innerWidth - selfRect.width
+            window.innerWidth - selfRect.width - 1
         )
         const selfPosY = Math.min(
             selfRect.y,
-            window.innerHeight - selfRect.height
+            window.innerHeight - selfRect.height - 1
         )
 
         setPos({
@@ -71,8 +69,12 @@ export function PopUpMenu({
                     ref={ref}
                     className={
                         className +
-                        ` absolute top-[${pos.y}px] left-[${pos.x}px] z-10`
+                        ` absolute z-10`
                     }
+                    style={{
+                        top: pos.y,
+                        left: pos.x
+                    }}
                 >
                     {children}
                 </div>

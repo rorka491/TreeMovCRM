@@ -28,17 +28,17 @@ export function StudentsTable() {
     }, [])
 
     return (
-        <div className="w-[100%] h-[100%] overflow-y-scroll">
-            <table className="w-[100%] min-w-0 border-separate border-spacing-y-2">
+        <div className="w-full h-[100%] overflow-y-scroll special-scroll">
+            <table className="w-full min-w-0 border-separate border-spacing-y-2">
                 <thead>
                     <tr>
                         {keys.map((key, i) => (
                             <th
                                 className={
                                     (i === 0
-                                        ? 'pl-3 font-200 text-black text-[17px]'
-                                        : 'text-gray-600') +
-                                    ' text-nowrap truncate max-w-[200px] font-normal text-start'
+                                        ? 'pl-3 font-[700] text-red text-[17px]'
+                                        : 'text-gray-600 font-[500]') +
+                                    ' text-nowrap px-2 ttnorms max-w-[200px] text-start'
                                 }
                                 key={key}
                             >
@@ -57,7 +57,7 @@ export function StudentsTable() {
                                               (i === 0
                                                   ? 'border-l-2 pl-3 rounded-l-xl'
                                                   : '') +
-                                              ' text-nowrap border-y-2 max-w-[200px] truncate py-2'
+                                              ' text-nowrap px-2 border-y-2 max-w-[200px] truncate py-2'
                                           }
                                           key={key}
                                       >
@@ -93,21 +93,30 @@ export function StudentsTable() {
                                                           student.id
                                                   )
                                               }
-                                              className="bg-white rounded-xl p-2 border shadow-md"
+                                              className="bg-white rounded-xl p-2 border shadow-md hover:bg-[#F0E5FB]"
                                           >
                                               Открыть
                                           </button>
-                                          <button className="bg-white rounded-xl p-2 border shadow-md">
+                                          <button
+                                              onClick={() =>
+                                                  navigate(
+                                                      '/students/profile/' +
+                                                          student.id +
+                                                          '/edit'
+                                                  )
+                                              }
+                                              className="bg-white rounded-xl p-2 border shadow-md hover:bg-[#F0E5FB]"
+                                          >
                                               Изменить
                                           </button>
-                                          <button className="bg-white rounded-xl p-2 border shadow-md">
+                                          <button className="bg-white rounded-xl p-2 border shadow-md hover:bg-[#F0E5FB]">
                                               Удалить
                                           </button>
                                       </PopUpMenu>
                                   </td>
                               </tr>
                           ))
-                        : Array.from({ length: 4 }).map((_, i) => (
+                        : Array.from({ length: 14 }).map((_, i) => (
                               <tr
                                   key={i}
                                   style={{ animationDelay: `${i * 0.1}s` }}

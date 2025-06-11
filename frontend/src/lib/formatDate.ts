@@ -1,37 +1,12 @@
-const monthes = [
-    'январь',
-    'февраль',
-    'март',
-    'апрель',
-    'май',
-    'июнь',
-    'июль',
-    'август',
-    'сентябрь',
-    'октябрь',
-    'ноябрь',
-    'декабрь',
-]
-
-const monthsPlural = [
-    'января',
-    'февраля',
-    'марта',
-    'апреля',
-    'мая',
-    'июня',
-    'июля',
-    'августа',
-    'сентября',
-    'октября',
-    'ноября',
-    'декабря',
-]
+import { months, monthsPlural } from './months'
 
 export function formatDate(
     date: Date,
     format = 'DD.MM.YYYY',
-    options = { padDay: false, monthPlural: false }
+    options: { padDay?: boolean; monthPlural?: boolean } = {
+        padDay: true,
+        monthPlural: false,
+    }
 ) {
     date = new Date(date)
     format = format.toLowerCase()
@@ -41,7 +16,7 @@ export function formatDate(
     const year = date.getFullYear()
 
     const dayStr = options.padDay ? (day + '').padStart(2, '0') : day + ''
-    const monthStr = (options.monthPlural ? monthsPlural : monthes)[month]
+    const monthStr = (options.monthPlural ? monthsPlural : months)[month]
     const monthShort =
         monthStr.length > 4 ? monthStr.substring(0, 3) + '.' : monthStr
 

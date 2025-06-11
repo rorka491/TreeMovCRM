@@ -493,7 +493,7 @@ const baseApi = {
             ]
         },
         getById(id: any) {
-            return this.getAll().find(
+            return baseApi.students.getAll().find(
                 (student) => student.id === id || student.id + '' === id
             )
         },

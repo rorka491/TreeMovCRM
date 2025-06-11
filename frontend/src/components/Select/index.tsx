@@ -1,18 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 
-export type SelectOption =
-    | {
-          key: string
-          value: string
-      }
-    | string
-
-function optionValue(option: SelectOption) {
+function optionValue(option: any) {
     return typeof option === 'object' && option !== null && 'value' in option
         ? option.value
         : option + ''
 }
-function optionKey(option: SelectOption) {
+function optionKey(option: any) {
     return typeof option === 'object' && option !== null && 'key' in option
         ? option.key
         : option + ''
@@ -83,7 +76,7 @@ export function Option({
     checkMark,
     onClick,
 }: {
-    option: SelectOption
+    option: any
     selected?: boolean
     checkMark?: 'square' | 'circle' | boolean
     onClick: React.MouseEventHandler<HTMLButtonElement>
@@ -139,25 +132,50 @@ export function Option({
 //
 // styles
 // top = bool | string
-export function Select({
+type SelectProps<T> = {
+    options: T[]
+    top?: string | boolean
+    placeholder?: string
+    checkMarks?: 'square' | 'circle' | boolean
+    className?: string
+    onlyArrow?: boolean
+} & (
+    | {
+          multiple: true
+          onSelected?: (o: T[]) => void
+          selected?: T[]
+      }
+    | {
+          multiple?: false
+          onSelected?: (o: T) => void
+          selected?: T
+      }
+) &
+    (
+        | {
+              topButton?: false
+              onTopButtonClick?: never
+          }
+        | {
+              topButton: true
+              onTopButtonClick?: () => void
+          }
+    ) &
+    ({} | {})
+
+export function Select<T>({
     options,
-    setSelected,
+    onSelected,
     top,
     placeholder,
     multiple,
     selected,
     checkMarks,
     className,
-}: {
-    options: SelectOption[]
-    setSelected?: (o: SelectOption | SelectOption[]) => void
-    top?: string | boolean
-    placeholder?: string
-    multiple?: boolean
-    selected?: SelectOption | SelectOption[]
-    checkMarks?: 'square' | 'circle' | boolean
-    className?: string
-}) {
+    onlyArrow,
+    topButton,
+    onTopButtonClick,
+}: SelectProps<T>) {
     const [open, setOpen] = useState(false)
 
     const optionsRef = useRef<HTMLDivElement>(null)
@@ -170,13 +188,16 @@ export function Select({
         selected = [selected]
     }
 
-    function onOptionClick(option: SelectOption) {
-        if (!setSelected) {
+    function onOptionClick(option: T) {
+        if (!onSelected) {
             return
         }
 
+        onSelected
+
         if (!selected) {
-            setSelected(multiple ? [option] : option)
+            // @ts-ignore
+            onSelected(multiple ? [option] : option)
             return
         }
 
@@ -186,19 +207,22 @@ export function Select({
             if (index !== -1) {
                 const newSelected = [...selected]
                 newSelected.splice(index, 1)
-                setSelected(newSelected)
+                // @ts-ignore
+                onSelected(newSelected)
             } else {
-                setSelected([...selected, option])
+                // @ts-ignore
+                onSelected([...selected, option])
             }
 
             return
         }
 
-        setSelected(multiple ? [option] : option)
+        // @ts-ignore
+        onSelected(multiple ? [option] : option)
         setOpen(false)
     }
 
-    function isOptionSelected(option: SelectOption) {
+    function isOptionSelected(option: T) {
         if (!selected) {
             return
         }
@@ -216,21 +240,25 @@ export function Select({
     }
 
     useEffect(() => {
+        if (!open) {
+            return
+        }
+
         function handleClickOutside(e: MouseEvent) {
-            if (optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
+            if (!optionsRef.current?.contains(e.target as Node)) {
                 setOpen(false)
             }
         }
 
         document.addEventListener('click', handleClickOutside)
         return () => document.removeEventListener('click', handleClickOutside)
-    }, [])
+    }, [open])
 
     return (
         <div
             ref={optionsRef}
             className={
-                'width-100 min-w-[100px] relative max-width-[none] ' +
+                'width-100 min-w-[min-content] relative max-width-[none] rounded-2xl ' +
                 (className ?? '')
             }
         >
@@ -238,22 +266,25 @@ export function Select({
                 onClick={() => {
                     setOpen(true)
                 }}
-                className="min-w-0 w-full max-w-[none] border-2 border-solid p-2 rounded-2xl flex items-center justify-between gap-3"
+                type="button"
+                className="min-w-0 max-w-[none] w-full h-full border-2 border-solid p-2 rounded-2xl flex items-center justify-between gap-3"
             >
-                <span className="min-w-0 w-[calc(90%)] text-left truncate">
-                    {Array.isArray(selected)
-                        ? selected.length !== 0
-                            ? selected.join(', ')
-                            : (placeholder ?? 'Выберите')
-                        : ((selected as any)?.key ??
-                          selected ??
-                          placeholder ??
-                          'Выберите')}
-                </span>
+                {!onlyArrow && (
+                    <span className="min-w-0 w-[calc(90%)] text-left truncate">
+                        {Array.isArray(selected)
+                            ? selected.length !== 0
+                                ? selected.join(', ')
+                                : (placeholder ?? 'Выберите')
+                            : ((selected as any)?.key ??
+                              selected ??
+                              placeholder ??
+                              'Выберите')}
+                    </span>
+                )}
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
+                    width={onlyArrow ? '19' : '16'}
+                    height={onlyArrow ? '19' : '16'}
                     fill="currentColor"
                     viewBox="0 0 16 16"
                 >
@@ -267,16 +298,27 @@ export function Select({
                 <div
                     className={
                         (top ? 'pb-1' : 'py-1') +
-                        ' overflow-hidden border-2 border-solid flex flex-col text-left min-w-min max-width-[none] absolute bg-white rounded-xl top-[100%] left-0 right-0'
+                        ' overflow-hidden z-10 border-2 border-solid flex flex-col text-left min-w-min max-width-[none] absolute bg-white rounded-xl top-[100%] left-0 right-0'
                     }
                 >
-                    {top && (
-                        <div className="px-3 py-2 bg-[#D8B4FE] text-white">
-                            {typeof top === 'string'
-                                ? top
-                                : (placeholder ?? 'Выберите')}
-                        </div>
-                    )}
+                    {top ? (
+                        topButton ? (
+                            <button
+                                onClick={() => onTopButtonClick?.()}
+                                className="cursor-pointer px-3 py-2 bg-[#D8B4FE] text-white"
+                            >
+                                {typeof top === 'string'
+                                    ? top
+                                    : (placeholder ?? 'Выберите')}
+                            </button>
+                        ) : (
+                            <div className="px-3 py-2 bg-[#D8B4FE] text-white">
+                                {typeof top === 'string'
+                                    ? top
+                                    : (placeholder ?? 'Выберите')}
+                            </div>
+                        )
+                    ) : null}
                     {options.map((option) => (
                         <Option
                             selected={isOptionSelected(option)}

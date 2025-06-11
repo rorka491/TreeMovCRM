@@ -15,6 +15,7 @@ import EmployeesMain from './pages/Employees/subpages/EmployeesMain'
 import { StudentsPage } from './pages/Students'
 import { StudentsMain } from './pages/Students/subpages/StudentsMain'
 import { StudentProfile } from './pages/Students/subpages/StudentProfile'
+import { StudentProfileEdit } from './pages/Students/subpages/StudentProfileEdit'
 
 function App() {
     return (
@@ -43,10 +44,10 @@ function App() {
                     </Route>
                     <Route path="students" element={<StudentsPage />}>
                         <Route path="main" element={<StudentsMain />} />
-                        <Route
-                            path="profile/:studentId"
-                            element={<StudentProfile />}
-                        />
+                        <Route path="profile/:studentId">
+                            <Route path="edit" element={<StudentProfileEdit />} />
+                            <Route path="*" element={<StudentProfile />} />
+                        </Route>
                         <Route path="*" element={<Navigate to="../main" />} />
                     </Route>
                 </Route>
