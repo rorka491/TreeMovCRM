@@ -3,7 +3,6 @@ import { Student } from '../../../api/fakeApi'
 import { useEffect, useState } from 'react'
 import { api } from '../../../api'
 import Select from '../../../components/Select'
-import { months } from '../../../lib/months'
 import { getDifferenceMonthsAndYears } from '../../../lib/getDifferenceMonthsAndYears'
 import { parseDate } from '../../../lib/parseDate'
 import { formatDate } from '../../../lib/formatDate'
@@ -175,6 +174,11 @@ export function StudentProfileEdit() {
                                         }
 
                                         student.groups.splice(i, 1)
+
+                                        setStudent({ ...student })
+                                    }}
+                                    onSelected={(val) => {
+                                        student.groups.splice(i, 1, val)
 
                                         setStudent({ ...student })
                                     }}

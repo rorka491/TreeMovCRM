@@ -88,7 +88,7 @@ export function Option({
         return (
             <button
                 onClick={onClick}
-                className="cursor-pointer text-left px-3 py-2 hover:bg-gray-200"
+                className={(selected ? "bg-[#7A75FF] text-white" : "hover:bg-gray-200") + " cursor-pointer text-left px-3 py-2"}
             >
                 {value}
             </button>
@@ -139,6 +139,8 @@ type SelectProps<T> = {
     checkMarks?: 'square' | 'circle' | boolean
     className?: string
     onlyArrow?: boolean
+    search?: boolean
+    searchQuery?: string
 } & (
     | {
           multiple: true
@@ -160,8 +162,7 @@ type SelectProps<T> = {
               topButton: true
               onTopButtonClick?: () => void
           }
-    ) &
-    ({} | {})
+    )
 
 export function Select<T>({
     options,
