@@ -2,6 +2,8 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from .models import DocumentsTypes 
 from mainapp.models import Organization
+from mainapp.utils import get_orgs
+
 
 @receiver(post_migrate)
 def create_default_document_types(sender, **kwargs):
@@ -9,7 +11,7 @@ def create_default_document_types(sender, **kwargs):
         return
     
     defaults = ['Паспорт', 'Договор', 'Снилс', 'Другое']
-    orgs = Organization.objects.all()
-    for org in orgs:
-        for title in defaults:
-            DocumentsTypes.objects.get_or_create(title=title, org=org)
+    for title in defaults:
+        DocumentsTypes.objects.get_or_create(title=title)
+
+        

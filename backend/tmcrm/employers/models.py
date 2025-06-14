@@ -1,5 +1,5 @@
 from django.db import models
-from mainapp.models import BaseModelOrg
+from mainapp.models import BaseModelOrg, Organization
 
 
 
@@ -72,7 +72,13 @@ class LeaveRequest(BaseModelOrg):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class DocumentsTypes(BaseModelOrg):
+    """
+    Класс тип документа
+    Переопределен org так как он должен допускать поумолчанию 
+    значение default
+    """
     title = models.CharField(max_length=100)
+    org = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
 
 
     class Meta: 

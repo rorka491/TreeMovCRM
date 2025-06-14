@@ -1,4 +1,5 @@
 from django.db import models
+from mainapp.models import SubjectColor
 from students.models import *
 from employers.models import *
 from django.core.exceptions import ValidationError
@@ -24,6 +25,7 @@ GRADE_CHOICES = (
 class Subject(BaseModelOrg):
     name = models.CharField(max_length=100)
     teacher = models.ManyToManyField(Teacher)
+    color = models.ForeignKey(SubjectColor, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Предмет'

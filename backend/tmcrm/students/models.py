@@ -3,14 +3,18 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-from mainapp.models import BaseModelOrg
+from mainapp.models import BaseModelOrg, phone_number_regex
+
 
 class Student(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)
     progress = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    phone_number = models.CharField(max_length=11, validators=[phone_number_regex], null=True, blank=True)
     birthday = models.DateField()
-    
+    email = models.EmailField(null=True, blank=True)
+    avatar = models.ImageField(null=True, blank=True)
+
 
     class Meta: 
         verbose_name = 'Студент'
@@ -25,11 +29,10 @@ class Parent(BaseModelOrg):
     surname = models.CharField(max_length=100)
     phone_number = models.CharField(
         max_length=11, 
-        validators=[RegexValidator(regex=r'^8\d{10}$',
-        message='Номер телефона должен быть в формате 8 XXX XXX XX XX')],
+        validators=[phone_number_regex],
         blank=True
     )
-    child = models.ManyToManyField(Student)
+    child = models.ManyToManyField(Student, related_name='parents')
 
     class Meta: 
         verbose_name = 'Родитель'

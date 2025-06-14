@@ -2,6 +2,21 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+
+
+
+phone_number_regex = RegexValidator(
+    regex=r'^8\d{10}$',
+    message='Телефон должен быть в формате 8 XXX XXX XX XX '
+)
+
+color_regex = RegexValidator(
+    regex=r'^#\d{6}$',
+    message='Неверный формат цвета'
+)
+
+
 
 class Organization(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -12,6 +27,7 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class User(AbstractUser):
@@ -73,4 +89,15 @@ class BaseModelOrg(models.Model):
         obj.save(org=user.org)
         return obj
 
-    
+
+
+class SubjectColor(BaseModelOrg):
+    color_hex = models.CharField(max_length=7, validators=[color_regex])
+    org = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Цвет предмета'
+        verbose_name_plural = 'Цвета предметов'
+
+
+
