@@ -10,12 +10,6 @@ from employers.urls import employers_router
 from students.urls import students_router
 
 
-# router = DefaultRouter()
-
-# for r in (schedule_router, employers_router, students_router):
-#     for prefix, viewset, basename in r.registry:
-#         router.register(prefix, viewset, basename)
-
 
 
 urlpatterns = [

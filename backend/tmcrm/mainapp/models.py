@@ -12,7 +12,7 @@ phone_number_regex = RegexValidator(
 )
 
 color_regex = RegexValidator(
-    regex=r'^#\d{6}$',
+    regex=r'^#[0-9A-Fa-f]{6}$',
     message='Неверный формат цвета'
 )
 
@@ -92,12 +92,16 @@ class BaseModelOrg(models.Model):
 
 
 class SubjectColor(BaseModelOrg):
+    title = models.CharField(max_length=30, null=True)
     color_hex = models.CharField(max_length=7, validators=[color_regex])
     org = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Цвет предмета'
         verbose_name_plural = 'Цвета предметов'
+
+    def __str__(self):
+        return f'{self.title}'
 
 
 
