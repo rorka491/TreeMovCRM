@@ -60,10 +60,9 @@ class ScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     @action(detail=False, methods=['post'], url_path='search')
     @base_search
     def search(self, request, query=None):
-        words = query.split()
         q = Q()
 
-        for word in words:
+        for word in query.split():
             q |= (Q(title__icontains=word) |
                 Q(start_time__icontains=word) |
                 Q(end_time__icontains=word) |

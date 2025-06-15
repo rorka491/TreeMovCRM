@@ -6,6 +6,13 @@ from django.core.exceptions import ValidationError
 from mainapp.models import BaseModelOrg, phone_number_regex
 
 
+class StudentManager(models.Manager):
+    def active(self):
+        return self.filter(is_active=True)
+    
+    
+
+
 class Student(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)

@@ -14,20 +14,17 @@ class StudentGroupViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
 
     prefetch_related_fields = ['students']
 
-    # @action(detail=False, methods=['post'], url_path='search')
-    # @base_search
-    # def search(self, request, query=None):
-    #     words = query.split()
-    #     q = Q()
-
-    #     for word in words:
-    #         q &= (
-    #         Q(student__name__icontains=word) |
-    #         Q(student__surname__icontains=word) |
-    #         Q(student__name__icontains=word) |
-    #         Q()
-    #         )
-
+    @action(detail=False, methods=['post'], url_path='search')
+    @base_search
+    def search(self, request, words: list[str]):
+        q = Q()
+        for word in words:
+            q |= (
+            Q(students__name__icontains=word) |
+            Q(students__surname__icontains=word) |
+            Q(name__icontains=word)
+            )  
+        return q
 
 
 class StudentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -36,10 +33,9 @@ class StudentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     
     @action(detail=False, methods=['post'], url_path='search')
     @base_search
-    def search(self, request, query=None):
+    def search(self, request, words: list[str]):
         q = Q()
-
-        for word in query:
+        for word in words:
             q |= (
                 Q(name__icontains=word) |
                 Q(surname__icontains=word) |
@@ -47,7 +43,4 @@ class StudentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
                 Q(birthday__icontains=word) |
                 Q(email__icontains=word)
             )
-
-        results = self.get_queryset().filter(q)
-        serializer = self.serializer_class(results, many=True)
-        return Response(serializer.data)
+        return 

@@ -5,12 +5,13 @@ from rest_framework.viewsets import ViewSet, ModelViewSet
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from functools import wraps
-
+from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.request import Request
 
 
 class SelectRelatedViewSet(ModelViewSet):
@@ -66,13 +67,19 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
 
 def base_search(func):
     @wraps(func)
-    def wrapper(self, request, *args, **kwargs):
+    def wrapper(self: BaseViewSetWithOrdByOrg, request: Request, *args, **kwargs) -> Response:
         query = request.data.get('query', '').strip()
         
         if not query:
             return Response({'error': 'Пустой запрос'}, status=400)
+        
+        words = [word for word in query.split()]
 
-        return func(self, request, query=query, *args, **kwargs)
+        q: Q = func(self, request, words=words, *args, **kwargs)
+
+        results = self.get_queryset().filter(q)
+        serializer = self.serializer_class(results, many=True)
+        return Response(serializer.data)
     
     return wrapper
     
