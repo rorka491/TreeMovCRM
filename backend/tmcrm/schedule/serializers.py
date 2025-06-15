@@ -16,6 +16,17 @@ class SubjectSerializer(BaseSerializerExcludeFields):
         model = Subject
         exclude = ['id', 'org']
 
+class GradeSerializer(BaseSerializerExcludeFields):
+     
+    class Meta:
+        model = Grade
+        exclude =  ['id', 'org']
+
+class AttendanceSerializer(BaseSerializerExcludeFields):
+
+    class Meta:
+        model = Attendance
+        exclude =  ['id', 'org']
 
 
 class ScheduleSerializer(BaseSerializerExcludeFields):
@@ -35,6 +46,8 @@ class ScheduleSerializer(BaseSerializerExcludeFields):
         fields = '__all__'
 
 
+
+
 class ScheduleStudentGroupSerializer(serializers.Serializer):
     schedules = serializers.SerializerMethodField()
     exclude_fields = []
@@ -46,8 +59,15 @@ class ScheduleStudentGroupSerializer(serializers.Serializer):
             many=True,
             exclude_fields = self.exclude_fields
         ).data 
+    
+
+
+
+
+"""Группированые сериализаторы с исключенными полями"""
 
 class TeacherScheduleSerializer(ScheduleStudentGroupSerializer):
+    """"""
     teacher = TeacherSerializer()
     exclude_fields = ['teacher']
 
@@ -55,6 +75,7 @@ class TeacherScheduleSerializer(ScheduleStudentGroupSerializer):
         fields = ['teacher', 'schedules']
 
 class ClassroomScheduleSerializer(ScheduleStudentGroupSerializer):
+    """"""
     classroom = ClassroomSerializer()
     exclude_fields = ['classroom']
 
@@ -62,6 +83,7 @@ class ClassroomScheduleSerializer(ScheduleStudentGroupSerializer):
         fields = ['classroom', 'schedules']
 
 class GroupScheduleSerializer(ScheduleStudentGroupSerializer):
+    """"""
     group = StudentGroupSerializer(exclude_fields=['students'])
     exclude_fields = ['group']
 

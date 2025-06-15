@@ -7,7 +7,6 @@ import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils import _grouped_response
 from django.db.models import Q
-from rest_framework import serializers
 
 #filters 
 class ScheduleFilter(django_filters.FilterSet):
@@ -65,7 +64,7 @@ class ScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
         q = Q()
 
         for word in words:
-            q &= (Q(title__icontains=word) |
+            q |= (Q(title__icontains=word) |
                 Q(start_time__icontains=word) |
                 Q(end_time__icontains=word) |
                 Q(date__icontains=word) |
@@ -92,6 +91,17 @@ class SubjectViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
 class ClassroomViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
+    filter_backends = [DjangoFilterBackend]
+
+class GradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = Grade.objects.all()
+    serializer_class = GradeSerializer
+    filter_backends = [DjangoFilterBackend]
+
+
+class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerializer
     filter_backends = [DjangoFilterBackend]
 
 

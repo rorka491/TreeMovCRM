@@ -29,10 +29,15 @@ class BaseSerializerExcludeFields(serializers.ModelSerializer):
         fields = '__all__'
 
     def __init__(self, instance=None, *args, **kwargs):
-        exclude_fields = kwargs.pop('exclude_fields', [])
+        
+
+        #передан instance чтобы сохранить совместимостсь с DRF
+        meta_excludes = getattr(self.Meta, 'exclude_fields', [])
+        exclude_fields = kwargs.pop('exclude_fields', []) + meta_excludes
         
         super().__init__(instance, *args, **kwargs)
 
+        #Нужно чтобы исключить те поля которые есть в списке
         for field in exclude_fields:
             self.fields.pop(field, None)
 

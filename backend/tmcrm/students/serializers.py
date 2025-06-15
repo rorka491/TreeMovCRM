@@ -4,14 +4,20 @@ from .models import *
 from schedule.models import Attendance
 
 
-class StudentGroupSerializer(BaseSerializerExcludeFields):
-
-    class Meta:
-        model = StudentGroup
-        exclude = ['org', 'id']
 
 class AttendanceSerializer(BaseSerializerExcludeFields):
 
-    class Meta:
+    class Meta(BaseSerializerExcludeFields.Meta):
         model = Attendance
         exclude = ['org, id']
+
+class StudentSerializer(BaseSerializerExcludeFields):
+
+    class Meta(BaseSerializerExcludeFields.Meta):
+        model = Student
+
+class StudentGroupSerializer(BaseSerializerExcludeFields):
+    students = StudentSerializer(many=True)
+
+    class Meta(BaseSerializerExcludeFields.Meta):
+        model = StudentGroup

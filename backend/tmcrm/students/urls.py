@@ -9,6 +9,7 @@ from .views import *
 
 students_router = DefaultRouter()
 students_router.register(r'student_groups', StudentGroupViewSet, basename='student_group')
+students_router.register(r'students', StudentViewSet, basename='student')
 
 
 urlpatterns = [
