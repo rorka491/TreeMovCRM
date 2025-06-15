@@ -19,7 +19,7 @@ class StudentGroupSerializer(BaseSerializerExcludeFields):
         model = StudentGroup
 
 class StudentSerializer(BaseSerializerExcludeFields):
-    groups = StudentGroupSerializer(exclude_fields=['students'])
+    groups = StudentGroupSerializer(many=True, read_only=True, exclude_fields=['students', 'org', 'name'])
 
     class Meta(BaseSerializerExcludeFields.Meta):
         model = Student

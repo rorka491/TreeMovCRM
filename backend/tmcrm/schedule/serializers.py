@@ -2,7 +2,8 @@ from rest_framework import serializers
 from mainapp.serializers import BaseSerializerExcludeFields, BaseSerializerWithoutOrg
 from .models import *
 from employers.serializers import TeacherSerializer
-from students.serializers import StudentGroupSerializer 
+from students.serializers import StudentGroupSerializer, StudentSerializer
+
 
 class ClassroomSerializer(BaseSerializerExcludeFields):
 
@@ -17,7 +18,8 @@ class SubjectSerializer(BaseSerializerExcludeFields):
         exclude = ['id', 'org']
 
 class GradeSerializer(BaseSerializerExcludeFields):
-     
+    student = StudentSerializer()
+
     class Meta:
         model = Grade
         exclude =  ['id', 'org']

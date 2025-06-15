@@ -16,6 +16,15 @@ class ScheduleFilter(django_filters.FilterSet):
     class Meta:
         model = Schedule
         fields = '__all__'
+
+class GradeFilter(django_filters.FilterSet):
+    
+    class Meta: 
+        model = Grade
+        fields = '__all__'
+
+
+
         
 
 #views
@@ -102,6 +111,8 @@ class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     filter_backends = [DjangoFilterBackend]
+    filterset_class = GradeFilter
+
 
 
 
