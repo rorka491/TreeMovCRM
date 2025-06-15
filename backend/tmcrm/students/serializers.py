@@ -11,13 +11,15 @@ class AttendanceSerializer(BaseSerializerExcludeFields):
         model = Attendance
         exclude = ['org, id']
 
-class StudentSerializer(BaseSerializerExcludeFields):
 
-    class Meta(BaseSerializerExcludeFields.Meta):
-        model = Student
 
 class StudentGroupSerializer(BaseSerializerExcludeFields):
-    students = StudentSerializer(many=True)
 
     class Meta(BaseSerializerExcludeFields.Meta):
         model = StudentGroup
+
+class StudentSerializer(BaseSerializerExcludeFields):
+    groups = StudentGroupSerializer(exclude_fields=['students'])
+
+    class Meta(BaseSerializerExcludeFields.Meta):
+        model = Student
