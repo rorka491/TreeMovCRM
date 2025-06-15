@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+/**/
+@layer utilities {
+    *,
+    ::after,
+    ::before {
+        border-color: #e5e7eb;
+    }
+}
