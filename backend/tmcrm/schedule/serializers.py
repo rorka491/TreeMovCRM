@@ -17,12 +17,8 @@ class SubjectSerializer(BaseSerializerExcludeFields):
         model = Subject
         exclude = ['id', 'org']
 
-class GradeSerializer(BaseSerializerExcludeFields):
-    student = StudentSerializer()
 
-    class Meta:
-        model = Grade
-        exclude =  ['id', 'org']
+
 
 class AttendanceSerializer(BaseSerializerExcludeFields):
 
@@ -46,9 +42,7 @@ class ScheduleSerializer(BaseSerializerExcludeFields):
     class Meta:
         model = Schedule
         fields = '__all__'
-
-
-
+        
 
 class ScheduleStudentGroupSerializer(serializers.Serializer):
     schedules = serializers.SerializerMethodField()
@@ -92,6 +86,12 @@ class GroupScheduleSerializer(ScheduleStudentGroupSerializer):
     class Meta: 
         fields = ['group', 'schedules']
 
+class GradeSerializer(BaseSerializerExcludeFields):
+    student = StudentSerializer()
+    lesson = ScheduleSerializer(exclude_fields=['teacher', 'classrom', ])
 
+    class Meta:
+        model = Grade
+        exclude =  ['id', 'org']
 
 

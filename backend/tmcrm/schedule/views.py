@@ -105,13 +105,14 @@ class GradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Grade.objects.all()
     serializer_class = GradeSerializer
     filter_backends = [DjangoFilterBackend]
+    filterset_class = GradeFilter
 
 
 class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = GradeFilter
+
 
 
 
