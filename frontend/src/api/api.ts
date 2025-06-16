@@ -1,3 +1,5 @@
+import { formatDate } from '../lib/formatDate'
+
 const domain = 'http://127.0.0.1:8000/api/'
 
 export type Schedule = {
@@ -18,12 +20,165 @@ export type Schedule = {
     end_date?: Date
 }
 
-export const api = {
-    isOk(res: Response): Promise<any> {
+export type Student = {
+    id: string | number
+    fullName: string
+    img: string | null
+    dateOfBirth: string
+    groups: string[]
+    phone: string
+    email: string
+    parentFullName: string
+    parentPhone: string
+    grades: Grade[]
+    studies: {
+        id: string
+        subject: string
+        startDate: string
+    }[]
+    payments: {
+        id: string | number
+        amount: number
+        for: string
+        debt: number
+        status: 'Ошибка' | 'Успешно'
+        date: string
+        group: string
+    }[]
+    subscriptionActive: boolean
+}
+
+type PreStudent = {
+    id: number
+    name: string
+    surname: string
+    email: string
+    phone_number: string
+    birthday: string
+    avatar: string | null
+    groups: { id: number; name: string }[]
+}
+
+type PreGroup = {
+    id: number
+    name: string
+    org: number
+    students: number[]
+}
+
+type PreGrade = {
+    student: PreStudent
+    comment: string
+    created_at: string
+    updated_at: string
+    lesson: 1
+    value: 4
+}
+
+export type Grade = {
+    student: Student
+    comment: string
+    created_at: string
+    updated_at: string
+    lesson: 1
+    value: 4
+}
+
+function preStudentToStudent(preStudent: PreStudent) {
+    const result: Student = {
+        id: preStudent.id,
+        fullName: `${preStudent.surname} ${preStudent.name}`,
+        phone: preStudent.phone_number,
+        email: preStudent.email,
+        dateOfBirth: preStudent.birthday,
+        img: preStudent.avatar,
+        groups: preStudent.groups.map((x) => x.name),
+        parentFullName: '',
+        parentPhone: '',
+        grades: [],
+        studies: [],
+        payments: [],
+        subscriptionActive: true,
+    }
+
+    result.dateOfBirth = formatDate(new Date(result.dateOfBirth), 'DD-MM-YYYY')
+
+    return result
+}
+
+export const realApi = {
+    isOk<T = any>(res: Response): Promise<T> {
         if (res.ok) {
             return res.json()
         }
         return Promise.reject(`Ошибка ${res.status}`)
+    },
+
+    students: {
+        async getAll() {
+            const result = (
+                await fetch(`${domain}students/students/?test=true`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then((res) => realApi.isOk<PreStudent[]>(res))
+            ).map(preStudentToStudent)
+
+            return result
+        },
+        async getAllGroups() {
+            return (
+                await fetch(`${domain}students/student_groups/?test=true`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then((res) => realApi.isOk<PreGroup[]>(res))
+            ).map((preGroup) => preGroup.name)
+        },
+        async getAllGrades(): Promise<Grade[]> {
+            return (
+                await fetch(`${domain}schedules/grades/?test=true`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then((res) => realApi.isOk<PreGrade[]>(res))
+            ).map((preGrade) => ({
+                ...preGrade,
+                student: preStudentToStudent(preGrade.student),
+            }))
+        },
+        async getById(id: number) {
+            const student = preStudentToStudent(
+                await fetch(`${domain}students/students/${id}/?test=true`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then((res) => realApi.isOk<PreStudent>(res))
+            )
+
+            const grades: Grade[] = (
+                await fetch(
+                    `${domain}schedules/grades/?test=true&student=${id}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                ).then((res) => realApi.isOk<PreGrade[]>(res))
+            ).map((preGrade) => ({
+                ...preGrade,
+                student: preStudentToStudent(preGrade.student),
+            }))
+
+            student.grades = grades
+
+            return student
+        },
     },
 
     schedules: {
@@ -33,7 +188,7 @@ export const api = {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
 
         async getClassroomsRequest() {
@@ -42,7 +197,7 @@ export const api = {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
 
         async getShedulesRequest(query: Schedule) {
@@ -52,7 +207,7 @@ export const api = {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(query),
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
 
         async getGroupsRequest() {
@@ -61,7 +216,7 @@ export const api = {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
 
         async getTeachersRequest() {
@@ -70,7 +225,7 @@ export const api = {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
 
         async getSearchRequest(query: string) {
@@ -80,7 +235,7 @@ export const api = {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(query),
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
 
         async tokenRequest() {
@@ -92,7 +247,7 @@ export const api = {
                 body: JSON.stringify({
                     token: localStorage.getItem('refreshToken'),
                 }),
-            }).then((res) => api.isOk(res))
+            }).then((res) => realApi.isOk(res))
         },
     },
 }

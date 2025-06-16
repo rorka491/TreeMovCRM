@@ -1,3 +1,7 @@
+import { Student } from './api'
+
+export { Student }
+
 let baseLatency = parseFloat(localStorage.getItem('fakeApi:fakeLatency') ?? '0')
 let latencyVariance = parseFloat(
     localStorage.getItem('fakeApi:latencyVariance') ?? '0'
@@ -12,42 +16,6 @@ globalThis.setFakeLatency = (base: number, variance = 0) => {
     localStorage.setItem('fakeApi:fakeLatency', base + '')
     latencyVariance = variance
     localStorage.setItem('fakeApi:latencyVariance', variance + '')
-}
-
-export type Student = {
-    id: string | number
-    fullName: string
-    img: string
-    dateOfBirth: string
-    groups: string[]
-    phone: string
-    email: string
-    parentFullName: string
-    parentPhone: string
-    grades: {
-        id: string | number
-        subject: string
-        group: string
-        score: string
-        date: string
-        teacherFullName: string
-        teachersComment?: string
-    }[]
-    studies: {
-        id: string
-        subject: string
-        startDate: string
-    }[]
-    payments: {
-        id: string | number
-        amount: number
-        for: string
-        debt: number
-        status: 'Ошибка' | 'Успешно'
-        date: string
-        group: string
-    }[]
-    subscriptionActive: boolean
 }
 
 const baseApi = {

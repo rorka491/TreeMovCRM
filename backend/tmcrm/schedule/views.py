@@ -12,7 +12,7 @@ from django.db.models import Q
 class ScheduleFilter(django_filters.FilterSet):
     start_date = django_filters.DateFilter(field_name='date', lookup_expr='gte')
     end_date = django_filters.DateFilter(field_name='date', lookup_expr='lte')
-
+    
     class Meta:
         model = Schedule
         fields = '__all__'
@@ -22,10 +22,6 @@ class GradeFilter(django_filters.FilterSet):
     class Meta: 
         model = Grade
         fields = '__all__'
-
-
-
-        
 
 #views
 class ScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -103,17 +99,15 @@ class ClassroomViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
 
 class GradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Grade.objects.all()
+    filterset_class = GradeFilter
     serializer_class = GradeSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = GradeFilter
 
 
 class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     filter_backends = [DjangoFilterBackend]
-
-
 
 
 

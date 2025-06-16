@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { Table } from '../../../components/Table'
 import { useNavigate } from 'react-router-dom'
 import { Student } from '../../../api/fakeApi'
+import { Grade } from '../../../api/api'
 
 export function StudentsGrades() {
     const [students, setStudents] = useState<Student[]>([])
+    const [grades, setGrades] = useState<Grade[]>([])
     const [loaded, setLoaded] = useState(false)
     const navigate = useNavigate()
 
@@ -14,6 +16,9 @@ export function StudentsGrades() {
         ;(async () => {
             const students = await api.students.getAll()
             setStudents(students)
+            const grades = await api.students.getAllGrades()
+            console.log(grades)
+            setGrades(grades)
             setLoaded(true)
             filterData[0].options = await api.students.getAllGroups()
             filterData[1].options = students.map((student) => student.fullName)
@@ -63,45 +68,38 @@ export function StudentsGrades() {
                 selectedChange={setFiltersSelected}
             />
             <Table
-                data={students
-                    .filter((student) =>
-                        filtersSelected.group &&
-                        filtersSelected.group.length > 0
-                            ? filtersSelected.group.reduce(
-                                  (result, group) =>
-                                      result || student.groups.includes(group),
-                                  false
-                              )
-                            : true
-                    )
-                    .filter((student) =>
+                data={grades
+                    .filter((grade) =>
                         filtersSelected.student &&
                         filtersSelected.student.length > 0
                             ? filtersSelected.student.some(
-                                  (fullName) => fullName === student.fullName
+                                  (fullName) =>
+                                      fullName === grade.student.fullName
                               )
                             : true
                     )
-                    .filter((student) =>
+                    .filter((grade) =>
                         filtersSelected.active
                             ? (filtersSelected.active === 'Активные' &&
-                                  student.subscriptionActive) ||
+                                  grade.student.subscriptionActive) ||
                               (filtersSelected.active === 'Неактивные' &&
-                                  !student.subscriptionActive)
+                                  !grade.student.subscriptionActive)
                             : true
                     )
-                    .map((student) =>
-                        student.grades.map((grade) => ({
-                            id: `${student.id}-${grade.subject}-${grade.date}`,
-                            studentFullName: student.fullName,
-                            subject: grade.subject,
-                            date: grade.date,
-                            teacherFullName: grade.teacherFullName,
-                            grade: grade.score,
-                            comment: grade.teachersComment ?? 'Нет',
-                        }))
-                    )
-                    .flat()}
+                    .map((grade) => ({
+                        ...grade,
+                        studentFullName: grade.student.fullName,
+                        subject: grade.lesson,
+                        date: grade.created_at,
+                        teacherFullName: '',
+                        grade: [
+                            'Плохо',
+                            'Удовлетворительно',
+                            'Хорошо',
+                            'Отлично',
+                        ][grade.value - 2],
+                        comment: grade.comment || 'Нет',
+                    }))}
                 keys={{
                     studentFullName: 'Ученик',
                     subject: 'Предмет',
@@ -119,15 +117,7 @@ export function StudentsGrades() {
                             Плохо: 'text-[#FF1814]',
                         })[studentGrade.grade] ?? '',
                 }}
-                rowActions={{
-                    Открыть: (student) =>
-                        navigate('/students/profile/' + student.id),
-                    Изменить: (student) =>
-                        navigate('/students/profile/' + student.id + '/edit'),
-                    Удалить: () => {
-                        //TODO!
-                    },
-                }}
+                rowActions={{}}
                 showSkeleton={!loaded}
                 skeletonAmount={18}
             />

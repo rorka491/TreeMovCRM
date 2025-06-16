@@ -16,10 +16,10 @@ const listKeys = {
 }
 
 const gradeToColor = {
-    Хорошо: '#22C55E',
-    Отлично: '#22C55E',
-    Удовлетворительно: '#FFAB25',
-    Плохо: '#FF1814',
+    5: '#22C55E',
+    4: '#22C55E',
+    3: '#FFAB25',
+    2: '#FF1814',
 }
 
 function formatDateDifference(months, years) {
@@ -85,6 +85,7 @@ export function StudentProfile() {
                                     {student?.fullName},{' '}
                                     <span className="font-normal">
                                         {age}
+                                        {" "}
                                         {russianPlural(
                                             age,
                                             'год',
@@ -362,15 +363,15 @@ export function StudentProfile() {
                                           key={i}
                                       >
                                           <td className="max-h-[60px] py-1 min-h-0">
-                                              {study.subject}
+                                              {study.lesson.subject.name}
                                           </td>
                                           <td className="text-[12px] py-1 text-center">
-                                              {study.group}
+                                              {study.lesson.group.name}
                                           </td>
                                           <td
-                                              className={`text-[${gradeToColor[study.score]}] py-1 text-center`}
+                                              className={`text-[${gradeToColor[study.value]}] py-1 text-center`}
                                           >
-                                              {study.score}
+                                              {["Плохо", "Удовлетворительно", "Хорошо", "Отлично"][study.value - 2]}
                                           </td>
                                       </tr>
                                   ))
