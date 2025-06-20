@@ -200,7 +200,7 @@ export const realApi = {
             }).then((res) => realApi.isOk(res))
         },
 
-        async getShedulesRequest(query: Schedule) {
+        async getShedulesByClassrooms(query: Schedule) {
             return await fetch(`${domain}schedules/classrooms/`, {
                 method: 'GET',
                 headers: {

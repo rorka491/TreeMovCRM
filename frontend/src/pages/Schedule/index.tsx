@@ -1,25 +1,72 @@
-import { Outlet, useMatch } from 'react-router-dom'
-import CategoryBar from '../../components/page/CategoryBar'
+import { Outlet } from 'react-router-dom'
+import { FilterBar } from '../../components/page/FilterBar'
+import { useState } from 'react'
+import ScheduleMonth from './subpages/SheduleMonth'
+import CalendarBar from '../../components/page/CalendarBar'
+import SheduleWeek from './subpages/SheduleWeek'
+import ScheduleDay from './subpages/SheduleDay'
 
 export function Schedule() {
-    const match = useMatch('/schedule/:lastPart')
-    const activeSection = match?.params?.lastPart ?? 'by-teacher'
+    const [filtersSelected, setFiltersSelected] = useState<{
+        [k: string]: any | undefined
+    }>({})
+    const [filterData, setFilterData] = useState([
+        {
+            id: 'teacher',
+            label: 'Преводователь',
+            options: ['Роман', 'Никита', 'Родион'],
+            multiple: true,
+            search: true,
+            removeButton: true,
+        },
+        {
+            id: 'group',
+            label: 'Группа',
+            options: ['A', 'B'],
+            multiple: true,
+            search: true,
+            removeButton: true,
+        },
+        {
+            id: 'subject',
+            label: 'Предмет',
+            options: ['Информатика', 'История'],
+            multiple: true,
+            search: true,
+            removeButton: true,
+        },
+        {
+            id: 'data',
+            label: 'Дата',
+            options: ['11.11.1111', '11.22.3333'],
+            search: true,
+        },
+        {
+            id: 'auditorium',
+            label: 'Аудитория',
+            options: ['600', '1000'],
+            multiple: true,
+            search: true,
+            removeButton: true,
+        },
+    ])
+
+    const [currentDate, setCurrentDate] = useState(new Date())
 
     return (
-        <section>
-            <CategoryBar
-                activeSection={activeSection}
-                categories={[
-                    { url: 'by-teacher', label: 'По преподавателям' },
-                    { url: 'by-group', label: 'По группам' },
-                    { url: 'by-classroom', label: 'По аудиториям' },
-                    { url: 'edit', label: 'Редактировать расписание' },
-                ]}
+        <section className="flex h-[100%] flex-col gap-y-[16px]">
+            <FilterBar
+                filterData={filterData}
+                selectedChange={setFiltersSelected}
             />
-
-            <div className="mt-4">
-                <Outlet />
-            </div>
+            <CalendarBar
+                currentDate={currentDate}
+                setCurrentDate={(date) => setCurrentDate(date)}
+            />
+            {/* <ScheduleMonth currentDate={currentDate} /> */}
+            <SheduleWeek />
+            {/* <ScheduleDay /> */}
+            {/* <Outlet /> */}
         </section>
     )
 }
