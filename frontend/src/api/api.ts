@@ -1,6 +1,16 @@
 import { formatDate } from '../lib/formatDate'
+import axios, { AxiosResponse } from 'axios'
+import { mapResult, Result } from '../lib/Result'
 
-const domain = 'http://127.0.0.1:8000/api/'
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api'
+
+axios.interceptors.request.use((config) => {
+    config.params ??= {}
+    config.params.timezone_offset = -new Date().getTimezoneOffset() / 60
+    config.params.test = true
+
+    return config
+})
 
 export type Schedule = {
     org?: string
@@ -48,6 +58,28 @@ export type Student = {
     subscriptionActive: boolean
 }
 
+export type Grade = {
+    student: Student
+    comment: string
+    created_at: string
+    updated_at: string
+    lesson: number
+    value: number
+}
+
+export type Employee = {
+    id: number
+    name: string
+    surname: string
+    patronymic: string
+    birthday: string
+    email: string
+    passport_series: string
+    passport_num: string
+    inn: string
+    department: number
+}
+
 type PreStudent = {
     id: number
     name: string
@@ -68,15 +100,6 @@ type PreGroup = {
 
 type PreGrade = {
     student: PreStudent
-    comment: string
-    created_at: string
-    updated_at: string
-    lesson: 1
-    value: 4
-}
-
-export type Grade = {
-    student: Student
     comment: string
     created_at: string
     updated_at: string
@@ -107,73 +130,97 @@ function preStudentToStudent(preStudent: PreStudent) {
 }
 
 export const realApi = {
-    isOk<T = any>(res: Response): Promise<T> {
-        if (res.ok) {
-            return res.json()
+    isOk<T = any>(res: AxiosResponse<T>): Result<T, string> {
+        if (199 < res.status && res.status < 300) {
+            return [res.data as Exclude<T, null>, null]
         }
-        return Promise.reject(`Ошибка ${res.status}`)
+
+        return [null, `Ошибка ${res.status} ${res.data}`]
     },
 
     students: {
         async getAll() {
-            const result = (
-                await fetch(`${domain}students/students/?test=true`, {
-                    method: 'GET',
+            const [preStudents, error] = await axios
+                .get(`/students/students/?test=true`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                }).then((res) => realApi.isOk<PreStudent[]>(res))
-            ).map(preStudentToStudent)
+                })
+                .then((res) => realApi.isOk<PreStudent[]>(res))
 
-            return result
+            if (error !== null) {
+                return []
+            }
+
+            return preStudents.map(preStudentToStudent)
         },
         async getAllGroups() {
-            return (
-                await fetch(`${domain}students/student_groups/?test=true`, {
+            const [preGroups, error] = await axios
+                .get(`/students/student_groups/?test=true`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                }).then((res) => realApi.isOk<PreGroup[]>(res))
-            ).map((preGroup) => preGroup.name)
+                })
+                .then((res) => realApi.isOk<PreGroup[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return preGroups.map((preGroup) => preGroup.name)
         },
         async getAllGrades(): Promise<Grade[]> {
-            return (
-                await fetch(`${domain}schedules/grades/?test=true`, {
+            const [preGrades, error] = await axios
+                .get(`/schedules/grades/?test=true`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                }).then((res) => realApi.isOk<PreGrade[]>(res))
-            ).map((preGrade) => ({
+                })
+                .then((res) => realApi.isOk<PreGrade[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return preGrades.map((preGrade) => ({
                 ...preGrade,
                 student: preStudentToStudent(preGrade.student),
             }))
         },
         async getById(id: number) {
-            const student = preStudentToStudent(
-                await fetch(`${domain}students/students/${id}/?test=true`, {
+            const [preStudent, error] = await axios
+                .get(`/students/students/${id}/?test=true`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                }).then((res) => realApi.isOk<PreStudent>(res))
-            )
+                })
+                .then((res) => realApi.isOk<PreStudent>(res))
 
-            const grades: Grade[] = (
-                await fetch(
-                    `${domain}schedules/grades/?test=true&student=${id}`,
-                    {
+            if (error !== null) {
+                return
+            }
+
+            const student = preStudentToStudent(preStudent)
+
+            const grades: Grade[] = mapResult(
+                await axios
+                    .get(`/schedules/grades/?test=true&student=${id}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                    }
-                ).then((res) => realApi.isOk<PreGrade[]>(res))
-            ).map((preGrade) => ({
-                ...preGrade,
-                student: preStudentToStudent(preGrade.student),
-            }))
+                    })
+                    .then((res) => realApi.isOk<PreGrade[]>(res)),
+                (grades) =>
+                    grades.map((preGrade) => ({
+                        ...preGrade,
+                        student: preStudentToStudent(preGrade.student),
+                    })),
+                () => []
+            )
 
             student.grades = grades
 
@@ -183,71 +230,96 @@ export const realApi = {
 
     schedules: {
         async getSubjectsRequest() {
-            return await fetch(`${domain}schedules/subjects/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).then((res) => realApi.isOk(res))
+            return await axios
+                .get(`/schedules/subjects/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then((res) => realApi.isOk(res))
         },
 
         async getClassroomsRequest() {
-            return await fetch(`${domain}schedules/classrooms/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).then((res) => realApi.isOk(res))
+            return await axios
+                .get(`/schedules/classrooms/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then((res) => realApi.isOk(res))
         },
 
         async getShedulesByClassrooms(query: Schedule) {
-            return await fetch(`${domain}schedules/classrooms/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(query),
-            }).then((res) => realApi.isOk(res))
+            return await axios
+                .get(`/schedules/classrooms/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    params: query,
+                })
+                .then((res) => realApi.isOk(res))
         },
 
         async getGroupsRequest() {
-            return await fetch(`${domain}schedules/student_groups/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).then((res) => realApi.isOk(res))
+            return await axios
+                .get(`/schedules/student_groups/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then((res) => realApi.isOk(res))
         },
 
         async getTeachersRequest() {
-            return await fetch(`${domain}schedules/teachers/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).then((res) => realApi.isOk(res))
+            return await axios
+                .get(`/schedules/teachers/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then((res) => realApi.isOk(res))
         },
 
         async getSearchRequest(query: string) {
-            return await fetch(`${domain}schedules/search/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(query),
-            }).then((res) => realApi.isOk(res))
+            return await axios
+                .get(`/schedules/search/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    params: query,
+                })
+                .then((res) => realApi.isOk(res))
         },
 
         async tokenRequest() {
-            return await fetch(`${domain}token`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            return await axios
+                .post(`/token`, {
                     token: localStorage.getItem('refreshToken'),
-                }),
-            }).then((res) => realApi.isOk(res))
+                })
+                .then((res) => realApi.isOk(res))
+        },
+    },
+
+    employees: {
+        async getAllEmployees(): Promise<Employee[]> {
+            return mapResult(
+                await axios
+                    .get(`/schedules/search/`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then((res) => realApi.isOk<Employee[]>(res)),
+                (employees) => employees,
+                () => []
+            )
         },
     },
 }
