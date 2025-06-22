@@ -63,8 +63,35 @@ export type Grade = {
     comment: string
     created_at: string
     updated_at: string
-    lesson: number
+    lesson: Lesson
     value: number
+}
+
+export type Teacher = {
+    employer: Employee
+}
+
+export type Subject = {
+    name: string
+    color: string | null
+    teacher: Teacher[]
+}
+
+export type Lesson = {
+    id: number
+    classroom: { title: '705'; floor: 7; building: '6' }
+    date: string
+    end_time: string
+    group: PreGroup
+    is_canceled: false
+    is_completed: false
+    lesson: number
+    org: string
+    start_time: string
+    subject: Subject
+    teacher: Teacher
+    title: string
+    week_day: number
 }
 
 export type Employee = {
@@ -103,8 +130,8 @@ type PreGrade = {
     comment: string
     created_at: string
     updated_at: string
-    lesson: 1
-    value: 4
+    lesson: Lesson
+    value: number
 }
 
 function preStudentToStudent(preStudent: PreStudent) {

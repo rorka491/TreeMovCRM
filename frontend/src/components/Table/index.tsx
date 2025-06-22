@@ -22,11 +22,11 @@ export function Table<T>({
     skeletonAmount,
     mapFields,
 }: {
-    keys:
-        | (keyof T)[]
-        | Partial<{
-              [k in keyof T]: string
-          }>
+    keys: Partial<{
+        [k in keyof T]: T[k] extends string | number | (string | number)[]
+            ? string
+            : undefined
+    }>
     data: T[]
     rowActions?: { [k: string]: (row: T) => void }
     conditionalClassNames?: Partial<{
@@ -40,18 +40,6 @@ export function Table<T>({
 }) {
     const [popupOpen, setPopupOpen] = useState<string | number>(-1)
     skeletonAmount ??= 8
-
-    if (Array.isArray(keys)) {
-        const temp: Partial<{
-            [k in keyof T]: string
-        }> = {}
-
-        for (const key of keys) {
-            temp[key] = key.toString()
-        }
-
-        keys = temp
-    }
 
     return (
         <div className="w-full h-[100%] overflow-y-scroll special-scroll">

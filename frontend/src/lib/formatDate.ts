@@ -3,8 +3,13 @@ import { months, monthsPlural } from './months'
 export function formatDate(
     date: Date,
     format = 'DD.MM.YYYY',
-    options: { padDay?: boolean; monthPlural?: boolean } = {
+    options: {
+        padDay?: boolean
+        padMinutes?: boolean
+        monthPlural?: boolean
+    } = {
         padDay: true,
+        padMinutes: true,
         monthPlural: false,
     }
 ) {
@@ -14,12 +19,22 @@ export function formatDate(
     const day = date.getDate()
     const month = date.getMonth()
     const year = date.getFullYear()
+    const minutes = date.getMinutes()
+    const seconds = date.getSeconds()
+    const hours = date.getHours()
+
+    const minutesStr = options.padMinutes
+        ? (minutes + '').padStart(2, '0')
+        : minutes + ''
 
     const dayStr = options.padDay ? (day + '').padStart(2, '0') : day + ''
     const monthStr = (options.monthPlural ? monthsPlural : months)[month]
     const monthShort =
         monthStr.length > 4 ? monthStr.substring(0, 3) + '.' : monthStr
 
+    format = format.replaceAll(/h+/gm, hours + '')
+    format = format.replaceAll(/s+\.?s*/gm, seconds + '')
+    format = format.replaceAll(/min/gm, minutesStr)
     format = format.replaceAll(/y+/gm, year + '')
     format = format.replaceAll(/d+/gm, dayStr)
     format = format.replaceAll(/m+_str/gm, monthStr)

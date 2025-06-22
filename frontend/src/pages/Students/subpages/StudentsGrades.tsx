@@ -5,6 +5,7 @@ import { Table } from '../../../components/Table'
 import { useNavigate } from 'react-router-dom'
 import { Student } from '../../../api/fakeApi'
 import { Grade } from '../../../api/api'
+import { formatDate } from '../../../lib/formatDate'
 
 export function StudentsGrades() {
     const [students, setStudents] = useState<Student[]>([])
@@ -61,6 +62,8 @@ export function StudentsGrades() {
         },
     ])
 
+    console.log(grades)
+
     return (
         <>
             <FilterBar
@@ -90,8 +93,8 @@ export function StudentsGrades() {
                         ...grade,
                         studentFullName: grade.student.fullName,
                         subject: grade.lesson,
-                        date: grade.created_at,
-                        teacherFullName: '',
+                        date: formatDate(new Date(grade.created_at), "HH:MIN DD.MM.YYYY"),
+                        teacherFullName: `${grade.lesson.teacher.employer.surname} ${grade.lesson.teacher.employer.name} ${grade.lesson.teacher.employer.patronymic}`,
                         grade: [
                             'Плохо',
                             'Удовлетворительно',
@@ -102,7 +105,6 @@ export function StudentsGrades() {
                     }))}
                 keys={{
                     studentFullName: 'Ученик',
-                    subject: 'Предмет',
                     date: 'Дата урока',
                     teacherFullName: 'Преподаватель',
                     grade: 'Оценка',
