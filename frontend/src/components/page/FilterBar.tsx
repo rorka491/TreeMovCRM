@@ -11,6 +11,26 @@ type FilterPart = {
     removeButton?: boolean
 } & Omit<SelectProps<any>, ''>
 
+function getSelectedFromParams(filterData: FilterPart[]) {
+    const url = new URL(window.location.href)
+
+    const selectedRes = Object.fromEntries(
+        filterData.map((filter) => [filter.id, filter.default])
+    )
+
+    for (const key of url.searchParams.keys()) {
+        const value = JSON.parse(url.searchParams.get(key) ?? "null")
+        
+        if (!value) {
+            continue
+        }
+
+        selectedRes[key] = value
+    }
+
+    return selectedRes
+}
+
 export function FilterBar({
     filterData,
     selectedChange,
@@ -19,10 +39,24 @@ export function FilterBar({
     selectedChange?: (r: { [k: string]: any | undefined }) => void
 }) {
     const [selected, setSelected] = useState<{ [k: string]: any | undefined }>(
-        Object.fromEntries(
-            filterData.map((filter) => [filter.id, filter.default])
-        )
+        getSelectedFromParams(filterData)
     )
+
+    // Изменение ссылки вместе с фильтрами
+    useEffect(() => {
+        const url = new URL(window.location.href)
+
+        for (const key in selected) {
+            if (!selected[key]) {
+                url.searchParams.delete(key)
+                continue
+            }
+
+            url.searchParams.set(key, JSON.stringify(selected[key]))
+        }
+
+        history.pushState(null, '', url.toString())
+    }, [selected])
 
     useEffect(() => {
         selectedChange?.(selected)
