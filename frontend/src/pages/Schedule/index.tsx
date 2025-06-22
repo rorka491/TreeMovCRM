@@ -1,10 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { FilterBar } from '../../components/page/FilterBar'
 import { useState } from 'react'
-import ScheduleMonth from './subpages/SheduleMonth'
 import CalendarBar from '../../components/page/CalendarBar'
-import SheduleWeek from './subpages/SheduleWeek'
-import ScheduleDay from './subpages/SheduleDay'
 
 export function Schedule() {
     const [filtersSelected, setFiltersSelected] = useState<{
@@ -63,10 +60,7 @@ export function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={(date) => setCurrentDate(date)}
             />
-            {/* <ScheduleMonth currentDate={currentDate} /> */}
-            <SheduleWeek />
-            {/* <ScheduleDay /> */}
-            {/* <Outlet /> */}
+            <Outlet />
         </section>
     )
 }

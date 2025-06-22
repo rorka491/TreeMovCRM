@@ -18,6 +18,9 @@ import { StudentProfile } from './pages/Students/subpages/StudentProfile'
 import { StudentProfileEdit } from './pages/Students/subpages/StudentProfileEdit'
 import { StudentsGrades } from './pages/Students/subpages/StudentsGrades'
 import { StudentsPayments } from './pages/Students/subpages/StudentsPayments'
+import SheduleByMonth from './pages/Schedule/subpages/SheduleByMonth'
+import SheduleByWeek from './pages/Schedule/subpages/SheduleByWeek'
+import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
 
 function App() {
     return (
@@ -25,19 +28,13 @@ function App() {
             <Routes>
                 <Route path="*" element={<Base />}>
                     <Route path="schedule" element={<Schedule />}>
-                        <Route
-                            path="by-teacher"
-                            element={<ScheduleByTeacher />}
-                        />
-                        <Route path="by-group" element={<ScheduleByGroup />} />
-                        <Route
-                            path="by-classroom"
-                            element={<ScheduleByClassroom />}
-                        />
+                        <Route path="by-month" element={<SheduleByMonth />} />
+                        <Route path="by-week" element={<SheduleByWeek />} />
+                        <Route path="by-day" element={<ScheduleByDay />} />
                         <Route path="edit" element={<>...</>} />
                         <Route
                             path="*"
-                            element={<Navigate to="../by-teacher" />}
+                            element={<Navigate to="../by-month" />}
                         />
                     </Route>
                     <Route path="employees" element={<Employees />}>
@@ -49,7 +46,10 @@ function App() {
                         <Route path="grades" element={<StudentsGrades />} />
                         <Route path="payments" element={<StudentsPayments />} />
                         <Route path="profile/:studentId">
-                            <Route path="edit" element={<StudentProfileEdit />} />
+                            <Route
+                                path="edit"
+                                element={<StudentProfileEdit />}
+                            />
                             <Route path="*" element={<StudentProfile />} />
                         </Route>
                         <Route path="*" element={<Navigate to="../main" />} />

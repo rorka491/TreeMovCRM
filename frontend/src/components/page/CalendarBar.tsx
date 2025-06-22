@@ -22,7 +22,7 @@ function CalendarBar({
         year: 'numeric',
     })
 
-    const navigate = useNavigate()
+    let navigate = useNavigate()
 
     return (
         <div className="flex items-center justify-between ">
@@ -84,8 +84,8 @@ function CalendarBar({
                             value: string
                             key: string
                         }) => {
+                            navigate('/shedules/by-' + newSelected.key)
                             setSelected(newSelected)
-                            navigate('/shedules/' + newSelected.key)
                         }}
                     />
                     <div className="flex gap-2">

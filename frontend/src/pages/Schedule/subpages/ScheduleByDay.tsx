@@ -92,7 +92,7 @@ function getLessonsForHour(hour: string) {
     return lessons.filter((l) => l.start.startsWith(hour.split(':')[0]))
 }
 
-function ScheduleDay() {
+function ScheduleByDay() {
     const [selectedLesson, setSelectedLesson] = useState<number | null>(null)
 
     return (
@@ -167,4 +167,4 @@ function ScheduleDay() {
     )
 }
 
-export default ScheduleDay
+export default ScheduleByDay

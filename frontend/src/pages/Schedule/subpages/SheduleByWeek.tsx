@@ -72,7 +72,7 @@ const weekSchedules = [
     },
 ]
 
-function SheduleWeek() {
+function SheduleByWeek() {
     const [popupOpen, setPopupOpen] = useState<{
         row: null | number
         col: null | number
@@ -218,4 +218,4 @@ function SheduleWeek() {
     )
 }
 
-export default SheduleWeek
+export default SheduleByWeek

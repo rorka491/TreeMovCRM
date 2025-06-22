@@ -85,7 +85,8 @@ function mergeSchedulesToMatrix(matrix: any[][], schedules: any[]) {
     )
 }
 
-function SheduleMonth({ currentDate }: { currentDate: Date }) {
+function SheduleByMonth() {
+    const currentDate = new Date()
     const [matrix, setMatrix] = useState(() =>
         mergeSchedulesToMatrix(getMonthMatrix(currentDate), testSchedules)
     )
@@ -131,7 +132,7 @@ function SheduleMonth({ currentDate }: { currentDate: Date }) {
                                                 {title}
                                             </span>
                                             <li className="grid grid-flow-col grid-cols-[repeat(auto-fill,15px)] gap-[4px] flex-wrap">
-                                                {subjects.map((el, i) => {
+                                                {[1, 2, 3, 4].map((el, i) => {
                                                     if (i < 5) {
                                                         return (
                                                             <ul
@@ -173,4 +174,4 @@ function SheduleMonth({ currentDate }: { currentDate: Date }) {
     )
 }
 
-export default SheduleMonth
+export default SheduleByMonth
