@@ -3,6 +3,7 @@ import { getMonthMatrix } from '../../../lib/getMonthMatrix'
 import { isToday } from '../../../lib/isToday'
 import { PopUpMenu } from '../../../components/PopUpMenu'
 import { parseDate } from '../../../lib/parseDate'
+import { useOutletContext } from 'react-router-dom'
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
@@ -86,7 +87,7 @@ function mergeSchedulesToMatrix(matrix: any[][], schedules: any[]) {
 }
 
 function ScheduleByMonth() {
-    const currentDate = new Date()
+    const currentDate: Date = useOutletContext()
     const matrix = mergeSchedulesToMatrix(
         getMonthMatrix(currentDate),
         testSchedules
@@ -112,7 +113,6 @@ function ScheduleByMonth() {
                             <tr key={i}>
                                 {week.map((el, j) => {
                                     const { date, current, week_day } = el[0]
-                                    console.log(el[0].title)
                                     return (
                                         <td
                                             key={j}

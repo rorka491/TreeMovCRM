@@ -4,6 +4,7 @@ import { useState } from 'react'
 import CalendarBar from '../../components/page/CalendarBar'
 
 export function Schedule() {
+    const [currentDate, setCurrentDate] = useState(new Date())
     const [filtersSelected, setFiltersSelected] = useState<{
         [k: string]: any | undefined
     }>({})
@@ -53,8 +54,11 @@ export function Schedule() {
                 filterData={filterData}
                 selectedChange={setFiltersSelected}
             />
-            <CalendarBar />
-            <Outlet />
+            <CalendarBar
+                currentDate={currentDate}
+                setCurrentDate={setCurrentDate}
+            />
+            <Outlet context={currentDate} />
         </section>
     )
 }
