@@ -1,17 +1,5 @@
-import React, { useState } from 'react'
-
-type Lesson = {
-    id: number
-    title: string
-    teacher: string
-    classroom: string
-    color: string
-    start: string // '10:00'
-    end: string // '12:10'
-    groups?: string
-    isCanceled?: boolean
-    isCompleted?: boolean
-}
+import { useOutletContext } from 'react-router-dom'
+import LessonCard, { Lesson } from '../../../components/LessonCard/LessonCard'
 
 const lessons: Lesson[] = [
     {
@@ -76,94 +64,65 @@ const lessons: Lesson[] = [
     },
 ]
 
-const hours = [
-    '9:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '13:00',
-    '14:00',
-    '15:00',
-    '16:00',
-]
+const hours = Array.from({ length: 24 }, (_, i) => i + ':00')
 
-function getLessonsForHour(hour: string) {
-    // Возвращает уроки, которые начинаются в этот час
-    return lessons.filter((l) => l.start.startsWith(hour.split(':')[0]))
+const WEEKDAYS = ['Вс', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Пн']
+
+function isLessonInHour(lesson: Lesson, hour: string) {
+    const [hStart, mStart] = lesson.start.split(':').map(Number)
+    const [hEnd, mEnd] = lesson.end.split(':').map(Number)
+    const [h, m] = hour.split(':').map(Number)
+    const lessonStart = hStart * 60 + mStart
+    const lessonEnd = hEnd * 60 + mEnd
+    const time = h * 60 + m
+    return time >= lessonStart && time < lessonEnd
 }
 
 function ScheduleByDay() {
-    const [selectedLesson, setSelectedLesson] = useState<number | null>(null)
-
+    const currentDate: Date = useOutletContext()
     return (
-        <div className="w-full h-full bg-[#F7F7FB] rounded-[16px] p-4 flex flex-col">
-            <div className="flex items-center pb-2 mb-2 border-b">
-                <div className="mr-4 text-lg font-semibold">Часы</div>
-                <div className="text-lg font-semibold">Пн 10</div>
-            </div>
-            <div className="flex-1 overflow-y-auto special-scroll">
-                <div className="grid grid-cols-[80px_1fr] gap-x-2">
-                    <div className="flex flex-col gap-y-8">
-                        {hours.map((h) => (
-                            <div
-                                key={h}
-                                className="h-[60px] flex items-start justify-end pr-2 text-gray-500 text-sm"
-                            >
-                                {h}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex flex-col gap-y-2">
-                        {hours.map((h, idx) => (
-                            <div key={h} className="relative h-[60px]">
-                                {/* Уроки, начинающиеся в этот час */}
-                                {lessons
-                                    .filter((l) =>
-                                        l.start.startsWith(h.split(':')[0])
-                                    )
-                                    .map((l) => (
-                                        <div
-                                            key={l.id}
-                                            className="absolute top-0 left-0 flex flex-col w-full gap-1 p-3 bg-white border shadow-sm cursor-pointer rounded-xl"
-                                            style={{
-                                                borderColor: l.color,
-                                                borderWidth: 2,
-                                            }}
-                                            onClick={() =>
-                                                setSelectedLesson(l.id)
-                                            }
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{
-                                                        background: l.color,
-                                                    }}
-                                                ></span>
-                                                <span className="font-medium">
-                                                    {l.title}
-                                                </span>
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {l.teacher}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                Каб. {l.classroom}
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                {l.groups}
-                                            </div>
-                                            <div className="text-xs text-gray-400">
-                                                {l.start}–{l.end}
-                                            </div>
+        <section className="flex flex-col w-full h-full gap-4 bg-[#F7F7FA] min-h-screen">
+            <div className="w-full overflow-y-scroll h-[60vh] special-scroll">
+                <table className="w-full bg-[#EAECF0] border rounded-[12.5px] overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th className="text-base font-normal w-[100px] border-[#EAECF0] bg-white">
+                                Часы
+                            </th>
+                            <th className="font-semibold border align-top text-left p-[8px] border-[#EAECF0] bg-[#A78BFA33] select-none">
+                                {WEEKDAYS[currentDate.getDay()] +
+                                    ' ' +
+                                    currentDate.getDate()}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {hours.map((hour, rowIdx) => {
+                            const lessonsInHour = lessons.filter((l) =>
+                                isLessonInHour(l, hour)
+                            )
+                            return (
+                                <tr key={rowIdx}>
+                                    <td className="text-center h-[125px] bg-white relative border align-top transition p-[8px] hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none">
+                                        {hour}
+                                    </td>
+                                    <td className="h-[125px] bg-white relative border align-top transition p-[8px] hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none">
+                                        <div className="flex h-full gap-2">
+                                            {lessonsInHour.map((lesson) => (
+                                                <LessonCard
+                                                    key={lesson.id}
+                                                    lesson={lesson}
+                                                />
+                                            ))}
                                         </div>
-                                    ))}
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </section>
     )
 }
 

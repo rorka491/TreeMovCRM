@@ -87,9 +87,53 @@ const RADIO_OPTIONS = [
     },
 ]
 
-function CalendarBar() {
+function getWeekRange(date: Date) {
+    // Monday as first day of week
+    const day = date.getDay() === 0 ? 7 : date.getDay()
+    const monday = new Date(date)
+    monday.setDate(date.getDate() - (day - 1))
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+
+    // Форматирование для разных случаев
+    const format = (d: Date, withYear = false) =>
+        d.toLocaleString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            ...(withYear ? { year: 'numeric' } : {}),
+        })
+
+    // Одна неделя в пределах одного месяца и года
+    if (
+        monday.getMonth() === sunday.getMonth() &&
+        monday.getFullYear() === sunday.getFullYear()
+    ) {
+        return (
+            `${monday.getDate()} - ${sunday.getDate()} ` +
+            monday.toLocaleString('ru-RU', {
+                month: 'long',
+                year: 'numeric',
+            })
+        )
+    }
+
+    // Неделя в пределах одного года, но разные месяцы
+    if (monday.getFullYear() === sunday.getFullYear()) {
+        return `${format(monday)} - ${format(sunday)} ${sunday.getFullYear()}`
+    }
+
+    // Неделя на стыке годов
+    return `${format(monday, true).slice(0, -3)} - ${format(sunday, true).slice(0, -3)}`
+}
+
+function CalendarBar({
+    currentDate,
+    setCurrentDate,
+}: {
+    currentDate: Date
+    setCurrentDate: React.Dispatch<React.SetStateAction<Date>>
+}) {
     const [selected, setSelected] = useState(VIEW_OPTIONS[2])
-    const [currentDate, setCurrentDate] = useState(new Date())
 
     const match = useMatch('/:any/:lastPart/*')
     const activeSection = match?.params?.lastPart || 'by-month'
@@ -97,6 +141,11 @@ function CalendarBar() {
 
     const month = currentDate.getMonth()
     const date = currentDate.getDate()
+    const dayMonthYear = currentDate.toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    })
     const monthYear = currentDate.toLocaleString('ru-RU', {
         month: 'long',
         year: 'numeric',
@@ -159,7 +208,13 @@ function CalendarBar() {
                     className="font-semibold"
                     onClick={() => setCurrentDate(new Date())}
                 >
-                    {monthYear[0].toUpperCase() + monthYear.slice(1)}
+                    {activeSection === 'by-month'
+                        ? monthYear[0].toUpperCase() +
+                          monthYear.slice(1).slice(0, -3)
+                        : activeSection === 'by-week'
+                          ? getWeekRange(currentDate)
+                          : dayMonthYear[0].toUpperCase() +
+                            dayMonthYear.slice(1).slice(0, -3)}
                 </button>
             </div>
             <div className="flex items-center gap-2">
