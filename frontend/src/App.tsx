@@ -18,8 +18,8 @@ import { StudentProfile } from './pages/Students/subpages/StudentProfile'
 import { StudentProfileEdit } from './pages/Students/subpages/StudentProfileEdit'
 import { StudentsGrades } from './pages/Students/subpages/StudentsGrades'
 import { StudentsPayments } from './pages/Students/subpages/StudentsPayments'
-import SheduleByMonth from './pages/Schedule/subpages/SheduleByMonth'
-import SheduleByWeek from './pages/Schedule/subpages/SheduleByWeek'
+import SсheduleByMonth from './pages/Schedule/subpages/ScheduleByMonth'
+import SсheduleByWeek from './pages/Schedule/subpages/ScheduleByWeek'
 import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
 
 function App() {
@@ -28,8 +28,8 @@ function App() {
             <Routes>
                 <Route path="*" element={<Base />}>
                     <Route path="schedule" element={<Schedule />}>
-                        <Route path="by-month" element={<SheduleByMonth />} />
-                        <Route path="by-week" element={<SheduleByWeek />} />
+                        <Route path="by-month" element={<SсheduleByMonth />} />
+                        <Route path="by-week" element={<SсheduleByWeek />} />
                         <Route path="by-day" element={<ScheduleByDay />} />
                         <Route path="edit" element={<>...</>} />
                         <Route

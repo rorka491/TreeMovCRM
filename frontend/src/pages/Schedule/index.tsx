@@ -47,19 +47,13 @@ export function Schedule() {
             removeButton: true,
         },
     ])
-
-    const [currentDate, setCurrentDate] = useState(new Date())
-
     return (
         <section className="flex h-[100%] flex-col gap-y-[16px]">
             <FilterBar
                 filterData={filterData}
                 selectedChange={setFiltersSelected}
             />
-            <CalendarBar
-                currentDate={currentDate}
-                setCurrentDate={(date) => setCurrentDate(date)}
-            />
+            <CalendarBar />
             <Outlet />
         </section>
     )

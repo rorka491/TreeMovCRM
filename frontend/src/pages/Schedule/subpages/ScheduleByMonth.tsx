@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { getMonthMatrix } from '../../../lib/getMonthMatrix'
 import { isToday } from '../../../lib/isToday'
 import { PopUpMenu } from '../../../components/PopUpMenu'
@@ -85,34 +85,34 @@ function mergeSchedulesToMatrix(matrix: any[][], schedules: any[]) {
     )
 }
 
-function SheduleByMonth() {
+function ScheduleByMonth() {
     const currentDate = new Date()
-    const [matrix, setMatrix] = useState(() =>
-        mergeSchedulesToMatrix(getMonthMatrix(currentDate), testSchedules)
+    const matrix = mergeSchedulesToMatrix(
+        getMonthMatrix(currentDate),
+        testSchedules
     )
     const [popupOpen, setPopupOpen] = useState<string | number>(-1)
 
-    useEffect(() => {
-        setMatrix(
-            mergeSchedulesToMatrix(getMonthMatrix(currentDate), testSchedules)
-        )
-    }, [currentDate])
-    console.log(matrix.map((e1) => e1.map((e2) => console.log(e2[0]))))
     return (
         <section className="w-full h-full grid grid-rows-[max-content_1fr] gap-y-[16px]">
             <div className="w-full overflow-y-scroll h-[60vh] special-scroll">
                 <table className="w-full bg-[#EAECF0] border rounded-[12.5px] overflow-hidden">
+                    <tr>
+                        {WEEKDAYS.map((d, i) => (
+                            <th
+                                key={i}
+                                className={`font-semibold border align-top text-center transition p-[8px] hover:bg-gray-100 border-[#EAECF0] bg-white cursor-pointer select-none`}
+                            >
+                                {d}
+                            </th>
+                        ))}
+                    </tr>
                     <tbody>
                         {matrix.map((week, i) => (
                             <tr key={i}>
                                 {week.map((el, j) => {
-                                    const {
-                                        date,
-                                        current,
-                                        week_day,
-                                        title,
-                                        subjects,
-                                    } = el[0]
+                                    const { date, current, week_day } = el[0]
+                                    console.log(el[0].title)
                                     return (
                                         <td
                                             key={j}
@@ -129,7 +129,6 @@ function SheduleByMonth() {
                                         >
                                             <span className="flex items-center justify-center mx-auto mt-[2px] mb-[10px]">
                                                 {`${WEEKDAYS[week_day]} ${parseDate(date).getDate()}`}
-                                                {title}
                                             </span>
                                             <li className="grid grid-flow-col grid-cols-[repeat(auto-fill,15px)] gap-[4px] flex-wrap">
                                                 {[1, 2, 3, 4].map((el, i) => {
@@ -174,4 +173,4 @@ function SheduleByMonth() {
     )
 }
 
-export default SheduleByMonth
+export default ScheduleByMonth
