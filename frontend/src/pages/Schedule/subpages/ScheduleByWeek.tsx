@@ -1,8 +1,5 @@
-import { useState } from 'react'
-import { PopUpMenu } from '../../../components/PopUpMenu'
 import LessonCard, { Lesson } from '../../../components/LessonCard/LessonCard'
-import { isLessonInHour } from '../../../lib/isLessonInHour'
-import { useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { formatDate } from '../../../lib/formatDate'
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -165,13 +162,38 @@ const lessons: Lesson[] = [
     },
 ]
 
-function ScheduleByWeek() {
-    const [popupOpen, setPopupOpen] = useState<{
-        row: null | number
-        col: null | number
-    }>({ row: null, col: null })
+// Вспомогательные функции
+function parseTime(time: string) {
+    const [h, m] = time.split(':').map(Number)
+    return h + m / 60
+}
 
+function getLessonStyle(lesson: Lesson, hourIdx: number) {
+    const startHour = parseTime(lesson.start_time)
+    const endHour = parseTime(lesson.end_time)
+    const cellHeight = 125
+
+    // Если занятие начинается не в этом часу, не отображаем его
+    if (Math.floor(startHour) !== hourIdx) return null
+
+    // top — смещение от начала ячейки (если lesson начинается не ровно в начале)
+    const top = (startHour - hourIdx) * cellHeight
+
+    // height — сколько часов (или долей) длится занятие
+    const duration = endHour - startHour
+    const height = duration * cellHeight
+
+    return {
+        top: `${top}px`,
+        left: 0,
+        height: `${height}px`,
+        zIndex: 1,
+    }
+}
+
+function ScheduleByWeek() {
     const currentDate: Date = useOutletContext()
+    const navigate = useNavigate()
     return (
         <section className="flex flex-col w-full h-full gap-4 bg-[#F7F7FA] min-h-screen">
             <div className="w-full overflow-y-scroll h-[60vh] special-scroll">
@@ -187,16 +209,14 @@ function ScheduleByWeek() {
                                 const dayNum = cellDate.getDate()
                                 return (
                                     <th
-                                        onMouseEnter={() =>
-                                            setPopupOpen({ row: null, col: i })
-                                        }
+                                        onClick={() => {
+                                            navigate('/schedule/by-day')
+                                            currentDate.setDate(
+                                                currentDate.getDate() + i
+                                            )
+                                        }}
                                         key={i}
-                                        className={`font-semibold border align-top text-center transition p-[8px] hover:bg-gray-100 ${
-                                            i === popupOpen.col
-                                                ? 'bg-[#A78BFA33]'
-                                                : 'border-[#EAECF0] bg-white'
-                                        }
-                                                                        cursor-pointer select-none`}
+                                        className={`font-semibold border align-top text-center transition p-[8px] hover:bg-gray-100 bg-[#A78BFA33] cursor-pointer select-none`}
                                     >
                                         {d} {dayNum}
                                     </th>
@@ -216,34 +236,45 @@ function ScheduleByWeek() {
                                         currentDate.getDate() + colIdx
                                     )
                                     const formattedDate = formatDate(cellDate)
-                                    const lessonsInHour = lessons.filter((l) =>
-                                        isLessonInHour(l, hour, formattedDate)
+                                    const dayLessons = lessons.filter(
+                                        (l) => l.date === formattedDate
                                     )
                                     return (
                                         <td
-                                            key={colIdx}
-                                            className={`h-[125px] border align-top transition p-[8px] hover:bg-gray-100
-                                                ${
-                                                    rowIdx === popupOpen.row ||
-                                                    colIdx === popupOpen.col
-                                                        ? 'bg-[#A78BFA33]'
-                                                        : 'border-[#EAECF0] bg-white'
-                                                }
-                                                cursor-pointer select-none`}
-                                            onMouseEnter={() =>
-                                                setPopupOpen({
-                                                    row: rowIdx,
-                                                    col: colIdx,
-                                                })
-                                            }
+                                            className="h-[125px] bg-white relative border align-top transition hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none"
+                                            style={{
+                                                position: 'relative',
+                                                minHeight: 125,
+                                            }}
                                         >
-                                            <div className="grid h-full gap-2">
-                                                {lessonsInHour.map((lesson) => (
-                                                    <LessonCard
-                                                        key={lesson.title}
-                                                        lesson={lesson}
-                                                    />
-                                                ))}
+                                            <div className="relative w-full h-full">
+                                                {dayLessons.map((lesson, i) => {
+                                                    const style =
+                                                        getLessonStyle(
+                                                            lesson,
+                                                            rowIdx
+                                                        )
+                                                    if (!style) return null
+
+                                                    return (
+                                                        <div
+                                                            key={lesson.title}
+                                                            className="absolute transition-[box-shadow] duration-200"
+                                                            style={{
+                                                                top: style.top,
+                                                                height: style.height,
+                                                                zIndex:
+                                                                    style.zIndex +
+                                                                    colIdx,
+                                                                left: `${i * 180 + (i === 0 ? 0 : 8)}px`,
+                                                            }}
+                                                        >
+                                                            <LessonCard
+                                                                lesson={lesson}
+                                                            />
+                                                        </div>
+                                                    )
+                                                })}
                                             </div>
                                         </td>
                                     )
