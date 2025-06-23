@@ -31,14 +31,14 @@ function LessonCard({ lesson }: LessonCardProps) {
 
     return (
         <div
-            className={`min-w-[180px] ${expanded ? 'w-max' : 'w-[180px]'} relative px-3 py-2 bg-white border rounded-xl flex flex-col justify-between items-start transition-all duration-200 cursor-pointer
+            className={`h-full min-w-[180px] w-fit relative px-3 py-2 bg-white border rounded-xl flex flex-col  items-start transition-all duration-200 cursor-pointer
                 *:text-xs *:w-full *:overflow-hidden *:text-ellipsis *:whitespace-nowrap *:text-[#707070]
                 `}
             style={{
                 borderColor: lesson.subject.color,
             }}
-            onMouseEnter={() => setExpanded(true)}
-            onMouseLeave={() => setExpanded(false)}
+            // onMouseEnter={() => setExpanded(true)}
+            // onMouseLeave={() => setExpanded(false)}
         >
             <div className="flex items-center w-full gap-2 mb-1">
                 <span

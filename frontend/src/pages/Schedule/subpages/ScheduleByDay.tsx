@@ -1,7 +1,6 @@
 import { useOutletContext } from 'react-router-dom'
 import LessonCard, { Lesson } from '../../../components/LessonCard/LessonCard'
 import { formatDate } from '../../../lib/formatDate'
-import { isLessonInHour } from '../../../lib/isLessonInHour'
 
 const lessons: Lesson[] = [
     {
@@ -116,7 +115,7 @@ const lessons: Lesson[] = [
     },
     {
         title: 'Информатика',
-        start_time: '11:00:00',
+        start_time: '10:05:00',
         end_time: '12:30:00',
         date: '23.06.2025',
         teacher: 6,
@@ -161,11 +160,43 @@ const lessons: Lesson[] = [
 ]
 
 const hours = Array.from({ length: 24 }, (_, i) => i + ':00')
+const WEEKDAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
 
-const WEEKDAYS = ['Вс', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Пн']
+// Вспомогательные функции
+function parseTime(time: string) {
+    const [h, m] = time.split(':').map(Number)
+    return h + m / 60
+}
+
+function getLessonStyle(lesson: Lesson, hourIdx: number) {
+    const startHour = parseTime(lesson.start_time)
+    const endHour = parseTime(lesson.end_time)
+    const cellHeight = 125
+
+    // Если занятие начинается не в этом часу, не отображаем его
+    if (Math.floor(startHour) !== hourIdx) return null
+
+    // top — смещение от начала ячейки (если lesson начинается не ровно в начале)
+    const top = (startHour - hourIdx) * cellHeight
+
+    // height — сколько часов (или долей) длится занятие
+    const duration = endHour - startHour
+    const height = duration * cellHeight
+
+    return {
+        top: `${top}px`,
+        left: 0,
+        height: `${height}px`,
+        zIndex: 1,
+    }
+}
 
 function ScheduleByDay() {
     const currentDate: Date = useOutletContext()
+
+    const formattedDate = formatDate(currentDate)
+    const dayLessons = lessons.filter((l) => l.date === formattedDate)
+
     return (
         <section className="flex flex-col w-full h-full gap-4 bg-[#F7F7FA] min-h-screen">
             <div className="w-full overflow-y-scroll h-[60vh] special-scroll">
@@ -176,30 +207,49 @@ function ScheduleByDay() {
                                 Часы
                             </th>
                             <th className="font-semibold border align-top text-left p-[8px] border-[#EAECF0] bg-[#A78BFA33] select-none">
-                                {WEEKDAYS[currentDate.getDay()] +
-                                    ' ' +
-                                    currentDate.getDate()}
+                                {WEEKDAYS[currentDate.getDay()]}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {hours.map((hour, rowIdx) => {
-                            const lessonsInHour = lessons.filter((l) =>
-                                isLessonInHour(l, hour, formatDate(currentDate))
-                            )
+                        {hours.map((hour, hourIdx) => {
                             return (
-                                <tr key={rowIdx}>
-                                    <td className="text-center h-[125px] bg-white relative border align-top transition p-[8px] hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none">
+                                <tr key={hourIdx}>
+                                    <td className="text-center h-[125px] align-middle bg-white border transition hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none">
                                         {hour}
                                     </td>
-                                    <td className="h-[125px] bg-white relative border align-top transition p-[8px] hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none">
-                                        <div className="flex h-full gap-2">
-                                            {lessonsInHour.map((lesson) => (
-                                                <LessonCard
-                                                    key={lesson.title}
-                                                    lesson={lesson}
-                                                />
-                                            ))}
+                                    <td
+                                        className="h-[125px] bg-white relative border align-top transition hover:bg-gray-100 border-[#EAECF0] cursor-pointer select-none"
+                                        style={{
+                                            position: 'relative',
+                                            minHeight: 125,
+                                        }}
+                                    >
+                                        <div className="relative w-full h-full">
+                                            {dayLessons.map((lesson, i) => {
+                                                const style = getLessonStyle(
+                                                    lesson,
+                                                    hourIdx
+                                                )
+                                                if (!style) return null
+
+                                                return (
+                                                    <div
+                                                        key={lesson.title}
+                                                        className="absolute transition-[box-shadow] duration-200"
+                                                        style={{
+                                                            top: style.top,
+                                                            height: style.height,
+                                                            zIndex: style.zIndex,
+                                                            left: `${i * 180 + (i === 0 ? 0 : 8)}px`,
+                                                        }}
+                                                    >
+                                                        <LessonCard
+                                                            lesson={lesson}
+                                                        />
+                                                    </div>
+                                                )
+                                            })}
                                         </div>
                                     </td>
                                 </tr>
