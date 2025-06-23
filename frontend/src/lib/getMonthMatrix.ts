@@ -1,18 +1,12 @@
 export function getMonthMatrix(year: number, month: number) {
-    // Возвращает массив недель, каждая неделя — массив из 7 объектов { date: Date, currentMonth: boolean }
     const result: { date: Date; currentMonth: boolean }[][] = []
     const firstDay = new Date(year, month, 1)
 
-    // Определяем день недели для первого дня месяца (0 - Пн, 6 - Вс)
     const startDayOfWeek = (firstDay.getDay() + 6) % 7
-
-    // Начальная дата для первой недели (может быть из прошлого месяца)
     const startDate = new Date(firstDay)
     startDate.setDate(firstDay.getDate() - startDayOfWeek)
 
-    // Количество дней в матрице (6 недель по 7 дней = 42 дня, чтобы покрыть все случаи)
     const totalDays = 6 * 7
-
     let current = new Date(startDate)
 
     for (let i = 0; i < totalDays; i++) {
@@ -24,5 +18,6 @@ export function getMonthMatrix(year: number, month: number) {
         current.setDate(current.getDate() + 1)
     }
 
-    return result
+    // Удаляем недели, где все дни не входят в текущий месяц
+    return result.filter((week) => week.some((day) => day.currentMonth))
 }

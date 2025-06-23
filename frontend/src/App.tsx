@@ -5,9 +5,6 @@ import {
     Routes,
     Navigate,
 } from 'react-router-dom'
-import ScheduleByClassroom from './pages/Schedule/subpages/ScheduleByClassroom'
-import ScheduleByGroup from './pages/Schedule/subpages/ScheduleByGroup'
-import ScheduleByTeacher from './pages/Schedule/subpages/ScheduleByTeacher'
 import Schedule from './pages/Schedule'
 import Base from './components/page-defaults/Base'
 import Employees from './pages/Employees'
@@ -21,6 +18,7 @@ import { StudentsPayments } from './pages/Students/subpages/StudentsPayments'
 import SсheduleByMonth from './pages/Schedule/subpages/ScheduleByMonth'
 import SсheduleByWeek from './pages/Schedule/subpages/ScheduleByWeek'
 import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
+import SheduleList from './pages/Schedule/subpages/SheduleList'
 
 function App() {
     return (
@@ -29,8 +27,11 @@ function App() {
                 <Route path="*" element={<Base />}>
                     <Route path="schedule" element={<Schedule />}>
                         <Route path="by-month" element={<SсheduleByMonth />} />
+                        <Route path="by-month/list" element={<SheduleList />} />
                         <Route path="by-week" element={<SсheduleByWeek />} />
+                        <Route path="by-week/list" element={<SheduleList />} />
                         <Route path="by-day" element={<ScheduleByDay />} />
+                        <Route path="by-day/list" element={<SheduleList />} />
                         <Route path="edit" element={<>...</>} />
                         <Route
                             path="*"
