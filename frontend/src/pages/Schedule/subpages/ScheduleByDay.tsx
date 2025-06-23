@@ -1,6 +1,7 @@
 import { useOutletContext } from 'react-router-dom'
 import LessonCard, { Lesson } from '../../../components/LessonCard/LessonCard'
 import { formatDate } from '../../../lib/formatDate'
+import { getLessonStyle } from '../../../lib/getLessonStyle'
 
 const lessons: Lesson[] = [
     {
@@ -161,35 +162,6 @@ const lessons: Lesson[] = [
 
 const hours = Array.from({ length: 24 }, (_, i) => i + ':00')
 const WEEKDAYS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
-
-// Вспомогательные функции
-function parseTime(time: string) {
-    const [h, m] = time.split(':').map(Number)
-    return h + m / 60
-}
-
-function getLessonStyle(lesson: Lesson, hourIdx: number) {
-    const startHour = parseTime(lesson.start_time)
-    const endHour = parseTime(lesson.end_time)
-    const cellHeight = 125
-
-    // Если занятие начинается не в этом часу, не отображаем его
-    if (Math.floor(startHour) !== hourIdx) return null
-
-    // top — смещение от начала ячейки (если lesson начинается не ровно в начале)
-    const top = (startHour - hourIdx) * cellHeight
-
-    // height — сколько часов (или долей) длится занятие
-    const duration = endHour - startHour
-    const height = duration * cellHeight
-
-    return {
-        top: `${top}px`,
-        left: 0,
-        height: `${height}px`,
-        zIndex: 1,
-    }
-}
 
 function ScheduleByDay() {
     const currentDate: Date = useOutletContext()

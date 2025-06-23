@@ -1,10 +1,8 @@
+import { useNavigate, useOutletContext } from 'react-router-dom'
+import LessonCard, { Lesson } from '../../../components/LessonCard/LessonCard'
+import { formatDate } from '../../../lib/formatDate'
 import { useState } from 'react'
 import { getMonthMatrix } from '../../../lib/getMonthMatrix'
-import { isToday } from '../../../lib/isToday'
-import { PopUpMenu } from '../../../components/PopUpMenu'
-import { parseDate } from '../../../lib/parseDate'
-import { useOutletContext } from 'react-router-dom'
-import { Lesson } from '../../../components/LessonCard/LessonCard'
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
@@ -164,79 +162,118 @@ const lessons: Lesson[] = [
         lesson: 7,
     },
 ]
-function ScheduleByMonth() {
-    const currentDate: Date = useOutletContext()
-    const matrix = getMonthMatrix(currentDate)
 
-    const [popupOpen, setPopupOpen] = useState<string | number>(-1)
+function ScheduleByMonth() {
+    let currentDate: Date = useOutletContext()
+    const navigate = useNavigate()
+
+    const [hoveredLesson, setHoveredLesson] = useState<Lesson | null>(null)
+    const [tooltipPos, setTooltipPos] = useState<{
+        x: number
+        y: number
+    } | null>(null)
+
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const monthMatrix = getMonthMatrix(year, month)
+
+    // Для быстрого поиска занятий по дате
+    const lessonsByDate: Record<string, Lesson[]> = {}
+    lessons.forEach((l) => {
+        if (!lessonsByDate[l.date]) lessonsByDate[l.date] = []
+        lessonsByDate[l.date].push(l)
+    })
 
     return (
-        <section className="w-full h-full grid grid-rows-[max-content_1fr] gap-y-[16px]">
+        <section className="flex flex-col w-full h-full gap-4 bg-[#F7F7FA] min-h-screen">
             <div className="w-full overflow-y-scroll h-[60vh] special-scroll">
                 <table className="w-full bg-[#EAECF0] border rounded-[12.5px] overflow-hidden">
-                    <tr>
-                        {WEEKDAYS.map((d, i) => (
-                            <th
-                                key={i}
-                                className={`font-semibold border align-top text-center transition p-[8px] hover:bg-gray-100 border-[#EAECF0] bg-white cursor-pointer select-none`}
-                            >
-                                {d}
-                            </th>
-                        ))}
-                    </tr>
+                    <thead>
+                        <tr>
+                            {WEEKDAYS.map((d, i) => (
+                                <th
+                                    key={i}
+                                    className="font-semibold border align-top text-center p-[8px] border-[#EAECF0] bg-[#A78BFA33] select-none"
+                                >
+                                    {d}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
                     <tbody>
-                        {matrix.map((week, i) => (
-                            <tr key={i}>
-                                {week.map((el, j) => {
-                                    const { date, current, week_day } = el
+                        {monthMatrix.map((week, weekIdx) => (
+                            <tr key={weekIdx}>
+                                {week.map(({ date, currentMonth }, dayIdx) => {
+                                    const formatted = formatDate(date)
+
+                                    const dayLessons =
+                                        lessonsByDate[formatted] || []
                                     return (
                                         <td
-                                            key={j}
-                                            onMouseUp={() => setPopupOpen(date)}
-                                            className={`h-[125px] border align-top text-center transition p-[8px] hover:bg-gray-100
-                                        ${
-                                            current
-                                                ? isToday(date)
-                                                    ? 'border-[#7816DB] border-[2px] border-dashed bg-[#f3a4ea82]'
-                                                    : 'border-[#EAECF0] bg-white'
-                                                : 'bg-[#EAECF0]'
-                                        }
-                                        cursor-pointer select-none`}
+                                            onClick={() => {
+                                                navigate('/schedule/by-day')
+                                                currentDate.setDate(
+                                                    date.getDate()
+                                                )
+                                            }}
+                                            key={dayIdx}
+                                            className={`w-0 min-w-0 overflow-visible max-w-[1px] relative align-top h-[125px] bg-white ${currentMonth ? '' : 'text-[#B3B3B3]'} border border-[#EAECF0] min-h-[125px] transition hover:bg-gray-100 px-[8px] py-[10px]`}
                                         >
-                                            <span className="flex mt-[2px] mb-[10px]">
-                                                {parseDate(date).getDate()}
-                                            </span>
-                                            <li className="grid grid-flow-col grid-cols-[repeat(auto-fill,15px)] gap-[4px] flex-wrap">
-                                                {[1, 2, 3, 4].map((el, i) => {
-                                                    if (i < 5) {
-                                                        return (
-                                                            <ul
-                                                                key={i}
-                                                                className={`flex w-[15px] h-[15px] rounded-[5px]`}
-                                                                style={{
-                                                                    background:
-                                                                        // COLORS[
-                                                                        //     el
-                                                                        // ],
-                                                                        'black',
-                                                                }}
-                                                            ></ul>
-                                                        )
-                                                    } else if (i === 5) {
-                                                        return (
-                                                            <div>
-                                                                {'+' + (10 - 5)}
-                                                            </div>
-                                                        )
-                                                    } else return null
-                                                })}
-                                            </li>
-                                            <PopUpMenu
-                                                open={popupOpen === date}
-                                                onClose={() => setPopupOpen(-1)}
-                                            >
-                                                <div className="bg-black h-100 w-100"></div>
-                                            </PopUpMenu>
+                                            {date && (
+                                                <div className="mb-[4px] font-semibold">
+                                                    {date.getDate()}
+                                                </div>
+                                            )}
+                                            <div className="flex flex-wrap gap-1">
+                                                {dayLessons.map((lesson, i) => (
+                                                    <div
+                                                        key={lesson.title + i}
+                                                        className="w-[15px] h-[15px] rounded cursor-pointer inline-block"
+                                                        style={{
+                                                            background:
+                                                                lesson.subject
+                                                                    .color,
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            setHoveredLesson(
+                                                                lesson
+                                                            )
+                                                            const rect = (
+                                                                e.target as HTMLElement
+                                                            ).getBoundingClientRect()
+                                                            setTooltipPos({
+                                                                x:
+                                                                    rect.left +
+                                                                    window.scrollX -
+                                                                    20,
+                                                                y:
+                                                                    rect.top +
+                                                                    window.scrollY +
+                                                                    20,
+                                                            })
+                                                        }}
+                                                        onMouseLeave={() => {
+                                                            setHoveredLesson(
+                                                                null
+                                                            )
+                                                            setTooltipPos(null)
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+                                            {hoveredLesson && tooltipPos && (
+                                                <div
+                                                    className="fixed z-[9999] pointer-events-none w-max max-w-[300px]"
+                                                    style={{
+                                                        top: tooltipPos.y,
+                                                        left: tooltipPos.x,
+                                                    }}
+                                                >
+                                                    <LessonCard
+                                                        lesson={hoveredLesson}
+                                                    />
+                                                </div>
+                                            )}
                                         </td>
                                     )
                                 })}
