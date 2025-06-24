@@ -5,7 +5,7 @@ import CalendarBar from '../../components/page/CalendarBar'
 import { Lesson } from '../../components/LessonCard'
 import { weekDays } from '../../lib/calendarConstants'
 
-const lessons: Lesson[] = [
+const data: Lesson[] = [
     {
         title: 'Математика',
         start_time: '09:00:00',
@@ -624,18 +624,27 @@ const lessons: Lesson[] = [
     },
 ]
 
-function upsertLesson(newLesson: Lesson) {
-    const idx = lessons.findIndex((l) => l.lesson === newLesson.lesson)
-    console.log(newLesson, idx, lessons)
-    if (idx !== -1) {
-        lessons[idx] = newLesson
-    } else {
-        lessons.push(newLesson)
-    }
-}
-
 export function Schedule() {
     const [currentDate, setCurrentDate] = useState(new Date())
+    const [lessons, setLessons] = useState<Lesson[]>(data)
+
+    function upsertLesson(newLesson: Lesson) {
+        setLessons((prevLessons) => {
+            const idx = prevLessons.findIndex(
+                (l) => l.lesson === newLesson.lesson
+            )
+            if (idx !== -1) {
+                // обновляем существующий урок
+                const updated = [...prevLessons]
+                updated[idx] = newLesson
+                return updated
+            } else {
+                // добавляем новый урок
+                return [...prevLessons, newLesson]
+            }
+        })
+    }
+
     const [filtersSelected, setFiltersSelected] = useState<{
         [k: string]: any | undefined
     }>({})
@@ -682,8 +691,11 @@ export function Schedule() {
 
     const match = useMatch('/:any/:lastPart/*')
     const typeOfSchedule: string = match?.params?.lastPart || 'by-month'
+    const activeParamsEnd: string = match?.params?.['*'] || ''
 
     const navigate = useNavigate()
+
+    console.log(lessons)
 
     return (
         <section className="flex flex-col h-full gap-y-4">
@@ -695,7 +707,18 @@ export function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
             />
-            <section className="flex flex-col w-full h-full gap-4 bg-[#F7F7FA] min-h-screen">
+            {activeParamsEnd === 'list' ? (
+                <div className="relative w-full overflow-y-auto h-[60vh]">
+                    <Outlet
+                        context={{
+                            currentDate,
+                            lessons,
+                            setCurrentDate,
+                            upsertLesson,
+                        }}
+                    />
+                </div>
+            ) : (
                 <div className="relative w-full overflow-y-auto h-[60vh]">
                     <table className="w-full bg-[#EAECF0] border rounded-xl overflow-hidden">
                         <thead className="sticky top-0">
@@ -745,7 +768,7 @@ export function Schedule() {
                         />
                     </table>
                 </div>
-            </section>
+            )}
         </section>
     )
 }

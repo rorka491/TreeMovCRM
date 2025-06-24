@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { getMonthMatrix } from '../../../lib/getMonthMatrix'
 import { PopUpMenu } from '../../../components/PopUpMenu'
 import EditLessonPopUp from '../../../components/EditLessonPopUp'
+import { filterLessons } from '../../../lib/filterLessons'
 
 function ScheduleByMonth() {
     const {
@@ -29,25 +30,7 @@ function ScheduleByMonth() {
     } | null>(null)
 
     useEffect(() => {
-        // Получаем первый и последний день текущего месяца
-        const startOfMonth = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            1
-        )
-        const endOfMonth = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth() + 1,
-            0
-        )
-
-        const data = lessons.filter((l) => {
-            return (
-                l.date >= formatDate(startOfMonth) &&
-                l.date <= formatDate(endOfMonth)
-            )
-        })
-        setMonthLessons(data)
+        setMonthLessons(filterLessons(lessons, currentDate, 'by-month'))
     }, [lessons, currentDate])
 
     const monthMatrix = getMonthMatrix(

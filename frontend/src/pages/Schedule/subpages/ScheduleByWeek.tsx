@@ -4,6 +4,7 @@ import { formatDate } from '../../../lib/formatDate'
 import { getLessonStyle } from '../../../lib/getLessonStyle'
 import { hours, weekDays } from '../../../lib/calendarConstants'
 import { useEffect, useState } from 'react'
+import { filterLessons } from '../../../lib/filterLessons'
 
 function ScheduleByWeek() {
     const {
@@ -19,20 +20,7 @@ function ScheduleByWeek() {
     const [weekLessons, setWeekLessons] = useState<Lesson[]>([])
 
     useEffect(() => {
-        // Получаем первый и последний день текущей недели
-        const startOfWeek = new Date(currentDate)
-        startOfWeek.setDate(currentDate.getDate() - startOfWeek.getDay())
-
-        const endOfWeek = new Date(startOfWeek)
-        endOfWeek.setDate(startOfWeek.getDate() + 6)
-
-        const data = lessons.filter((l) => {
-            return (
-                l.date >= formatDate(startOfWeek) &&
-                l.date <= formatDate(endOfWeek)
-            )
-        })
-        setWeekLessons(data)
+        setWeekLessons(filterLessons(lessons, currentDate, 'by-week'))
     }, [lessons, currentDate])
 
     return (

@@ -1,7 +1,9 @@
-import { useOutletContext } from 'react-router-dom'
+import { useMatch, useOutletContext } from 'react-router-dom'
 import { Table } from '../../../components/Table'
 import { formatDate } from '../../../lib/formatDate'
 import { Lesson } from '../../../components/LessonCard'
+import { useEffect, useState } from 'react'
+import { filterLessons } from '../../../lib/filterLessons'
 
 const lessons: Lesson[] = [
     {
@@ -161,23 +163,35 @@ const lessons: Lesson[] = [
 ]
 
 function SheduleList() {
-    const currentDate: Date = useOutletContext()
-    const formattedDate = formatDate(currentDate)
+    const {
+        currentDate,
+        lessons,
+    }: {
+        currentDate: Date
+        lessons: Lesson[]
+        upsertLesson: (newLesson: Lesson) => void
+    } = useOutletContext()
 
-    // Фильтруем занятия по выбранной дате
-    const dayLessons = lessons.filter((l) => l.date === formattedDate)
+    const [data, setData] = useState<Lesson[]>([])
+
+    const match = useMatch('/:any/:lastPart/*')
+    const typeOfSchedule: string = match?.params?.lastPart || 'by-month'
+
+    useEffect(() => {
+        setData(filterLessons(lessons, currentDate, typeOfSchedule))
+    }, [lessons, currentDate])
 
     return (
         <div className="w-full h-full bg-[#F7F7FA] p-4">
             <Table<Lesson>
                 keys={{
                     start_time: 'Время',
-                    subject: undefined,
-                    classroom: undefined,
+                    subject: 'Предмет',
+                    classroom: 'Кабинет',
                     teacher: 'Преподаватель',
                     group: 'Группа',
                 }}
-                data={dayLessons}
+                data={data}
                 mapFields={{
                     start_time: (row) =>
                         `${row.start_time.slice(0, 5)} - ${row.end_time.slice(0, 5)}`,

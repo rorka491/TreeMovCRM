@@ -1,9 +1,9 @@
 import { useOutletContext } from 'react-router-dom'
 import LessonCard, { Lesson } from '../../../components/LessonCard'
-import { formatDate } from '../../../lib/formatDate'
 import { getLessonStyle } from '../../../lib/getLessonStyle'
 import { hours } from '../../../lib/calendarConstants'
 import { useEffect, useState } from 'react'
+import { filterLessons } from '../../../lib/filterLessons'
 
 function ScheduleByDay() {
     const {
@@ -19,8 +19,14 @@ function ScheduleByDay() {
     const [dayLessons, setDayLessons] = useState<Lesson[]>([])
 
     useEffect(() => {
-        const data = lessons.filter((l) => l.date === formatDate(currentDate))
-        setDayLessons(data)
+        const filtered = filterLessons(lessons, currentDate, 'by-day')
+        // Сортировка по subject.teacher
+        filtered.sort((a, b) => {
+            const teacherA = a.subject?.teacher || ''
+            const teacherB = b.subject?.teacher || ''
+            return teacherA.localeCompare(teacherB)
+        })
+        setDayLessons(filtered)
     }, [lessons, currentDate])
 
     return (
