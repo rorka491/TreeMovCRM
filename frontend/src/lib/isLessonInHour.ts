@@ -1,4 +1,4 @@
-import { Lesson } from '../components/LessonCard/LessonCard'
+import { Lesson } from '../components/LessonCard'
 
 export function isLessonInHour(lesson: Lesson, hour: string, date: string) {
     const [hStart, mStart] = lesson.start_time.split(':').map(Number)

@@ -1,7 +1,7 @@
-import { Lesson } from '../components/LessonCard/LessonCard'
+import { Lesson } from '../components/LessonCard'
 import { parseTime } from './parseTime'
 
-export function getLessonStyle(lesson: Lesson, hourIdx: number) {
+export function getLessonStyle(lesson: Lesson, hourIdx: number, i: number) {
     const startHour = parseTime(lesson.start_time)
     const endHour = parseTime(lesson.end_time)
     const cellHeight = 125
@@ -18,8 +18,9 @@ export function getLessonStyle(lesson: Lesson, hourIdx: number) {
 
     return {
         top: `${top}px`,
-        left: 0,
+        left: `${i * 180 + (i === 0 ? 0 : 8)}px`,
         height: `${height}px`,
-        zIndex: 1,
+        zIndex: i + 1,
     }
+    // return `top-[${top}px] left-[${i * 180 + (i === 0 ? 0 : 8)}px] h-[${height}px] z-[${i + 1}]`
 }

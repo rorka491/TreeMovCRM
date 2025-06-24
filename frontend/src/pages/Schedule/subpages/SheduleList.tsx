@@ -1,7 +1,7 @@
 import { useOutletContext } from 'react-router-dom'
 import { Table } from '../../../components/Table'
 import { formatDate } from '../../../lib/formatDate'
-import { Lesson } from '../../../components/LessonCard/LessonCard'
+import { Lesson } from '../../../components/LessonCard'
 
 const lessons: Lesson[] = [
     {
