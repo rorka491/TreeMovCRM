@@ -338,11 +338,18 @@ export function Schedule() {
                                 )}
                                 {typeOfSchedule !== 'by-day' &&
                                     weekDays.map((d, i) => {
-                                        const cellDate = new Date(currentDate)
-                                        cellDate.setDate(
-                                            currentDate.getDate() + i
+                                        const startOfWeek = new Date(
+                                            currentDate
                                         )
-                                        const dayNum = cellDate.getDate()
+                                        startOfWeek.setDate(
+                                            currentDate.getDate() -
+                                                startOfWeek.getDay()
+                                        )
+                                        const dayOfWeek = new Date(startOfWeek)
+                                        dayOfWeek.setDate(
+                                            startOfWeek.getDate() + i + 1
+                                        )
+                                        const dayNum = dayOfWeek.getDate()
                                         return (
                                             <th
                                                 onClick={() => {
@@ -355,7 +362,10 @@ export function Schedule() {
                                                 key={i}
                                                 className="p-2 font-semibold text-center transition bg-[#EDE8FE]"
                                             >
-                                                {d} {dayNum}
+                                                {d}{' '}
+                                                {typeOfSchedule === 'by-week'
+                                                    ? dayNum
+                                                    : ''}
                                             </th>
                                         )
                                     })}
