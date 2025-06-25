@@ -18,7 +18,7 @@ import { StudentsPayments } from './pages/Students/subpages/StudentsPayments'
 import SсheduleByMonth from './pages/Schedule/subpages/ScheduleByMonth'
 import SсheduleByWeek from './pages/Schedule/subpages/ScheduleByWeek'
 import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
-import SheduleList from './pages/Schedule/subpages/SheduleList'
+import SсheduleList from './pages/Schedule/subpages/SсheduleList'
 
 function App() {
     return (
@@ -27,11 +27,14 @@ function App() {
                 <Route path="*" element={<Base />}>
                     <Route path="schedule" element={<Schedule />}>
                         <Route path="by-month" element={<SсheduleByMonth />} />
-                        <Route path="by-month/list" element={<SheduleList />} />
+                        <Route
+                            path="by-month/list"
+                            element={<SсheduleList />}
+                        />
                         <Route path="by-week" element={<SсheduleByWeek />} />
-                        <Route path="by-week/list" element={<SheduleList />} />
+                        <Route path="by-week/list" element={<SсheduleList />} />
                         <Route path="by-day" element={<ScheduleByDay />} />
-                        <Route path="by-day/list" element={<SheduleList />} />
+                        <Route path="by-day/list" element={<SсheduleList />} />
                         <Route path="edit" element={<>...</>} />
                         <Route
                             path="*"

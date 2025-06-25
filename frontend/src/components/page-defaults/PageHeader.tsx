@@ -6,9 +6,9 @@ const headers = {
     schedule: {
         base: 'Расписание',
         sub: {
-            'by-teacher': 'По преподавателям',
-            'by-group': 'По группам',
-            'by-classroom': 'По аудиториям',
+            'by-month': 'По месяцам',
+            'by-week': 'По неделям',
+            'by-day': 'По дням',
             edit: 'Редактировать расписание',
         },
     },
@@ -27,7 +27,7 @@ const headers = {
             main: 'Основное',
             grades: 'Оценки',
             payments: 'Оплаты',
-            profile: "Профиль"
+            profile: 'Профиль',
         },
     },
 }
@@ -45,7 +45,10 @@ export function PageHeader() {
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(e.target as Node)
+            ) {
                 setIsOpen(false)
             }
         }
@@ -55,7 +58,7 @@ export function PageHeader() {
     }, [])
 
     return (
-        <div className="flex justify-between items-center py-4 bg-opacity-100 relative">
+        <div className="relative flex items-center justify-between py-4 bg-opacity-100">
             <div className="flex items-baseline gap-3 font-[700]">
                 <h1 className="text-[30px] ">
                     {headers[path.split('/')[1]]?.base}
@@ -97,13 +100,13 @@ export function PageHeader() {
                     <img
                         src={profile.profilePhoto}
                         alt="Avatar"
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="object-cover w-10 h-10 rounded-full"
                     />
                 ) : (
                     <img
                         src={unknown_photo}
                         alt="Avatar"
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="object-cover w-10 h-10 rounded-full"
                     />
                 )}
 
@@ -127,13 +130,13 @@ export function PageHeader() {
                 {isOpen && (
                     <div className="absolute right-0 top-[60px] w-48 bg-white border rounded-lg shadow-lg z-50">
                         <ul className="py-2">
-                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                            <li className="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                 Профиль
                             </li>
-                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                            <li className="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                 Настройки
                             </li>
-                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-500">
+                            <li className="px-4 py-2 text-red-500 cursor-pointer hover:bg-gray-100">
                                 Выйти
                             </li>
                         </ul>

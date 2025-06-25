@@ -140,68 +140,6 @@ function ScheduleByMonth() {
                                                   />
                                               ))
                                         : null}
-                                    {dayLessons.length !== 0 ? (
-                                        <>
-                                            <div
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setIsAdded(formatDate(date))
-                                                }}
-                                                className="w-[15px] h-[15px] rounded cursor-pointer flex items-center justify-center border border-[#B3B3B3] text-[#B3B3B3] hover:border-black hover:text-black transition"
-                                            >
-                                                <span>+</span>
-                                            </div>
-                                            {
-                                                <PopUpMenu
-                                                    open={
-                                                        isAdded ===
-                                                        formatDate(date)
-                                                    }
-                                                    onClose={() =>
-                                                        setIsAdded(null)
-                                                    }
-                                                >
-                                                    <EditLessonPopUp
-                                                        lesson={{
-                                                            title: '',
-                                                            start_time: '',
-                                                            end_time: '',
-                                                            date: formatDate(
-                                                                date
-                                                            ),
-                                                            teacher: 1,
-                                                            week_day: 1,
-                                                            classroom: {
-                                                                title: '0',
-                                                                floor: 1,
-                                                                building: 1,
-                                                            },
-                                                            group: 101,
-                                                            subject: {
-                                                                name: '',
-                                                                teacher: '',
-                                                                color: '',
-                                                            },
-                                                            is_canceled: false,
-                                                            is_completed: false,
-                                                            lesson: 1,
-                                                        }}
-                                                        onSave={(
-                                                            updatedLesson
-                                                        ) => {
-                                                            upsertLesson(
-                                                                updatedLesson
-                                                            )
-                                                            setIsAdded(null)
-                                                        }}
-                                                        onClose={() =>
-                                                            setIsAdded(null)
-                                                        }
-                                                    />
-                                                </PopUpMenu>
-                                            }
-                                        </>
-                                    ) : null}
                                 </div>
                                 {currentLesson && tooltipPos && (
                                     <div

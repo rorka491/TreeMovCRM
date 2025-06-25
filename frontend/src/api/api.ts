@@ -79,7 +79,7 @@ export type Subject = {
 
 export type Lesson = {
     id: number
-    classroom: { title: '705'; floor: 7; building: '6' }
+    classroom: { title: string; floor: number; building: string }
     date: string
     end_time: string
     group: PreGroup
