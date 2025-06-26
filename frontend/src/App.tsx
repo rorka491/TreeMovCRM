@@ -58,8 +58,8 @@ function App() {
                         </Route>
                         <Route path="*" element={<Navigate to="../main" />} />
                     </Route>
+                    <Route path="*" element={<Navigate to="/schedule" />}/>
                 </Route>
-                <Route />
             </Routes>
         </Router>
     )
