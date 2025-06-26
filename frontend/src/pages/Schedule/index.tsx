@@ -282,6 +282,7 @@ export function Schedule() {
         {
             id: 'data',
             label: 'Дата',
+            date: true,
             options: ['11.11.1111', '11.22.3333'],
             search: true,
         },
