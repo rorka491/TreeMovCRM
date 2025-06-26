@@ -34,9 +34,11 @@ function getSelectedFromParams(filterData: FilterPart[]) {
 export function FilterBar({
     filterData,
     selectedChange,
+    disableAddButton
 }: {
     filterData: FilterPart[]
     selectedChange?: (r: { [k: string]: any | undefined }) => void
+    disableAddButton?: boolean
 }) {
     const [selected, setSelected] = useState<{ [k: string]: any | undefined }>(
         getSelectedFromParams(filterData)
@@ -64,9 +66,9 @@ export function FilterBar({
 
     return (
         <div className="flex items-end gap-x-2.5 w-full bg-white p-4 rounded-[12.5px] *:rounded-[12.5px]">
-            <button className="grid w-10 text-base text-center duration-100 border place-items-center aspect-square hover:bg-gray-50">
+            {!disableAddButton && <button className="grid w-10 text-base text-center duration-100 border place-items-center aspect-square hover:bg-gray-50">
                 <span className="flex w-min h-min">+</span>
-            </button>
+            </button>}
 
             {filterData.map((props, index) => (
                 <label

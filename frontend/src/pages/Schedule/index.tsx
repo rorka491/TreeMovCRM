@@ -4,6 +4,7 @@ import { useState } from 'react'
 import CalendarBar from '../../components/page/CalendarBar'
 import { Lesson } from '../../components/LessonCard'
 import { weekDays } from '../../lib/calendarConstants'
+import CategoryBar from '../../components/page/CategoryBar'
 
 const data: Lesson[] = [
     {
@@ -302,7 +303,9 @@ export function Schedule() {
 
     return (
         <section className="flex flex-col h-full gap-y-4">
+            <CategoryBar categories={[]} searchPlaceholder='Найти в расписании...'></CategoryBar>
             <FilterBar
+                disableAddButton={true}
                 filterData={filterData}
                 selectedChange={setFiltersSelected}
             />
