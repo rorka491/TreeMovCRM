@@ -55,19 +55,24 @@ class StudentGradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if not 'student_pk' in self.kwargs:
-
-            student_id = self.kwargs.get('student_pk')
-
-            queryset = Grade.objects.filter(student_id=student_id).order_by('-created_at')
-
-            last = self.request.query_params.get('last')
-            if last:
-                queryset[:int(last)]
-
-            return queryset
+        student_id = self.kwargs.get('student_pk')  # сначала получаем
+        if student_id:
+            # Если есть student_pk — фильтруем по нему
+            queryset = queryset.filter(student_id=student_id).order_by('-created_at')
         else:
-            queryset = Grade.objects.all()
+            # Если нет student_pk — возвращаем все записи
+            queryset = queryset.all()
+            
+        student_id = self.kwargs.get('student_pk')
+
+        queryset = Grade.objects.filter(student_id=student_id).order_by('-created_at')
+
+        last = self.request.query_params.get('last')
+        if last:
+            queryset[:int(last)]
+
+        return queryset
+
 
 
 

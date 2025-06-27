@@ -20,13 +20,14 @@ router.register(r'grades', StudentGradeViewSet, basename='all-student-grades')
 #students/1/grades/
 #lookup='student' → URL-параметр будет student_pk
 students_router = routers.NestedDefaultRouter(router, r'students', lookup='student')
-students_router.register('grades', StudentGradeViewSet, basename='student-grades')
+students_router.register(r'grades', StudentGradeViewSet, basename='student-grades')
 
 
 urlpatterns = [
     path(r'', include(router.urls)),
     path(r'', include(students_router.urls)),
 ]
+
 
 
 
