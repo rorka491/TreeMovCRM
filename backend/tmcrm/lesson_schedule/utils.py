@@ -25,7 +25,7 @@ def _grouped_response(self, field_name=None, serializer_class=None):
     return Response(response_data)
 
 
-
+# Создает таску в 
 def create_update_complete_lessons_task():
     schedule, _ = IntervalSchedule.objects.get_or_create(
         every=1,
