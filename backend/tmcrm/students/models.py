@@ -3,7 +3,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-from mainapp.models import BaseModelOrg, phone_number_regex
+from mainapp.models import BaseModelOrg
+from mainapp.validators import phone_number_regex
 
 
 class StudentManager(models.Manager):
@@ -44,6 +45,10 @@ class Parent(BaseModelOrg):
     class Meta: 
         verbose_name = 'Родитель'
         verbose_name_plural = 'Родители'
+
+
+    def __str__(self):
+        return f'{self.name} {self.surname}'
 
 
 

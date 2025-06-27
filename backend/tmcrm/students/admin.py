@@ -5,6 +5,7 @@ from mainapp.admin import BaseAdminFilterView
 from django.contrib.admin.sites import AlreadyRegistered
 
 
+
 app_models = apps.get_app_config('students').get_models()
 
 for model in app_models:

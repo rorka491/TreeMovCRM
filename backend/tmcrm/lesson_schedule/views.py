@@ -1,5 +1,5 @@
 from rest_framework.decorators import action
-from .models import Schedule, Subject
+from .models import Schedule, Subject, PeriodSchedule
 from .serializers import *
 from rest_framework.response import Response
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
@@ -84,6 +84,12 @@ class ScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
         results = self.get_queryset().filter(q)
         serializer = self.serializer_class(results, many=True)
         return Response(serializer.data)
+    
+class PeriodScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = PeriodSchedule.objects.all()
+    serializer_class = PeriodScheduleSerializer
+    filter_backends = [DjangoFilterBackend]
+
 
 
 class SubjectViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -103,6 +109,15 @@ class GradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     serializer_class = GradeSerializer
     filter_backends = [DjangoFilterBackend]
 
+    def get_queryset(self):
+
+        queryset = super().get_queryset()
+        last = self.request.query_params.get('last')
+
+        if last and last.isdigit():
+            return queryset[:int(last)]
+        
+        return queryset
 
 class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Attendance.objects.all()

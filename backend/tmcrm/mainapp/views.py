@@ -38,7 +38,7 @@ class SelectRelatedViewSet(ModelViewSet):
 
 class BaseViewAuthPermission(ModelViewSet):
 
-    # permission_classes = [IsAuthenticated, IsSameOrganization]
+    # permission_classes = [IsAuthenticated, IsSameOrganization]    
     ...
 
 class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
@@ -49,21 +49,18 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        return queryset
 
-        test = self.request.query_params.get('test')
-        
-        if test:
-            return queryset
         
         user = self.request.user
         
-        # Если пользователь админ - показываем все записи
         if user.is_superuser or user.role == 'admin':
             return queryset
             
-        # Для обычных пользователей - фильтр по организации
-        if hasattr(user, 'org') and user.org:
-            return queryset.filter(org=user.org)
+        if hasattr(user, 'org') and user.org is not None:
+            queryset = queryset.filter(Q(org=user.org) | Q(org__isnull=True))
+        else:
+            queryset = queryset.filter(org__isnull=True)
 
 def base_search(func):
     @wraps(func)
@@ -83,24 +80,4 @@ def base_search(func):
     
     return wrapper
     
-
-    
-@method_decorator(csrf_exempt, name='dispatch')
-class LoginView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return Response({'detail': 'Успешный вход'})
-        return Response({'detail': 'Неверные данные'}, status=400)
-
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class LogoutView(APIView):
-    def post(self, request):
-        logout(request)
-        return Response({'detail': 'Выход выполнен'})
 
