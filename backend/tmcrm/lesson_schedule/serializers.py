@@ -82,7 +82,7 @@ class GroupScheduleSerializer(ScheduleStudentGroupSerializer):
 
 
 class GradeSerializer(BaseSerializerExcludeFields):
-    student = StudentSerializer(un_exclude_fields=['id'])
+    student = StudentSerializer()
     lesson = ScheduleSerializer(
         un_exclude_fields=['subject', 'date', 'teacher', 'group'])
 

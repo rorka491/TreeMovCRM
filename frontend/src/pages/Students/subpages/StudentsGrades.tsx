@@ -93,7 +93,7 @@ export function StudentsGrades() {
                         ...grade,
                         studentFullName: grade.student.fullName,
                         subject: grade.lesson,
-                        date: formatDate(new Date(grade.created_at), "HH:MIN DD.MM.YYYY"),
+                        date: formatDate(new Date(grade.lesson.date), "HH:MIN DD.MM.YYYY"),
                         teacherFullName: `${grade.lesson.teacher.employer.surname} ${grade.lesson.teacher.employer.name} ${grade.lesson.teacher.employer.patronymic}`,
                         grade: [
                             'Плохо',

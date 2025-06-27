@@ -1,8 +1,8 @@
 import { useMatch, useOutletContext } from 'react-router-dom'
 import { Table } from '../../../components/Table'
-import { Lesson } from '../../../components/LessonCard'
 import { useEffect, useState } from 'react'
 import { filterLessons } from '../../../lib/filterLessons'
+import { Lesson } from '../../../api/api'
 
 function SсheduleList() {
     const {
@@ -35,7 +35,7 @@ function SсheduleList() {
     }, [lessons, currentDate, typeOfSchedule])
     console.log(data)
     return data.length !== 0 ? (
-        <Table<Lesson>
+        <Table
             keys={{
                 date: 'Дата',
                 start_time: 'Время',

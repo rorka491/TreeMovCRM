@@ -233,8 +233,8 @@ const data: Lesson[] = [
 
 export function Schedule() {
     const [currentDate, setCurrentDate] = useState(new Date())
-    const [lessons, setLessons] = useState<Lesson[]>(data)
-    console.log(lessons)
+    let [lessons, setLessons] = useState<Lesson[]>(data)
+
     useEffect(() => {
         api.schedules.getAll().then((lessons) => setLessons(lessons))
     }, [])
@@ -264,9 +264,9 @@ export function Schedule() {
             id: 'teacher',
             label: 'Преводователь',
             options: ['Роман', 'Никита', 'Родион'],
-            multiple: true,
             search: true,
             removeButton: true,
+            multiple: true,
         },
         {
             id: 'group',
@@ -301,21 +301,58 @@ export function Schedule() {
         },
     ])
 
+    useEffect(() => {
+        api.schedules.getTeachers().then((teachers) => {
+            filterData[0].options = teachers.map(
+                (teacher) => teacher.employer.name
+            )
+        })
+
+        api.students.getAllGroups().then((groups) => {
+            filterData[1].options = groups
+        })
+
+        api.schedules.getSubjects().then((subjects) => {})
+    }, [])
+
     const match = useMatch('/:any/:lastPart/*')
     const typeOfSchedule: string = match?.params?.lastPart || 'by-month'
     const activeParamsEnd: string = match?.params?.['*'] || ''
 
     const navigate = useNavigate()
 
+    console.log(lessons)
+    lessons = lessons
+        .filter(
+            (lesson) =>
+                !filtersSelected.teacher ||
+                filtersSelected.teacher.length === 0 ||
+                filtersSelected.teacher.some(
+                    (t) => t === lesson?.teacher?.employer?.name
+                )
+        )
+        .filter(
+            (lesson) =>
+                !filtersSelected.group ||
+                filtersSelected.group.length === 0 ||
+                filtersSelected.group.some((g) => g === lesson.group.name)
+        )
+
     return (
         <section className="flex flex-col h-full gap-y-4">
-            <CategoryBar categories={[{
-                url: "main",
-                label: "Основное"
-            }, {
-                url: "guideline",
-                label: "Справочник"
-            }]} searchPlaceholder='Найти в расписании...'></CategoryBar>
+            <CategoryBar
+                categories={[
+                    {
+                        url: 'main',
+                        label: 'Основное',
+                    },
+                    {
+                        url: 'guideline',
+                        label: 'Справочник',
+                    },
+                ]}
+                searchPlaceholder="Найти в расписании..."
+            ></CategoryBar>
             <FilterBar
                 disableAddButton={true}
                 filterData={filterData}

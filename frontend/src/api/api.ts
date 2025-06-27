@@ -203,7 +203,7 @@ export const realApi = {
         },
         async getAllGrades(): Promise<Grade[]> {
             const [preGrades, error] = await axios
-                .get(`/schedules/grades`)
+                .get(`/students/grades`)
                 .then((res) => realApi.isOk<PreGrade[]>(res))
 
             if (error !== null) {
@@ -268,17 +268,12 @@ export const realApi = {
 
             return schedules.map((schedule) => ({
                 ...schedule,
-                date: '20.07.2025', // formatDate(new Date(schedule.date), 'DD.MM.YYYY'),
+                date: formatDate(new Date(schedule.date), 'DD.MM.YYYY'),
             }))
         },
         async getSubjects() {
             return await axios
-                .get(`/schedules/subjects/`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
+                .get(`/schedules/subjects/`)
                 .then((res) => realApi.isOk(res))
         },
 
