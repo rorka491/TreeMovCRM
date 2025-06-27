@@ -66,13 +66,10 @@ export function PopUpMenu({
             {open && (
                 <div
                     ref={ref}
-                    className={
-                        className +
-                        ` absolute z-10`
-                    }
+                    className={className + ` absolute z-10`}
                     style={{
                         top: pos.y,
-                        left: pos.x
+                        left: pos.x,
                     }}
                 >
                     {children}

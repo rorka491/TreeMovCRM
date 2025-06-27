@@ -3,11 +3,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 function optionValue(option: any) {
     return typeof option === 'object' && option !== null && 'value' in option
         ? option.value
-        : option + ''
+        : option
 }
 function optionKey(option: any) {
     return typeof option === 'object' && option !== null && 'key' in option
-        ? option.key
+        ? option.key + ''
         : option + ''
 }
 
@@ -103,7 +103,7 @@ export function Option({
     // TODO!!!!
     if (checkMark === 'circle') {
         return (
-            <div className="text-left px-3 py-2 hover:bg-gray-200">
+            <div className="px-3 py-2 text-left hover:bg-gray-200">
                 <button onClick={onClick}>{value}</button>
             </div>
         )
@@ -113,7 +113,7 @@ export function Option({
         return (
             <button
                 onClick={onClick}
-                className="flex items-center gap-2 text-left px-3 py-2 hover:bg-gray-200"
+                className="flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-200"
             >
                 <RadioButton avoidButton={true} checked={selected} />
                 {value}
@@ -124,7 +124,7 @@ export function Option({
     return (
         <button
             onClick={onClick}
-            className="text-left px-3 py-1 hover:bg-gray-200"
+            className="px-3 py-1 text-left hover:bg-gray-200"
         >
             {value}
         </button>
@@ -263,9 +263,9 @@ export function Select<T>({
 
         if (rect.bottom > window.innerHeight - 10) {
             optionsRef.current.style.height = `${window.innerHeight - rect.top - 15}px`
-            optionsRef.current.style.overflowY = "scroll"
+            optionsRef.current.style.overflowY = 'scroll'
         } else {
-            optionsRef.current.style.overflowY = "hidden"
+            optionsRef.current.style.overflowY = 'hidden'
             // @ts-ignore
             delete optionsRef.current.style.height
         }
@@ -323,7 +323,7 @@ export function Select<T>({
                             <input
                                 ref={searchRef}
                                 name="selectSearch"
-                                className="absolute inset-0 p-2 rounded-2xl z-10"
+                                className="absolute inset-0 z-10 p-2 rounded-2xl"
                                 placeholder={
                                     Array.isArray(selected)
                                         ? selected.length !== 0
@@ -331,8 +331,7 @@ export function Select<T>({
                                             : (placeholder ??
                                               searchQuery ??
                                               'Поиск')
-                                        : ((selected as any)?.key ??
-                                          selected ??
+                                        : (optionValue(selected) ??
                                           placeholder ??
                                           searchQuery ??
                                           'Поиск')
@@ -355,10 +354,9 @@ export function Select<T>({
                                 ? selected.length !== 0
                                     ? selected.join(', ')
                                     : (placeholder ?? 'Выберите')
-                                : ((selected as any)?.key ??
-                                  selected ??
-                                  placeholder ??
-                                  'Выберите')}
+                                : optionValue(selected)
+                                  ? optionValue(selected) + ''
+                                  : (placeholder ?? 'Выберите')}
                         </span>
                     </>
                 )}

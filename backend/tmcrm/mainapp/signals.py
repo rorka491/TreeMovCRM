@@ -50,13 +50,13 @@ def create_colors_preset(sender, **kwargs):
 
 
 # При создании нового пользователя создает его настройки
-@receiver(post_save, sender=User)
-def create_user_settings(sender, instance, created, **kwargs):
-    if created and not instance.is_superuser:
-        if instance.org:
-            UserSettings.create_with_user_org(instance)
-        else:
-            UserSettings.create_with_create_by(instance)
+# @receiver(post_save, sender=User)
+# def create_user_settings(sender, instance, created, **kwargs):
+#     if created and not instance.is_superuser:
+#         if instance.org:
+#             UserSettings.create_with_user_org(instance)
+#         else:
+#             UserSettings.create_with_create_by(instance)
         
 
 # При создании новой организации создает настройки организации
