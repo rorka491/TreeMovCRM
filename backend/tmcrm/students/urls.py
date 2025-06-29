@@ -28,9 +28,3 @@ urlpatterns = [
     path(r'', include(students_router.urls)),
 ]
 
-
-
-
-
-
-
