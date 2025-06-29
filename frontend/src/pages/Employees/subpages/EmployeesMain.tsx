@@ -42,11 +42,16 @@ export function EmployeesMain() {
     return (
         <>
             <FilterBar filterData={filterData} />
-            <Table data={employees.map(employee => ({...employee, fullName: `${employee.surname} ${employee.name} ${employee.patronymic}`}))} keys={{
-                id: "№",
-                fullName: "ФИО",
-
-            }} />
+            <Table
+                data={employees.map((employee) => ({
+                    ...employee,
+                    fullName: `${employee.surname} ${employee.name} ${employee.patronymic}`,
+                }))}
+                keys={{
+                    id: '№',
+                    fullName: 'ФИО',
+                }}
+            />
         </>
     )
 }

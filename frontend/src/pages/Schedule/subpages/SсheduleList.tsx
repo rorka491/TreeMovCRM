@@ -33,27 +33,35 @@ function SсheduleList() {
         }
         setData(filtered)
     }, [lessons, currentDate, typeOfSchedule])
-    console.log(data)
+    
     return data.length !== 0 ? (
         <Table
             keys={{
                 date: 'Дата',
-                start_time: 'Время',
-                subject: 'Предмет',
-                classroom: 'Кабинет',
-                teacher: 'Преподаватель',
-                group: 'Группа',
+                start_time: {
+                    type: 'map',
+                    str: 'Время',
+                    f: (row) =>
+                        `${row.start_time.slice(0, 5)} - ${row.end_time.slice(0, 5)}`,
+                },
+                subject: { type: 'flat', keys: { name: 'Предмет' } },
+                classroom: { type: 'flat', keys: { title: 'Кабинет' } },
+                teacher: {
+                    type: 'flat',
+                    keys: {
+                        employer: {
+                            type: 'join',
+                            str: 'Преподаватель',
+                            keys: ['surname', 'name', 'patronymic'],
+                        },
+                    },
+                },
+                group: {
+                    type: 'flat',
+                    keys: { name: 'Группа' },
+                },
             }}
             data={data}
-            mapFields={{
-                date: (row) => row.date,
-                start_time: (row) =>
-                    `${row.start_time.slice(0, 5)} - ${row.end_time.slice(0, 5)}`,
-                subject: (row) => row.subject.name,
-                classroom: (row) => row.classroom.title,
-                teacher: (row) => row.subject.teacher,
-                group: (row) => row.group,
-            }}
             showSkeleton={!lessons}
             skeletonAmount={20}
         />

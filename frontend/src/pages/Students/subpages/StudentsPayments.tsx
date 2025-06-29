@@ -114,7 +114,12 @@ export function StudentsPayments() {
                     amount: 'Сумма',
                     for: 'Назначение платежа',
                     paymentStatus: 'Статус оплаты',
-                    debt: 'Задолженность',
+                    debt: {
+                        type: 'map',
+                        str: 'Задолженность',
+                        f: (payment) =>
+                            payment.debt > 0 ? payment.debt + ' ₽' : 'нет',
+                    },
                 }}
                 conditionalClassNames={{
                     paymentStatus: (student) =>
@@ -129,10 +134,6 @@ export function StudentsPayments() {
                         })[student.status] ?? '',
                     debt: (student) =>
                         student.debt > 0 ? 'text-[#FF1814]' : '',
-                }}
-                mapFields={{
-                    debt: (payment) =>
-                        payment.debt > 0 ? payment.debt + ' ₽' : 'нет',
                 }}
                 rowActions={{
                     Открыть: (student) =>
