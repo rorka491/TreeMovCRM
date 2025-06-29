@@ -1,29 +1,7 @@
 import { useState } from 'react'
 import EditLessonPopUp from '../EditLessonPopUp'
 import { PopUpMenu } from '../PopUpMenu'
-
-export type Lesson = {
-    title: string
-    start_time: string
-    end_time: string
-    date: string
-    teacher: number
-    week_day: number
-    classroom: {
-        title: string
-        floor: number
-        building: number
-    }
-    group: number
-    subject: {
-        name: string
-        teacher: string
-        color: string
-    }
-    is_canceled: boolean
-    is_completed: boolean
-    lesson: number
-}
+import { Lesson, Teacher } from '../../api/api'
 
 function LessonCard({
     lesson,
@@ -48,14 +26,14 @@ function LessonCard({
                 *:text-xs *:w-full *:overflow-hidden *:text-ellipsis *:whitespace-nowrap *:text-[#707070] 
                 `}
                 style={{
-                    borderColor: lesson.subject.color,
+                    borderColor: lesson.subject.color.color_hex,
                 }}
             >
                 <div className="flex items-center w-full gap-2 mb-1">
                     <span
                         className="inline-block h-[15px] rounded-[5px] aspect-square"
                         style={{
-                            background: lesson.subject.color,
+                            background: lesson.subject.color.color_hex,
                         }}
                     ></span>
                     <h4 className="w-8/12 overflow-hidden text-base text-black text-ellipsis">
@@ -81,9 +59,9 @@ function LessonCard({
                         </span>
                     )}
                 </div>
-                <span>{lesson.subject.teacher}</span>
+                <span>{lesson?.teacher?.employer?.name}</span>
                 <span>Каб. {lesson.classroom.title}</span>
-                <span>{lesson.group}</span>
+                <span>{lesson.group.name}</span>
                 <span>
                     {lesson.start_time.slice(0, -3)} -{' '}
                     {lesson.end_time.slice(0, -3)}

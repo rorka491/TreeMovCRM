@@ -1,11 +1,12 @@
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import LessonCard, { Lesson } from '../../../components/LessonCard'
+import LessonCard from '../../../components/LessonCard'
 import { formatDate } from '../../../lib/formatDate'
 import { useEffect, useState } from 'react'
 import { getMonthMatrix } from '../../../lib/getMonthMatrix'
 import { PopUpMenu } from '../../../components/PopUpMenu'
 import EditLessonPopUp from '../../../components/EditLessonPopUp'
 import { filterLessons } from '../../../lib/filterLessons'
+import { Lesson } from '../../../api/api'
 
 function ScheduleByMonth() {
     const {
@@ -76,14 +77,38 @@ function ScheduleByMonth() {
                                     </div>
                                 )}
                                 <div className="flex flex-wrap gap-1">
-                                    {dayLessons.map((lesson, i) =>
-                                        i < 10 ? (
+                                    {dayLessons
+                                        .slice(
+                                            0,
+                                            isHovered?.getTime() ===
+                                                date.getTime()
+                                                ? Infinity
+                                                : Infinity
+                                        )
+                                        .sort((a, b) => {
+                                            const [aHours, aMinutes] =
+                                                a.start_time
+                                                    .split(':')
+                                                    .map(Number)
+                                            const [bHours, bMinutes] =
+                                                b.start_time
+                                                    .split(':')
+                                                    .map(Number)
+
+                                            return (
+                                                aHours * 60 +
+                                                aMinutes -
+                                                (bHours * 60 + bMinutes)
+                                            )
+                                        })
+                                        .map((lesson, i) => (
                                             <div
                                                 key={lesson.title + i}
                                                 className="w-[15px] h-[15px] rounded cursor-pointer inline-block hover:scale-125 transition-transform"
                                                 style={{
                                                     background:
-                                                        lesson.subject.color,
+                                                        lesson.subject.color
+                                                            .color_hex,
                                                 }}
                                                 onClick={(e) => {
                                                     e.stopPropagation()
@@ -103,43 +128,7 @@ function ScheduleByMonth() {
                                                     })
                                                 }}
                                             />
-                                        ) : null
-                                    )}
-                                    {isHovered?.getTime() === date.getTime() &&
-                                    dayLessons.length >= 10
-                                        ? dayLessons
-                                              .slice(10)
-                                              .map((lesson, i) => (
-                                                  <div
-                                                      key={lesson.title + i}
-                                                      className="w-[15px] h-[15px] rounded cursor-pointer inline-block hover:scale-125 transition-transform"
-                                                      style={{
-                                                          background:
-                                                              lesson.subject
-                                                                  .color,
-                                                      }}
-                                                      onClick={(e) => {
-                                                          e.stopPropagation()
-                                                          setCurrentLesson(
-                                                              lesson
-                                                          )
-                                                          const rect = (
-                                                              e.target as HTMLElement
-                                                          ).getBoundingClientRect()
-                                                          setTooltipPos({
-                                                              x:
-                                                                  rect.left +
-                                                                  window.scrollX -
-                                                                  20,
-                                                              y:
-                                                                  rect.top +
-                                                                  window.scrollY +
-                                                                  20,
-                                                          })
-                                                      }}
-                                                  />
-                                              ))
-                                        : null}
+                                        ))}
                                 </div>
                                 {currentLesson && tooltipPos && (
                                     <div

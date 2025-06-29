@@ -1,10 +1,11 @@
-import LessonCard, { Lesson } from '../../../components/LessonCard'
+import LessonCard from '../../../components/LessonCard'
 import { useOutletContext } from 'react-router-dom'
 import { formatDate } from '../../../lib/formatDate'
 import { getLessonStyle } from '../../../lib/getLessonStyle'
-import { hours, weekDays } from '../../../lib/calendarConstants'
+import { weekDays } from '../../../lib/calendarConstants'
 import { useEffect, useState } from 'react'
 import { filterLessons } from '../../../lib/filterLessons'
+import { Lesson } from '../../../api/api'
 
 function ScheduleByWeek() {
     const {
@@ -23,6 +24,33 @@ function ScheduleByWeek() {
         setWeekLessons(filterLessons(lessons, currentDate, 'by-week'))
     }, [lessons, currentDate])
 
+    const [hours, setHours] = useState<number[]>(
+        Array.from({ length: 24 }, (_, i) => i)
+    )
+
+    useEffect(() => {
+        const minHour = Math.max(
+            0,
+            lessons.reduce(
+                (result, lesson) =>
+                    Math.min(result, parseInt(lesson.start_time.split(':')[0])),
+                24
+            ) - 1
+        )
+        const maxHour = Math.min(
+            24,
+            lessons.reduce(
+                (result, lesson) =>
+                    Math.max(result, parseInt(lesson.end_time.split(':')[0])),
+                0
+            ) + 1
+        )
+
+        setHours(
+            Array.from({ length: maxHour - minHour }, (_, i) => i + minHour)
+        )
+    }, [lessons])
+
     return (
         <tbody>
             {hours.map((hour, rowIdx) => (
@@ -30,7 +58,9 @@ function ScheduleByWeek() {
                     className="*:h-[125px] *:hover:bg-gray-100 *:border-[#EAECF0] *:bg-white *:transition *:border"
                     key={rowIdx}
                 >
-                    <td className="text-center align-middle border">{hour}</td>
+                    <td className="text-center align-middle border">
+                        {hour}:00
+                    </td>
 
                     {weekDays.map((_, colIdx) => {
                         const cellDate = new Date(currentDate)
@@ -53,7 +83,7 @@ function ScheduleByWeek() {
                                 {dayLessons.map((lesson, i) => {
                                     const style = getLessonStyle(
                                         lesson,
-                                        rowIdx,
+                                        hour,
                                         i
                                     )
                                     if (!style) return null

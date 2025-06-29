@@ -22,6 +22,9 @@ GRADE_CHOICES = (
     (5, 'Отлично'),
 )
 
+
+
+
 class Subject(BaseModelOrg):
     name = models.CharField(max_length=100)
     teacher = models.ManyToManyField(Teacher)
@@ -34,6 +37,17 @@ class Subject(BaseModelOrg):
     def __str__(self):
         return self.name
     
+    def clean(self):
+        super().clean()
+
+        qs = Subject.objects.filter(org=self.org, color=self.color)
+
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+
+        if qs.exists():
+            raise ValidationError({'color': 'Этот цвет уже используется для другого предмета в вашей организации.'})
+    
 class Classroom(BaseModelOrg):
     title = models.CharField(max_length=100)
     floor = models.SmallIntegerField(null=True, blank=True)
@@ -45,21 +59,46 @@ class Classroom(BaseModelOrg):
 
     def __str__(self):
         return f'Аудитория {self.title}'
+    
+
+class PeriodSchedule(BaseModelOrg):
+    """Специльный класс для периодических занятий"""
+
+    period = models.PositiveSmallIntegerField(blank=True, null=True)
+    title = models.CharField(max_length=200, null=True, blank=True)
+    start_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=True, null=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="period_schedules", null=True, blank=True)
+    classroom = models.ForeignKey(Classroom, blank=True, null=True, on_delete=models.SET_NULL, related_name="period_schedules")
+    group = models.ForeignKey(StudentGroup, on_delete=models.CASCADE, related_name='period_schedules', blank=True, null=True)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
+    lesson = models.PositiveSmallIntegerField(blank=True, null=True)
+    repeat_lessons_until_date = models.DateField(blank=True, null=True)
+    start_date = models.DateField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Периодическое занятие"
+        verbose_name_plural = "Периодические занятия"
+
 
 
 class Schedule(BaseModelOrg):
-    title = models.CharField(max_length=100)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    """Класс для всех занятий в том числе и периодических"""
+    title = models.CharField(max_length=100, blank=True)
     date = models.DateField(default=date.today())
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="schedules")
     week_day = models.PositiveSmallIntegerField(blank=False)
+    is_canceled = models.BooleanField(default=False, blank=True)
+    is_completed = models.BooleanField(default=False, blank=True)
+
+    start_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=True, null=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="schedules")
     classroom = models.ForeignKey(Classroom, blank=True, null=True, on_delete=models.SET_NULL, related_name="schedules")
     group = models.ForeignKey(StudentGroup, on_delete=models.CASCADE, related_name='schedules', blank=True, null=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
-    is_canceled = models.BooleanField(default=False, blank=True)
-    is_completed = models.BooleanField(default=False, blank=True)
     lesson = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    period_schedule = models.ForeignKey(PeriodSchedule, on_delete=models.SET_NULL, blank=True, null=True)
 
 
     class Meta:
@@ -115,6 +154,7 @@ class Attendance(BaseModelOrg):
 
     def __str__(self):
         return f'{self.student.name} присутствовал на {self.lesson.date} по предмету {self.lesson.subject}' if self.was_present else f'{self.student.name} не присутствовал на {self.lesson.date} по предмету {self.lesson.subject}'
+
 
 class Grade(BaseModelOrg):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='grades')

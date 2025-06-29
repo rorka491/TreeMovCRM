@@ -5,6 +5,9 @@ from .serializers import *
 from rest_framework.decorators import action
 from django.db.models import Q
 from rest_framework.response import Response
+import django_filters
+from lesson_schedule.serializers import GradeSerializer
+from lesson_schedule.models import Grade
 
 
 
@@ -43,4 +46,40 @@ class StudentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
                 Q(birthday__icontains=word) |
                 Q(email__icontains=word)
             )
-        return 
+        return q
+    
+class StudentGradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = Grade.objects.all()
+    serializer_class = GradeSerializer
+
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        student_id = self.kwargs.get('student_pk')
+
+        if student_id:
+            queryset = queryset.filter(student_id=student_id).order_by('-created_at')
+        else:
+            queryset = queryset.all().order_by('-created_at')
+
+        last = self.request.query_params.get('last')
+        if last:
+            try:
+                last = int(last)
+                queryset = queryset[:last]  # обязательно присваиваем
+            except ValueError:
+                pass  # если не число — игнорируем
+
+        return queryset
+
+
+
+
+
+
+
+class ParentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = Parent.objects.all()
+    prefetch_related_fields = ['child']
+    serializer_class = ParentSerializer 
+    

@@ -2,24 +2,27 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
+from datetime import date
+from .validators import color_regex
+from .fields import MonthDayField
+from django.conf import settings
+import pytz
 
+class CreatedBy(models.Model):
+    create_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='created_%(class)s_set'
+    )
 
+    class Meta:
+        abstract = True
 
-phone_number_regex = RegexValidator(
-    regex=r'^8\d{10}$',
-    message='Телефон должен быть в формате 8 XXX XXX XX XX '
-)
-
-color_regex = RegexValidator(
-    regex=r'^#[0-9A-Fa-f]{6}$',
-    message='Неверный формат цвета'
-)
-
-
-
-class Organization(models.Model):
+class Organization(CreatedBy):
     name = models.CharField(max_length=100, unique=True)
+
     
     class Meta:
         verbose_name = 'Организация' 
@@ -30,28 +33,22 @@ class Organization(models.Model):
 
 
 
-class User(AbstractUser):
-    ROLES = (
-        ('admin', 'Администратор'),
-        ('manager', 'Менеджер'),
-        ('user', 'Пользователь'),
-    )
-    
-    role = models.CharField(max_length=20, choices=ROLES, default='user')
+
+class BaseModelOrg(models.Model): 
     org = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='%(class)s'
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        related_name='users'
+        on_delete=models.SET_NULL,
+        related_name='created_%(class)s_set'
     )
-    
-    def __str__(self):
-        return f"{self.username} ({self.role})"
-    
-
-class BaseModelOrg(models.Model): 
-    org = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
     
     class Meta:
         abstract = True
@@ -60,7 +57,7 @@ class BaseModelOrg(models.Model):
     def clean(self):
         errors = {}
 
-        for field in self._meta.get_fields():
+        for field in self._meta.fields:
 
             if isinstance(field, (models.ForeignKey, models.OneToOneField)):
                 related_obj = getattr(self, field.name, None)
@@ -68,33 +65,27 @@ class BaseModelOrg(models.Model):
                 if related_obj and hasattr(related_obj, 'org'):
                     
                     related_org = getattr(related_obj, 'org', None)
-                    if related_org != self.org:
+                    if related_org is not None and related_org != self.org:
                         errors[field.name] = (
                             f"Поле '{field.name}' ссылается на объект с другой организации: "
-                            f" (ожидалось: {related_org})"
+                            f" (ожидалось: {self.org} получено: {related_org})"
                         )
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError({'field': ['ошибка']})
         
-    def save(self, *args, **kwargs):
-        org = kwargs.get('org', None)
-        if org:
-            self.org = org
-
-        super().save(*args, **kwargs)
 
     @classmethod
     def create_with_user_org(cls, user, **kwargs):
-        obj = cls(**kwargs)
-        obj.save(org=user.org)
-        return obj
-
+        return cls.objects.create(org=user.org, created_by=user, **kwargs)
+    
+    @classmethod
+    def create_with_create_by(cls, user, **kwargs):
+        return cls.objects.create(created_by=user, **kwargs)
 
 
 class SubjectColor(BaseModelOrg):
     title = models.CharField(max_length=30, null=True)
     color_hex = models.CharField(max_length=7, validators=[color_regex])
-    org = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Цвет предмета'
@@ -102,6 +93,57 @@ class SubjectColor(BaseModelOrg):
 
     def __str__(self):
         return f'{self.title}'
+    
+
+
+class User(AbstractUser, BaseModelOrg):
+    ROLES = (
+        ('admin', 'Администратор'),
+        ('manager', 'Менеджер'),
+        ('user', 'Пользователь'),
+    )
+    
+    role = models.CharField(max_length=20, choices=ROLES, default='user')
+
+    
+    def __str__(self):
+        return f"{self.username} ({self.role})"
+    
+
+
+class UserSettings(BaseModelOrg):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
+    repeat_lessons_until = MonthDayField(default='08-31') # Кастомное поле в формате MM-DD
+
+    def __str__(self):
+        return f'Настройки пользователя {self.user.username}'
+    
+    class Meta:
+        verbose_name = 'Настройки пользоователя'
+        verbose_name_plural = 'Настройки пользоователя'
+
+
+class OrgSettings(BaseModelOrg):
+    TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.all_timezones]
+
+    timezone = models.CharField(
+        max_length=32,
+        choices=TIMEZONE_CHOICES,
+        default='UTC',
+        help_text='Часовой пояс организации'
+    )
+    
+
+
+    class Meta:
+        verbose_name = 'Настройки организации'
+        verbose_name_plural = 'Настройки организации'
+
+    def __str__(self):
+        return f'Настройки {self.org.name}'
+
+
+
 
 
 

@@ -77,21 +77,35 @@ export type Subject = {
     teacher: Teacher[]
 }
 
-export type Lesson = {
+export type Group = {
     id: number
-    classroom: { title: string; floor: number; building: string }
-    date: string
-    end_time: string
-    group: PreGroup
-    is_canceled: false
-    is_completed: false
-    lesson: number
-    org: string
-    start_time: string
-    subject: Subject
-    teacher: Teacher
+    name: string
+}
+
+export type Lesson = {
     title: string
+    start_time: string
+    end_time: string
+    date: string
+    teacher: Teacher
     week_day: number
+    classroom: {
+        title: string
+        floor: number
+        building: number
+    }
+    group: Group
+    subject: {
+        name: string
+        color: {
+            id: number
+            title: string
+            color_hex: string
+        }
+    }
+    is_canceled: boolean
+    is_completed: boolean
+    lesson: number
 }
 
 export type Employee = {
@@ -121,7 +135,6 @@ type PreStudent = {
 type PreGroup = {
     id: number
     name: string
-    org: number
     students: number[]
 }
 
@@ -168,11 +181,7 @@ export const realApi = {
     students: {
         async getAll() {
             const [preStudents, error] = await axios
-                .get(`/students/students/?test=true`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
+                .get(`/students/students`)
                 .then((res) => realApi.isOk<PreStudent[]>(res))
 
             if (error !== null) {
@@ -183,12 +192,7 @@ export const realApi = {
         },
         async getAllGroups() {
             const [preGroups, error] = await axios
-                .get(`/students/student_groups/?test=true`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
+                .get(`/students/student_groups`)
                 .then((res) => realApi.isOk<PreGroup[]>(res))
 
             if (error !== null) {
@@ -199,12 +203,7 @@ export const realApi = {
         },
         async getAllGrades(): Promise<Grade[]> {
             const [preGrades, error] = await axios
-                .get(`/schedules/grades/?test=true`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
+                .get(`/students/grades`)
                 .then((res) => realApi.isOk<PreGrade[]>(res))
 
             if (error !== null) {
@@ -256,18 +255,29 @@ export const realApi = {
     },
 
     schedules: {
-        async getSubjectsRequest() {
-            return await axios
-                .get(`/schedules/subjects/`, {
+        async getAll() {
+            const [schedules, error] = await axios
+                .get(`/schedules/schedules`, {
                     method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                 })
+                .then((res) => realApi.isOk<Lesson[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return schedules.map((schedule) => ({
+                ...schedule,
+                date: formatDate(new Date(schedule.date), 'DD.MM.YYYY'),
+            }))
+        },
+        async getSubjects() {
+            return await axios
+                .get(`/schedules/subjects/`)
                 .then((res) => realApi.isOk(res))
         },
 
-        async getClassroomsRequest() {
+        async getClassrooms() {
             return await axios
                 .get(`/schedules/classrooms/`, {
                     method: 'GET',
@@ -290,7 +300,7 @@ export const realApi = {
                 .then((res) => realApi.isOk(res))
         },
 
-        async getGroupsRequest() {
+        async getGroups() {
             return await axios
                 .get(`/schedules/student_groups/`, {
                     method: 'GET',
@@ -301,18 +311,21 @@ export const realApi = {
                 .then((res) => realApi.isOk(res))
         },
 
-        async getTeachersRequest() {
-            return await axios
-                .get(`/schedules/teachers/`, {
+        async getTeachers() {
+            const [teachers, error] = await axios
+                .get(`/employers/teachers/`, {
                     method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                 })
-                .then((res) => realApi.isOk(res))
+                .then((res) => realApi.isOk<Teacher[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return teachers
         },
 
-        async getSearchRequest(query: string) {
+        async getSearch(query: string) {
             return await axios
                 .get(`/schedules/search/`, {
                     method: 'GET',
@@ -324,7 +337,7 @@ export const realApi = {
                 .then((res) => realApi.isOk(res))
         },
 
-        async tokenRequest() {
+        async token() {
             return await axios
                 .post(`/token`, {
                     token: localStorage.getItem('refreshToken'),

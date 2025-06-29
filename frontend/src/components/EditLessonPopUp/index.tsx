@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import type { Lesson } from '../LessonCard'
+import React, { useEffect, useState } from 'react'
+import { Lesson, Teacher } from '../../api/api'
+import Select from '../Select'
+import { api } from '../../api'
 
 function EditLessonPopUp({
     lesson,
@@ -16,13 +18,20 @@ function EditLessonPopUp({
         end_date: lesson.date,
         start_time: lesson.start_time,
         end_time: lesson.end_time,
-        teacher: lesson.subject.teacher,
+        teacher: lesson.teacher.employer.name,
         classroom: lesson.classroom.title,
         group: lesson.group.toString(),
         description: '',
         color: lesson.subject.color,
         periodicity: '',
     })
+
+    const [teachers, setTeachers] = useState<Teacher[]>([])
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
+
+    useEffect(() => {
+        api.schedules.getTeachers().then(setTeachers)
+    }, [])
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -94,23 +103,6 @@ function EditLessonPopUp({
                 </div>
                 <div className="flex gap-2">
                     <input
-                        type="date"
-                        name="start_date"
-                        value={form.start_date}
-                        onChange={handleChange}
-                        className="flex-1 px-2 py-1 border rounded"
-                    />
-                    <span className="self-center">—</span>
-                    <input
-                        type="date"
-                        name="end_date"
-                        value={form.end_date}
-                        onChange={handleChange}
-                        className="flex-1 px-2 py-1 border rounded"
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <input
                         type="time"
                         name="start_time"
                         value={form.start_time}
@@ -136,12 +128,23 @@ function EditLessonPopUp({
                     <option value="once">Один раз</option>
                     <option value="weekly">Еженедельно</option>
                 </select>
-                <input
-                    name="teacher"
-                    value={form.teacher}
-                    onChange={handleChange}
-                    placeholder="Преподаватель"
-                    className="py-1 border-b outline-none"
+                <Select
+                    options={teachers.map((t) => ({
+                        key: t,
+                        value: `${t.employer.surname} ${t.employer.name} ${t.employer.patronymic}`,
+                    }))}
+                    selected={
+                        selectedTeacher
+                            ? {
+                                  key: selectedTeacher,
+                                  value: `${selectedTeacher.employer.surname} ${selectedTeacher.employer.name} ${selectedTeacher.employer.patronymic}`,
+                              }
+                            : undefined
+                    }
+                    onSelected={({ key }) => {
+                        setSelectedTeacher(key)
+                    }}
+                    searchQuery="Поиск преподавателя"
                 />
                 <input
                     name="classroom"

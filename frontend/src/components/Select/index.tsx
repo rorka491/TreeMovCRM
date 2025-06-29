@@ -3,11 +3,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 function optionValue(option: any) {
     return typeof option === 'object' && option !== null && 'value' in option
         ? option.value
-        : option + ''
+        : option
 }
 function optionKey(option: any) {
     return typeof option === 'object' && option !== null && 'key' in option
-        ? option.key
+        ? option.key + ''
         : option + ''
 }
 
@@ -331,8 +331,7 @@ export function Select<T>({
                                             : (placeholder ??
                                               searchQuery ??
                                               'Поиск')
-                                        : ((selected as any)?.key ??
-                                          selected ??
+                                        : (optionValue(selected) ??
                                           placeholder ??
                                           searchQuery ??
                                           'Поиск')
@@ -355,10 +354,9 @@ export function Select<T>({
                                 ? selected.length !== 0
                                     ? selected.join(', ')
                                     : (placeholder ?? 'Выберите')
-                                : ((selected as any)?.key ??
-                                  selected ??
-                                  placeholder ??
-                                  'Выберите')}
+                                : optionValue(selected)
+                                  ? optionValue(selected) + ''
+                                  : (placeholder ?? 'Выберите')}
                         </span>
                     </>
                 )}

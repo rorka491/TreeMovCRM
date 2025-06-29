@@ -1,5 +1,7 @@
 from rest_framework.response import Response
 from collections import defaultdict
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import json
 
 
 def _grouped_response(self, field_name=None, serializer_class=None):
@@ -21,5 +23,23 @@ def _grouped_response(self, field_name=None, serializer_class=None):
         response_data.append(serializer.data)
         
     return Response(response_data)
+
+
+# Создает таску в 
+def create_update_complete_lessons_task():
+    schedule, _ = IntervalSchedule.objects.get_or_create(
+        every=1,
+        period=IntervalSchedule.MINUTES
+    )
+
+    PeriodicTask.objects.update_or_create(
+        name='Задача обновление статуса урока если он завершен по времени',
+        defaults={
+            'interval': schedule,
+            'task': 'lesson_schedule.tasks.update_complete_lessons',
+            'args': json.dumps([]),
+            'kwargs': json.dumps({})
+        }
+    )
 
 

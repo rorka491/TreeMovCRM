@@ -1,12 +1,6 @@
 from rest_framework import serializers
+from .models import SubjectColor
 
-
-class BaseSerializerWithoutOrg(serializers.ModelSerializer):
-    """
-    Пока этот класс бесполезен
-    """
-    class Meta:
-        exclude = ['id', 'org']
 
 class BaseSerializerExcludeFields(serializers.ModelSerializer):
     """
@@ -23,22 +17,36 @@ class BaseSerializerExcludeFields(serializers.ModelSerializer):
 
     таким образом группа будет сереализоована без студентов
     """
-
     class Meta:
         model = None
-        fields = '__all__'
+        exclude = ['org', 'created_by']
 
     def __init__(self, instance=None, *args, **kwargs):
         
 
         #передан instance чтобы сохранить совместимостсь с DRF
         meta_excludes = getattr(self.Meta, 'exclude_fields', [])
+
+        un_exclude_fields = kwargs.pop('un_exclude_fields', [])
         exclude_fields = kwargs.pop('exclude_fields', []) + meta_excludes
-        
+
         super().__init__(instance, *args, **kwargs)
 
-        #Нужно чтобы исключить те поля которые есть в списке
-        for field in exclude_fields:
-            self.fields.pop(field, None)
+        if not un_exclude_fields:
+
+            #Нужно чтобы исключить те поля которые есть в списке
+            for field in exclude_fields:
+                self.fields.pop(field, None)
+        
+        else:
+            for field in list(self.fields):
+                if field not in un_exclude_fields:
+                    self.fields.pop(field)
+
+
+class ColorSerializer(BaseSerializerExcludeFields):
+
+    class Meta(BaseSerializerExcludeFields.Meta):
+        model = SubjectColor
 
 

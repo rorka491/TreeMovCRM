@@ -86,7 +86,7 @@ class DocumentsTypes(BaseModelOrg):
         verbose_name_plural = 'Типы документов'
 
     def __str__(self):
-        return f'{self.title} ORG: {self.org}'
+        return f'{self.title}'
 
 
 

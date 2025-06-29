@@ -26,7 +26,6 @@ function App() {
             <Routes>
                 <Route path="*" element={<Base />}>
                     <Route path="schedule" element={<Schedule />}>
-                        <Route path="by-month" element={<SсheduleByMonth />} />
                         <Route
                             path="by-month/list"
                             element={<SсheduleList />}
@@ -58,7 +57,6 @@ function App() {
                         </Route>
                         <Route path="*" element={<Navigate to="../main" />} />
                     </Route>
-                    <Route path="*" element={<Navigate to="/schedule" />}/>
                 </Route>
             </Routes>
         </Router>
