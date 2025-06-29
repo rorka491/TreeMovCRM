@@ -104,6 +104,8 @@ export function FilterBar({
                             onSelected={(newSelected) => {
                                 selected[filterData[index].id] = newSelected
                                 setSelected({ ...selected })
+                                filterData[index].onSelected?.(newSelected as any)
+                                filterData[index].setSelected?.(newSelected)
                             }}
                             selected={selected[filterData[index].id]}
                         />
