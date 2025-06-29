@@ -49,7 +49,7 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset
+
 
         
         user = self.request.user
@@ -61,6 +61,8 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
             queryset = queryset.filter(Q(org=user.org) | Q(org__isnull=True))
         else:
             queryset = queryset.filter(org__isnull=True)
+
+        return queryset
 
 def base_search(func):
     @wraps(func)

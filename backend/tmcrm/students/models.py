@@ -1,17 +1,14 @@
 from django.db import models
-from django.utils import timezone
 from datetime import timedelta
-from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from mainapp.models import BaseModelOrg
 from mainapp.validators import phone_number_regex
 
 
 class StudentManager(models.Manager):
+
     def active(self):
         return self.filter(is_active=True)
-    
-    
 
 
 class Student(BaseModelOrg):
@@ -27,7 +24,6 @@ class Student(BaseModelOrg):
     class Meta: 
         verbose_name = 'Студент'
         verbose_name_plural = 'Студенты'
-
 
     def __str__(self):
         return self.name

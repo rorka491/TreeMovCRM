@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from mainapp.serializers import BaseSerializerExcludeFields, ColorSerializer
-from .models import *
 from employers.serializers import TeacherSerializer
 from students.serializers import StudentGroupSerializer, StudentSerializer
+from .models import Attendance, Classroom, Grade, PeriodSchedule, Schedule, Subject
   
 class ClassroomSerializer(BaseSerializerExcludeFields):
 
@@ -40,8 +40,7 @@ class PeriodScheduleSerializer(BaseSerializerExcludeFields):
         model = PeriodSchedule
 
 
-"""Группированые сериализаторы с исключенными полями"""
-
+#Группированые сериализаторы с исключенными полями
 class ScheduleStudentGroupSerializer(serializers.Serializer):
     schedules = serializers.SerializerMethodField()
     exclude_fields = []
@@ -78,7 +77,7 @@ class GroupScheduleSerializer(ScheduleStudentGroupSerializer):
     class Meta: 
         fields = ['group', 'schedules']
 
-"""_________________________________________________"""
+
 
 
 class GradeSerializer(BaseSerializerExcludeFields):
