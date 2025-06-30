@@ -72,6 +72,7 @@ export type Teacher = {
 }
 
 export type Subject = {
+    id: number
     name: string
     color: string | null
     teacher: Teacher[]
@@ -83,6 +84,7 @@ export type Group = {
 }
 
 export type Lesson = {
+    id: number
     title: string
     start_time: string
     end_time: string
@@ -255,10 +257,24 @@ export const realApi = {
     },
 
     schedules: {
-        async getAll() {
+        async getAll(query?: {
+            startDate?: Date | string
+            endDate?: Date | string
+        }) {
             const [schedules, error] = await axios
                 .get(`/schedules/schedules`, {
-                    method: 'GET',
+                    params: {
+                        start_date: query?.startDate
+                            ? typeof query?.startDate === 'string'
+                                ? query?.startDate
+                                : formatDate(query?.startDate, 'YYYY-MM-DD')
+                            : undefined,
+                        end_date: query?.endDate
+                            ? typeof query?.endDate === 'string'
+                                ? query?.endDate
+                                : formatDate(query?.endDate, 'YYYY-MM-DD')
+                            : undefined,
+                    },
                 })
                 .then((res) => realApi.isOk<Lesson[]>(res))
 
@@ -272,9 +288,15 @@ export const realApi = {
             }))
         },
         async getSubjects() {
-            return await axios
+            const [subjects, error] = await axios
                 .get(`/schedules/subjects/`)
-                .then((res) => realApi.isOk(res))
+                .then((res) => realApi.isOk<Subject[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return subjects
         },
 
         async getClassrooms() {

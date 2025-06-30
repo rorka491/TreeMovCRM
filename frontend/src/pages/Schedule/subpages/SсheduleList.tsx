@@ -11,7 +11,6 @@ function SсheduleList() {
     }: {
         currentDate: Date
         lessons: Lesson[]
-        upsertLesson: (newLesson: Lesson) => void
     } = useOutletContext()
 
     const [data, setData] = useState<Lesson[]>([])
@@ -24,7 +23,7 @@ function SсheduleList() {
         // Если выбран режим "by-month", фильтруем только текущий месяц
         if (typeOfSchedule === 'by-month') {
             filtered = filtered.filter((l) => {
-                const [day, month, year] = l.date.split('.').map(Number)
+                const [_, month, year] = l.date.split('.').map(Number)
                 return (
                     month === currentDate.getMonth() + 1 &&
                     year === currentDate.getFullYear()

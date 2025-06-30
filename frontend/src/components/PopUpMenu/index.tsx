@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react'
-import { createPortal } from 'react-dom'
 
 export function PopUpMenu({
     open,
@@ -13,14 +12,14 @@ export function PopUpMenu({
     onClose?: () => void
     className?: string
 }>) {
-    const ref = useRef<HTMLDivElement>(null)
+    const selfRef = useRef<HTMLDivElement>(null)
     const [pos, setPos] = useState({ x: 0, y: 0 })
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (
-                ref.current &&
-                !ref.current.parentNode?.contains(e.target as Node)
+                selfRef.current &&
+                !selfRef.current.parentNode?.contains(e.target as Node)
             ) {
                 setOpen?.(false)
 
@@ -31,43 +30,63 @@ export function PopUpMenu({
         }
 
         document.addEventListener('click', handleClickOutside)
-        return () => document.removeEventListener('click', handleClickOutside)
-    }, [open])
+        window.addEventListener('resize', reposition)
+        return () => {
+            document.removeEventListener('click', handleClickOutside)
+            window.removeEventListener('resize', reposition)
+        }
+    }, [])
 
-    useLayoutEffect(() => {
-        const parent = ref.current?.parentElement as HTMLElement
+    function reposition() {
+        const parent = selfRef.current?.parentElement as HTMLElement
 
-        if (!parent) {
+        if (!parent || !selfRef.current) {
             return
         }
 
-        const selfRect = ref.current!.getBoundingClientRect()
+        const selfRect = selfRef.current!.getBoundingClientRect()
         const parentRect = parent.getBoundingClientRect()
+
+        if (window.innerHeight - parentRect.bottom > 100) {
+            selfRef.current.style.maxHeight = `${window.innerHeight - parentRect.bottom}px`
+        }
 
         selfRect.x = parentRect.left
         selfRect.y = parentRect.bottom
 
-        const selfPosX = Math.min(
+        if (selfRect.height > window.innerHeight - parentRect.bottom) {
+            selfRect.x += 20
+        }
+
+        selfRect.x = Math.min(
             selfRect.x,
             window.innerWidth - selfRect.width - 1
         )
-        const selfPosY = Math.min(
-            selfRect.y,
-            window.innerHeight - selfRect.height - 1
-        )
+
+        if (window.innerHeight - parentRect.bottom <= 100) {
+            selfRect.y = Math.min(
+                selfRect.y,
+                window.innerHeight - selfRect.height - 1
+            )
+        }
 
         setPos({
-            x: selfPosX,
-            y: selfPosY,
+            x: selfRect.x,
+            y: selfRect.y,
         })
-    }, [ref, open])
+    }
 
-    return createPortal(
+    useLayoutEffect(reposition, [selfRef, open])
+
+    return (
         <>
             {open && (
                 <div
-                    ref={ref}
-                    className={className + ` absolute z-10`}
+                    ref={selfRef}
+                    className={
+                        className +
+                        ` absolute z-10 max-h-[90vh] overflow-y-auto special-scroll`
+                    }
                     style={{
                         top: pos.y,
                         left: pos.x,
@@ -76,7 +95,6 @@ export function PopUpMenu({
                     {children}
                 </div>
             )}
-        </>,
-        document.body
+        </>
     )
 }

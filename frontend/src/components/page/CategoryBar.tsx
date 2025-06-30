@@ -1,6 +1,6 @@
 import { createContext, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { SearchParams } from '../../lib/search'
+import { getSearchScore, SearchParams } from '../../lib/search'
 import { PopUpMenu } from '../PopUpMenu'
 
 export const categoryBarContext = createContext({
@@ -42,6 +42,7 @@ export function CategoryBar({
         (searchOptions && searchOptions.length > 0)
 
     const [searchOptionsOpen, setSearchOptionsOpen] = useState(false)
+    const [searchValue, setSearchValue] = useState('')
 
     return (
         <div className="flex text-[16px] items-center justify-between border-b border-t border-gray-300">
@@ -59,8 +60,53 @@ export function CategoryBar({
             </ul>
             {searchActive && (
                 <>
-                    <form className="flex h-[100%] items-center gap-2.5 px-3 py-[5px] bg-white rounded-[12.5px]">
-                        <input placeholder={searchPlaceholder ?? 'Введите'} />
+                    <form
+                        onSubmit={(e) => e.preventDefault()}
+                        className="flex h-[100%] items-center gap-2.5 px-3 py-[5px] bg-white rounded-[12.5px]"
+                    >
+                        <PopUpMenu
+                            className="bg-white rounded-2xl"
+                            open={searchOptionsOpen}
+                        >
+                            <div className="flex flex-col">
+                                {searchOptions && searchOptions.length > 0 ? (
+                                    searchOptions
+                                        .sort((a, b) => {
+                                            return (
+                                                getSearchScore(
+                                                    b.object,
+                                                    b.searchOptions ?? {},
+                                                    searchValue,
+                                                    !b.searchOptions
+                                                )[0] -
+                                                getSearchScore(
+                                                    a.object,
+                                                    a.searchOptions ?? {},
+                                                    searchValue,
+                                                    !a.searchOptions
+                                                )[0]
+                                            )
+                                        })
+                                        .map((option) => (
+                                            <div
+                                                key={option.id}
+                                                className="p-3 hover:bg-gray-100"
+                                            >
+                                                {option.title}
+                                            </div>
+                                        ))
+                                ) : (
+                                    <div>Нечего искать</div>
+                                )}
+                            </div>
+                        </PopUpMenu>
+                        <input
+                            placeholder={searchPlaceholder ?? 'Введите'}
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
+                            onFocus={() => setSearchOptionsOpen(true)}
+                            onBlur={() => setSearchOptionsOpen(false)}
+                        />
                         <button>
                             <svg
                                 width="26"
@@ -79,14 +125,8 @@ export function CategoryBar({
                             className="rounded-[12.5px] border px-[14.5px] py-[5px] text-[#616161] hover:bg-gray-200 duration-100"
                             type="submit"
                             value={searchButtonLabel ?? 'Поиск'}
-                            onFocus={() => setSearchOptionsOpen(true)}
-                            onBlur={() => setSearchOptionsOpen(false)}
                         />
                     </form>
-                    <PopUpMenu open={searchOptionsOpen}>
-                        Hello
-                        asd
-                    </PopUpMenu>
                 </>
             )}
         </div>

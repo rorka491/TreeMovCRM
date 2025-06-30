@@ -19,7 +19,7 @@ type Object = {
     [k: string]: ObjectValue | ObjectValue[]
 }
 
-function objectToRow<T>(
+function objectToRow<T extends { [k: string]: any }>(
     object: T,
     keys: KeysObject<T>
 ): [string, string][] {
@@ -47,7 +47,9 @@ function objectToRow<T>(
             case 'join': {
                 result.push([
                     keyType.str,
-                    keyType.keys.map((key) => value[key]).join(keyType.sep ?? ' '),
+                    keyType.keys
+                        .map((key) => value[key])
+                        .join(keyType.sep ?? ' '),
                 ])
                 break
             }
@@ -60,7 +62,7 @@ function objectToRow<T>(
     return result
 }
 
-type KeysObject<T> = Partial<{
+type KeysObject<T extends { [k: string]: any }> = Partial<{
     [k in keyof T]:
         | string
         | {
@@ -80,7 +82,32 @@ type KeysObject<T> = Partial<{
           }
 }>
 
-export function Table<T>({
+function getKeyLabels<T extends { [k: string]: any }>(keys: KeysObject<T>) {
+    const result: string[] = []
+
+    for (const key in keys) {
+        const val = keys[key]!
+
+        if (typeof val === 'string') {
+            result.push(val)
+            continue
+        }
+
+        switch (val.type) {
+            case 'map':
+            case 'join':
+                result.push(val.str)
+                break
+            case 'flat':
+                result.push(...getKeyLabels(val.keys))
+                break
+        }
+    }
+
+    return result
+}
+
+export function Table<T extends { [k: string]: any }>({
     keys,
     data,
     rowActions,
@@ -105,7 +132,7 @@ export function Table<T>({
             <table className="w-full min-w-0 border-separate border-spacing-y-2">
                 <thead>
                     <tr>
-                        {Object.keys(keys).map((key, i) => (
+                        {getKeyLabels(keys).map((key, i) => (
                             <th
                                 className={
                                     (i === 0
@@ -115,7 +142,7 @@ export function Table<T>({
                                 }
                                 key={key}
                             >
-                                {keys[key]}
+                                {key}
                             </th>
                         ))}
                     </tr>
@@ -126,6 +153,7 @@ export function Table<T>({
                               .map((row) => ({
                                   id: getRowId(row),
                                   data: objectToRow(row, keys),
+                                  row: row,
                               }))
                               .map((row, rowIndex) => (
                                   <tr key={row.id}>
@@ -139,7 +167,7 @@ export function Table<T>({
                                                   (conditionalClassNames
                                                       ? conditionalClassNames[
                                                             key
-                                                        ]?.(row)
+                                                        ]?.(row.row)
                                                       : '')
                                               }
                                               key={key}

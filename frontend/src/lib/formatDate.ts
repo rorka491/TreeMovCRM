@@ -1,4 +1,4 @@
-import { months, monthsPlural } from './months'
+import { months, monthsPlural, weekDays, weekDaysShort } from './datesHelpers'
 
 export function formatDate(
     date: Date,
@@ -22,6 +22,7 @@ export function formatDate(
     const minutes = date.getMinutes()
     const seconds = date.getSeconds()
     const hours = date.getHours()
+    const weekDay = (date.getDay() + 6) % 7
 
     const minutesStr = options.padMinutes
         ? (minutes + '').padStart(2, '0')
@@ -32,6 +33,11 @@ export function formatDate(
     const monthShort =
         monthStr.length > 4 ? monthStr.substring(0, 3) + '.' : monthStr
 
+    const weekDayStr = weekDays[weekDay]
+    const weekDayShort = weekDaysShort[weekDay]
+
+    format = format.replaceAll(/w+_short/gm, weekDayShort)
+    format = format.replaceAll(/w+/gm, weekDayStr)
     format = format.replaceAll(/h+/gm, hours + '')
     format = format.replaceAll(/s+\.?s*/gm, seconds + '')
     format = format.replaceAll(/min/gm, minutesStr)

@@ -4,17 +4,15 @@ import { getLessonStyle } from '../../../lib/getLessonStyle'
 import { useEffect, useState } from 'react'
 import { filterLessons } from '../../../lib/filterLessons'
 import { Lesson } from '../../../api/api'
-import { weekDays } from '../../../lib/calendarConstants'
+import { weekDays } from '../../../lib/datesHelpers'
 
 function ScheduleByDay() {
     const {
         currentDate,
         lessons,
-        upsertLesson,
     }: {
         currentDate: Date
         lessons: Lesson[]
-        upsertLesson: (newLesson: Lesson) => void
     } = useOutletContext()
 
     const [dayLessons, setDayLessons] = useState<Lesson[]>([])
@@ -37,21 +35,31 @@ function ScheduleByDay() {
     useEffect(() => {
         const minHour = Math.max(
             0,
-            lessons.reduce(
-                (result, lesson) =>
-                    Math.min(result, parseInt(lesson.start_time.split(':')[0])),
-                24
-            ) - 1
+            lessons.length > 0
+                ? lessons.reduce(
+                      (result, lesson) =>
+                          Math.min(
+                              result,
+                              parseInt(lesson.start_time.split(':')[0])
+                          ),
+                      24
+                  ) - 2
+                : 0
         )
         const maxHour = Math.min(
             24,
-            lessons.reduce(
-                (result, lesson) =>
-                    Math.max(result, parseInt(lesson.end_time.split(':')[0])),
-                0
-            ) + 1
+            lessons.length > 0
+                ? lessons.reduce(
+                      (result, lesson) =>
+                          Math.max(
+                              result,
+                              parseInt(lesson.end_time.split(':')[0])
+                          ),
+                      0
+                  ) + 2
+                : 24
         )
-
+        
         setHours(
             Array.from({ length: maxHour - minHour }, (_, i) => i + minHour)
         )
@@ -101,11 +109,6 @@ function ScheduleByDay() {
                                                 <LessonCard
                                                     lesson={lesson}
                                                     className="min-w-[180px] w-fit"
-                                                    onSave={(updatedLesson) =>
-                                                        upsertLesson(
-                                                            updatedLesson
-                                                        )
-                                                    }
                                                 />
                                             </div>
                                         )

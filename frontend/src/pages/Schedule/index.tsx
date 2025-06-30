@@ -1,35 +1,17 @@
 import { Outlet } from 'react-router-dom'
-import { FilterBar, FilterPart } from '../../components/page/FilterBar'
+import { filter, FilterBar, FilterPart } from '../../components/page/FilterBar'
 import { useEffect, useState } from 'react'
 import CalendarBar from '../../components/page/CalendarBar'
 import CategoryBar from '../../components/page/CategoryBar'
 import { api } from '../../api'
-import { Lesson } from '../../api/api'
+import { useLessons } from './hooks/useLessons'
 
 export function Schedule() {
     const [currentDate, setCurrentDate] = useState(new Date())
-    let [lessons, setLessons] = useState<Lesson[]>([])
-
-    useEffect(() => {
-        api.schedules.getAll().then((lessons) => setLessons(lessons))
-    }, [])
-
-    function upsertLesson(newLesson: Lesson) {
-        setLessons((prevLessons) => {
-            const idx = prevLessons.findIndex(
-                (l) => l.lesson === newLesson.lesson
-            )
-            if (idx !== -1) {
-                // обновляем существующий урок
-                const updated = [...prevLessons]
-                updated[idx] = newLesson
-                return updated
-            } else {
-                // добавляем новый урок
-                return [...prevLessons, newLesson]
-            }
-        })
-    }
+    const [lessons] = useLessons(
+        currentDate,
+        new Date(+currentDate + 31 * 24 * 60 * 60 * 1000)
+    )
 
     const [filtersSelected, setFiltersSelected] = useState<{
         [k: string]: any
@@ -60,11 +42,6 @@ export function Schedule() {
             removeButton: true,
         },
         {
-            type: 'date',
-            id: 'data',
-            label: 'Дата',
-        },
-        {
             id: 'auditorium',
             label: 'Аудитория',
             options: ['600', '1000'],
@@ -87,42 +64,28 @@ export function Schedule() {
         api.students.getAllGroups().then((groups) => {
             // @ts-ignore
             filterData[1].options = groups
+            setFilterData([...filterData])
         })
 
-        api.schedules.getSubjects().then(() => {})
+        api.schedules.getSubjects().then((subjects) => {
+            // @ts-ignore
+            filterData[2].options = subjects.map((sub) => sub.name)
+            setFilterData([...filterData])
+        })
     }, [])
-
-    lessons = lessons
-        .filter(
-            (lesson) =>
-                !filtersSelected.teacher ||
-                filtersSelected.teacher.length === 0 ||
-                filtersSelected.teacher.some(
-                    (t) => t === lesson?.teacher?.employer?.name
-                )
-        )
-        .filter(
-            (lesson) =>
-                !filtersSelected.group ||
-                filtersSelected.group.length === 0 ||
-                filtersSelected.group.some((g) => g === lesson.group.name)
-        )
 
     return (
         <section className="flex flex-col h-full gap-y-4">
             <CategoryBar
-                categories={[
-                    {
-                        url: 'main',
-                        label: 'Основное',
-                    },
-                    {
-                        url: 'guideline',
-                        label: 'Справочник',
-                    },
-                ]}
+                categories={[]}
                 searchPlaceholder="Найти в расписании..."
-            ></CategoryBar>
+                searchOptions={lessons.map((lesson) => ({
+                    id: lesson.id,
+                    onSelect: () => {},
+                    object: lesson,
+                    title: `${lesson.subject.name} ${lesson.classroom.title} ${lesson.date} ${lesson.start_time.split(':').slice(0, 2).join(':')}`,
+                }))}
+            />
             <FilterBar
                 disableAddButton={true}
                 filterData={filterData}
@@ -135,9 +98,26 @@ export function Schedule() {
             <Outlet
                 context={{
                     currentDate,
-                    lessons,
+                    lessons: filter(
+                        lessons,
+                        {
+                            teacher: {
+                                type: 'includes',
+                                filterId: 'teacher',
+                                mapValue: (teacher) => teacher.employer.name,
+                            },
+                            group: {
+                                type: 'includes',
+                                mapValue: (group) => group.name,
+                            },
+                            subject: {
+                                type: 'includes',
+                                mapValue: (subject) => subject.name,
+                            },
+                        },
+                        filtersSelected
+                    ),
                     setCurrentDate,
-                    upsertLesson,
                 }}
             />
         </section>

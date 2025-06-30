@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import unknown_photo from '../../assets/images/unknown.png'
 import { useLocation } from 'react-router-dom'
 

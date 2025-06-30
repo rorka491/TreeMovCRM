@@ -2,7 +2,7 @@ import LessonCard from '../../../components/LessonCard'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { formatDate } from '../../../lib/formatDate'
 import { getLessonStyle } from '../../../lib/getLessonStyle'
-import { weekDaysShort } from '../../../lib/calendarConstants'
+import { weekDaysShort } from '../../../lib/datesHelpers'
 import { useEffect, useState } from 'react'
 import { filterLessons } from '../../../lib/filterLessons'
 import { Lesson } from '../../../api/api'
@@ -11,11 +11,9 @@ function ScheduleByWeek() {
     const {
         currentDate,
         lessons,
-        upsertLesson,
     }: {
         currentDate: Date
         lessons: Lesson[]
-        upsertLesson: (newLesson: Lesson) => void
     } = useOutletContext()
     const navigate = useNavigate()
     const [weekLessons, setWeekLessons] = useState<Lesson[]>([])
@@ -31,19 +29,29 @@ function ScheduleByWeek() {
     useEffect(() => {
         const minHour = Math.max(
             0,
-            lessons.reduce(
-                (result, lesson) =>
-                    Math.min(result, parseInt(lesson.start_time.split(':')[0])),
-                24
-            ) - 1
+            lessons.length > 0
+                ? lessons.reduce(
+                      (result, lesson) =>
+                          Math.min(
+                              result,
+                              parseInt(lesson.start_time.split(':')[0])
+                          ),
+                      24
+                  ) - 2
+                : 0
         )
         const maxHour = Math.min(
             24,
-            lessons.reduce(
-                (result, lesson) =>
-                    Math.max(result, parseInt(lesson.end_time.split(':')[0])),
-                0
-            ) + 1
+            lessons.length > 0
+                ? lessons.reduce(
+                      (result, lesson) =>
+                          Math.max(
+                              result,
+                              parseInt(lesson.end_time.split(':')[0])
+                          ),
+                      0
+                  ) + 2
+                : 24
         )
 
         setHours(
@@ -136,13 +144,6 @@ function ScheduleByWeek() {
                                                 >
                                                     <LessonCard
                                                         lesson={lesson}
-                                                        onSave={(
-                                                            updatedLesson
-                                                        ) =>
-                                                            upsertLesson(
-                                                                updatedLesson
-                                                            )
-                                                        }
                                                     />
                                                 </div>
                                             )

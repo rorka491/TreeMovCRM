@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import EditLessonPopUp from '../EditLessonPopUp'
 import { PopUpMenu } from '../PopUpMenu'
-import { Lesson, Teacher } from '../../api/api'
+import { Lesson } from '../../api/api'
 
 function LessonCard({
     lesson,
@@ -14,7 +14,7 @@ function LessonCard({
     className?: string
     onClose?: () => void
     isPopUp?: boolean
-    onSave: (updatedLesson: Lesson) => void
+    onSave?: (updatedLesson: Lesson) => void
 }) {
     const [isOpen, setIsOpen] = useState<boolean>(false)
 
@@ -76,7 +76,7 @@ function LessonCard({
                     <EditLessonPopUp
                         lesson={lesson}
                         onSave={(updatedLesson) => {
-                            onSave(updatedLesson)
+                            onSave?.(updatedLesson)
                             setIsOpen(false)
                         }}
                         onClose={() => setIsOpen(false)}

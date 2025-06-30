@@ -37,7 +37,129 @@ function getSelectedFromParams(filterData: FilterPart[]) {
     return selectedRes
 }
 
-export function filter<T>(arr: T[], filterData: FilterPart[]) {}
+export type FilterSettings<T> = {
+    [k in keyof T]?:
+        | {
+              filterId?: string
+              type?:
+                  | 'array-vs-array'
+                  | 'includes'
+                  | 'equal'
+                  | 'auto'
+                  | undefined
+              mapValue?: (val: T[k]) => any
+          }
+        | { keys: FilterSettings<T[k]> }
+}
+
+function fitsFilter<T extends { [k: string]: any }>(
+    obj: T,
+    filterSettings: FilterSettings<T>,
+    filtersSelected: { [k: string]: any }
+) {
+    for (const key in obj) {
+        const setting = filterSettings[key]
+
+        if (!setting) {
+            continue
+        }
+
+        if (!('keys' in setting)) {
+            const value = setting.mapValue
+                ? setting.mapValue(obj[key])
+                : obj[key]
+
+            const selectedFilter = filtersSelected[setting.filterId ?? key]
+
+            if (!selectedFilter) {
+                continue
+            }
+
+            switch (setting.type) {
+                case undefined:
+                case 'auto':
+                    if (Array.isArray(selectedFilter) && Array.isArray(value)) {
+                        if (
+                            selectedFilter.length > 0 &&
+                            !selectedFilter.some(
+                                (fil) => value.indexOf(fil) !== -1
+                            )
+                        ) {
+                            return false
+                        }
+                    } else if (
+                        Array.isArray(selectedFilter) &&
+                        selectedFilter.length > 0 &&
+                        !selectedFilter.includes(value)
+                    ) {
+                        return false
+                    } else if (
+                        (selectedFilter + '')
+                            .toLowerCase()
+                            .indexOf((value + '').toLowerCase()) === -1
+                    ) {
+                        return false
+                    }
+                    break
+                case 'includes':
+                    if (
+                        Array.isArray(selectedFilter) &&
+                        selectedFilter.length > 0 &&
+                        !selectedFilter.includes(value)
+                    ) {
+                        return false
+                    } else if (
+                        !Array.isArray(selectedFilter) &&
+                        (selectedFilter + '')
+                            .toLowerCase()
+                            .indexOf((value + '').toLowerCase()) === -1
+                    ) {
+                        return false
+                    }
+
+                    break
+                case 'array-vs-array':
+                    if (Array.isArray(selectedFilter) && Array.isArray(value)) {
+                        if (
+                            selectedFilter.length > 0 &&
+                            !selectedFilter.some(
+                                (fil) => value.indexOf(fil) !== -1
+                            )
+                        ) {
+                            return false
+                        }
+                    }
+                    break
+                case 'equal':
+                    if (selectedFilter === undefined) {
+                        continue
+                    }
+                    if (selectedFilter !== value) {
+                        return false
+                    }
+            }
+            continue
+        }
+
+        const value = obj[key]
+
+        if (!fitsFilter(value, setting.keys, filtersSelected)) {
+            return false
+        }
+    }
+
+    return true
+}
+
+export function filter<T extends { [k: string]: any }>(
+    arr: T[],
+    filterSettings: FilterSettings<T>,
+    filtersSelected: { [k: string]: any }
+) {
+    return arr.filter((value) =>
+        fitsFilter(value, filterSettings, filtersSelected)
+    )
+}
 
 export function FilterInput({
     part,
@@ -153,7 +275,14 @@ export function FilterBar({
             )}
 
             {filterData.map((part) => (
-                <FilterInput key={part.id} part={part} />
+                <FilterInput
+                    key={part.id}
+                    part={part}
+                    setSelected={(val) => {
+                        setSelected({ ...selected, [part.id]: val })
+                    }}
+                    selected={selected[part.id]}
+                />
             ))}
             {!disableExportButton && (
                 <button className="text-xs px-3 font-medium text-purple-600 duration-200 border border-purple-600 rounded-lg py-2.5 hover:bg-purple-100">

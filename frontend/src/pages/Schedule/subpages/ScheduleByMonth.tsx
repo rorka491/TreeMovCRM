@@ -5,17 +5,15 @@ import { useEffect, useState } from 'react'
 import { getMonthMatrix } from '../../../lib/getMonthMatrix'
 import { filterLessons } from '../../../lib/filterLessons'
 import { Lesson } from '../../../api/api'
-import { weekDaysShort } from '../../../lib/calendarConstants'
+import { weekDaysShort } from '../../../lib/datesHelpers'
 
 function ScheduleByMonth() {
     const {
         currentDate,
         lessons,
-        upsertLesson,
     }: {
         currentDate: Date
         lessons: Lesson[]
-        upsertLesson: (newLesson: Lesson) => void
     } = useOutletContext()
     const navigate = useNavigate()
 
@@ -177,11 +175,6 @@ function ScheduleByMonth() {
                                                         setCurrentLesson(null)
                                                         setTooltipPos(null)
                                                     }}
-                                                    onSave={(updatedLesson) =>
-                                                        upsertLesson(
-                                                            updatedLesson
-                                                        )
-                                                    }
                                                 />
                                             </div>
                                         )}

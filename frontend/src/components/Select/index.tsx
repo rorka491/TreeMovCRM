@@ -1,14 +1,53 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
-function optionValue(option: any) {
-    return typeof option === 'object' && option !== null && 'value' in option
-        ? option.value
-        : option
+function getSelectedPreview(selected: any) {
+    if (selected === undefined || selected === null) {
+        return undefined
+    }
+
+    if (typeof selected !== 'object') {
+        return selected + ''
+    }
+
+    if (Array.isArray(selected)) {
+        if (selected.length === 0) {
+            return undefined
+        }
+        return selected.join(', ')
+    }
+
+    return (
+        selected.label ??
+        selected.value ??
+        selected.toString?.() ??
+        JSON.stringify(selected)
+    )
 }
-function optionKey(option: any) {
-    return typeof option === 'object' && option !== null && 'key' in option
-        ? option.key + ''
-        : option + ''
+
+function getOptionLabel(option: any) {
+    if (typeof option !== 'object' || option === null) {
+        return option + ''
+    }
+
+    if (Array.isArray(option)) {
+        return option.join(', ')
+    }
+
+    return (
+        option.label ??
+        option.value ??
+        option.toString?.() ??
+        JSON.stringify(option)
+    )
+}
+function getOptionId(option: any) {
+    if (typeof option !== 'object' || option === null) {
+        return option + ''
+    }
+
+    return (
+        option.id ?? option.key ?? option.toString?.() ?? JSON.stringify(option)
+    )
 }
 
 export function RadioButton({
@@ -81,7 +120,7 @@ export function Option({
     checkMark?: 'square' | 'circle' | boolean
     onClick: React.MouseEventHandler<HTMLButtonElement>
 }) {
-    const value = optionValue(option)
+    const value = getOptionLabel(option)
     //const key = optionKey(option)
 
     if (!checkMark) {
@@ -208,8 +247,6 @@ export function Select<T>({
             return
         }
 
-        onSelected
-
         if (!selected) {
             // @ts-ignore
             onSelected(multiple ? [option] : option)
@@ -242,12 +279,14 @@ export function Select<T>({
             return
         }
 
-        const key = optionKey(option)
-        const value = optionValue(option)
+        const key = getOptionId(option)
+        const value = getOptionLabel(option)
 
         if (Array.isArray(selected)) {
             return (
-                selected.indexOf(key) !== -1 || selected.indexOf(value) !== -1
+                selected.indexOf(key) !== -1 ||
+                selected.indexOf(value) !== -1 ||
+                selected === option
             )
         }
 
@@ -297,7 +336,7 @@ export function Select<T>({
     options = options.filter(
         (option) =>
             searchValue === '' ||
-            (optionValue(option) + '')
+            (getOptionLabel(option) + '')
                 .toLowerCase()
                 .includes(searchValue.toLowerCase())
     )
@@ -325,16 +364,10 @@ export function Select<T>({
                                 name="selectSearch"
                                 className="absolute inset-0 z-10 p-2 rounded-2xl"
                                 placeholder={
-                                    Array.isArray(selected)
-                                        ? selected.length !== 0
-                                            ? selected.join(', ')
-                                            : (placeholder ??
-                                              searchQuery ??
-                                              'Поиск')
-                                        : (optionValue(selected) ??
-                                          placeholder ??
-                                          searchQuery ??
-                                          'Поиск')
+                                    getSelectedPreview(selected) ??
+                                    placeholder ??
+                                    searchQuery ??
+                                    'Поиск'
                                 }
                                 value={searchValue}
                                 onChange={(e) => {
@@ -350,13 +383,9 @@ export function Select<T>({
                                 ' min-w-0 w-[calc(90%)] text-left truncate'
                             }
                         >
-                            {Array.isArray(selected)
-                                ? selected.length !== 0
-                                    ? selected.join(', ')
-                                    : (placeholder ?? 'Выберите')
-                                : optionValue(selected)
-                                  ? optionValue(selected) + ''
-                                  : (placeholder ?? 'Выберите')}
+                            {getSelectedPreview(selected) ??
+                                placeholder ??
+                                'Выберите'}
                         </span>
                     </>
                 )}
@@ -420,7 +449,7 @@ export function Select<T>({
                                     e.stopPropagation()
                                     onOptionClick(option)
                                 }}
-                                key={optionKey(option)}
+                                key={getOptionId(option)}
                                 option={option}
                             />
                         ))

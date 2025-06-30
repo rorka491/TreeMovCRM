@@ -1,4 +1,4 @@
-import { FilterBar } from '../../../components/page/FilterBar'
+import { filter, FilterBar } from '../../../components/page/FilterBar'
 import { api } from '../../../api'
 import { useEffect, useState } from 'react'
 import { Table } from '../../../components/Table'
@@ -27,7 +27,7 @@ export function StudentsMain() {
 
     const [filterData, setFilterData] = useState([
         {
-            id: 'group',
+            id: 'groups',
             label: 'Группа',
             options: ['A', 'B'],
             multiple: true,
@@ -35,7 +35,7 @@ export function StudentsMain() {
             removeButton: true,
         },
         {
-            id: 'student',
+            id: 'fullName',
             label: 'Ученик',
             options: ['Иванов'],
             multiple: true,
@@ -63,39 +63,38 @@ export function StudentsMain() {
                 selectedChange={setFiltersSelected}
             />
             <Table
-                data={students
-                    .filter((student) =>
-                        filtersSelected.group &&
-                        filtersSelected.group.length > 0
-                            ? filtersSelected.group.reduce(
-                                  (result, group) =>
-                                      result || student.groups.includes(group),
-                                  false
-                              )
-                            : true
-                    )
-                    .filter((student) =>
-                        filtersSelected.student &&
-                        filtersSelected.student.length > 0
-                            ? filtersSelected.student.some(
-                                  (fullName) => fullName === student.fullName
-                              )
-                            : true
-                    )
-                    .filter((student) =>
-                        filtersSelected.active
-                            ? (filtersSelected.active === 'Активные' &&
-                                  student.subscriptionActive) ||
-                              (filtersSelected.active === 'Неактивные' &&
-                                  !student.subscriptionActive)
-                            : true
-                    )}
+                data={filter(
+                    students,
+                    {
+                        groups: {
+                            type: 'array-vs-array',
+                        },
+                        fullName: {
+                            type: 'includes',
+                        },
+                        subscriptionActive: {
+                            type: 'equal',
+                            filterId: 'active',
+                            mapValue: (val) =>
+                                val ? 'Активные' : 'Неактивные',
+                        },
+                    },
+                    filtersSelected
+                )}
                 keys={{
                     fullName: 'Ученик',
                     dateOfBirth: 'Дата рождения',
                     groups: 'Группа',
-                    phone: 'Телефон',
-                    email: 'Почта',
+                    phone: {
+                        type: 'map',
+                        str: 'Телефон',
+                        f: (student) => student.phone ?? 'Нету',
+                    },
+                    email: {
+                        type: 'map',
+                        str: 'Почта',
+                        f: (student) => student.email ?? 'Нету',
+                    },
                 }}
                 rowActions={{
                     Открыть: (student) =>

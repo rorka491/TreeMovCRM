@@ -40,7 +40,7 @@ function fillSearchParams<T extends { [k: string]: any }>(
         if (typeof val === 'object' && val) {
             newSearchOptions[key] = {
                 type: 'subs',
-                subs: fillSearchParams(obj, {}),
+                subs: fillSearchParams(val, {}),
             } as SearchParams<T>[typeof key]
             continue
         }
@@ -76,7 +76,7 @@ export function getSearchScore<T extends { [k: string]: any }>(
         const setting = searchOptions[key]!
 
         if (setting === 'string') {
-            const val = obj[key].toString?.() ?? obj[key] + ''
+            const val = obj[key]?.toString?.() ?? obj[key] + ''
 
             const occurancies = val.split(str).length
             cases += occurancies
@@ -86,8 +86,10 @@ export function getSearchScore<T extends { [k: string]: any }>(
 
         switch (setting.type) {
             case 'string': {
-                const val = obj[key].toString?.() ?? obj[key] + ''
-                let occurancies = val.split(str).length
+                const val: string = obj[key].toString?.() ?? obj[key] + ''
+                let occurancies = val
+                    .toLowerCase()
+                    .split(str.toLowerCase()).length
 
                 cases += occurancies
 
