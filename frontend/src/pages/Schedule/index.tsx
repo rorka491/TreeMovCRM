@@ -1,8 +1,7 @@
-import { Outlet, useMatch, useNavigate } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { FilterBar, FilterPart } from '../../components/page/FilterBar'
 import { useEffect, useState } from 'react'
 import CalendarBar from '../../components/page/CalendarBar'
-import { weekDaysShort } from '../../lib/calendarConstants'
 import CategoryBar from '../../components/page/CategoryBar'
 import { api } from '../../api'
 import { Lesson } from '../../api/api'
@@ -90,7 +89,7 @@ export function Schedule() {
             filterData[1].options = groups
         })
 
-        api.schedules.getSubjects().then((subjects) => {})
+        api.schedules.getSubjects().then(() => {})
     }, [])
 
     lessons = lessons
