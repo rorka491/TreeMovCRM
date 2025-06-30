@@ -1,22 +1,27 @@
 import { Select, SelectProps } from '../Select'
 import { useEffect, useState } from 'react'
 
-type FilterPart = {
-    type?: 'select' | undefined
-    date?: boolean
+export type FilterPart = {
     id: string
     label: string
     setSelected?: (o: any) => void
     selected?: any
-    default?: any
-    removeButton?: boolean
-} & Omit<SelectProps<any>, ''>
+} & (
+    | ({
+          type?: 'select' | undefined
+          default?: any
+          removeButton?: boolean
+      } & Omit<SelectProps<any>, ''>)
+    | {
+          type: 'date'
+      }
+)
 
 function getSelectedFromParams(filterData: FilterPart[]) {
     const url = new URL(window.location.href)
 
     const selectedRes = Object.fromEntries(
-        filterData.map((filter) => [filter.id, filter.default])
+        filterData.map((filter) => [filter.id, (filter as any).default])
     )
 
     for (const key of url.searchParams.keys()) {
@@ -32,14 +37,88 @@ function getSelectedFromParams(filterData: FilterPart[]) {
     return selectedRes
 }
 
+export function filter<T>(arr: T[], filterData: FilterPart[]) {}
+
+export function FilterInput({
+    part,
+    setSelected,
+    selected,
+}: {
+    part: FilterPart
+    setSelected?: (o: any) => void
+    selected?: any
+}) {
+    if (part.type === 'select' || part.type === undefined) {
+        return (
+            <label
+                key={part.id}
+                className="flex flex-auto max-w-[400px] min-w-0 gap-2 flex-col h-[100%] m-0 justify-between text-xs text-[#616161]"
+            >
+                <span className="pl-2 text-[14px] font-[700]">
+                    {part.label}
+                </span>
+
+                <Select
+                    {...(part as any)}
+                    {...(part.removeButton
+                        ? {
+                              top: 'Убрать фильтр',
+                              topButton: true,
+                              onTopButtonClick: () => {
+                                  setSelected?.(undefined)
+                              },
+                          }
+                        : {})}
+                    className={'text-black text-sm'}
+                    onSelected={(newSelected) => {
+                        setSelected?.(newSelected)
+                        part.onSelected?.(newSelected as any)
+                        part.setSelected?.(newSelected)
+                    }}
+                    selected={selected}
+                />
+            </label>
+        )
+    }
+
+    if (part.type == 'date') {
+        return (
+            <label
+                key={part.id}
+                className="flex flex-auto max-w-[400px] min-w-0 gap-2 flex-col h-[100%] m-0 justify-between text-xs text-[#616161]"
+            >
+                <span className="pl-2 text-[14px] font-[700]">
+                    {part.label}
+                </span>
+
+                <input
+                    type="date"
+                    className="border-2 border-solid p-2 rounded-2xl bg-white"
+                    onChange={(e) => {
+                        setSelected?.(e.target.value)
+                    }}
+                    onFocus={(e) => {
+                        e.target.showPicker()
+                    }}
+                    value={selected + ''}
+                />
+            </label>
+        )
+    }
+
+    return <div>Huy</div>
+}
+
 export function FilterBar({
     filterData,
     selectedChange,
     disableAddButton,
+    disableExportButton,
 }: {
     filterData: FilterPart[]
     selectedChange?: (r: { [k: string]: any | undefined }) => void
     disableAddButton?: boolean
+    disableExportButton?: boolean
 }) {
     const [selected, setSelected] = useState<{ [k: string]: any | undefined }>(
         getSelectedFromParams(filterData)
@@ -73,48 +152,14 @@ export function FilterBar({
                 </button>
             )}
 
-            {filterData.map((props, index) => (
-                <label
-                    key={props.id}
-                    className="flex flex-auto max-w-[400px] min-w-0 gap-2 flex-col h-[100%] m-0 justify-between text-xs text-[#616161]"
-                >
-                    <span className="pl-2 text-[14px] font-[700]">
-                        {props.label}
-                    </span>
-                    {props.date ? (
-                        <input
-                            type="date"
-                            className="border-2 border-solid p-2 rounded-2xl bg-white"
-                        />
-                    ) : (
-                        <Select
-                            {...(props as any)}
-                            {...(props.removeButton
-                                ? {
-                                      top: 'Убрать фильтр',
-                                      topButton: true,
-                                      onTopButtonClick: () => {
-                                          selected[filterData[index].id] =
-                                              undefined
-                                          setSelected({ ...selected })
-                                      },
-                                  }
-                                : {})}
-                            className={'text-black text-sm'}
-                            onSelected={(newSelected) => {
-                                selected[filterData[index].id] = newSelected
-                                setSelected({ ...selected })
-                                filterData[index].onSelected?.(newSelected as any)
-                                filterData[index].setSelected?.(newSelected)
-                            }}
-                            selected={selected[filterData[index].id]}
-                        />
-                    )}
-                </label>
+            {filterData.map((part) => (
+                <FilterInput key={part.id} part={part} />
             ))}
-            <button className="text-xs px-3 font-medium text-purple-600 duration-200 border border-purple-600 rounded-lg py-2.5 hover:bg-purple-100">
-                Экспорт
-            </button>
+            {!disableExportButton && (
+                <button className="text-xs px-3 font-medium text-purple-600 duration-200 border border-purple-600 rounded-lg py-2.5 hover:bg-purple-100">
+                    Экспорт
+                </button>
+            )}
         </div>
     )
 }

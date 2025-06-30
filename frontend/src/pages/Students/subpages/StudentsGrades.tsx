@@ -18,7 +18,7 @@ export function StudentsGrades() {
             const students = await api.students.getAll()
             setStudents(students)
             const grades = await api.students.getAllGrades()
-            console.log(grades)
+            
             setGrades(grades)
             setLoaded(true)
             filterData[0].options = await api.students.getAllGroups()
@@ -61,8 +61,6 @@ export function StudentsGrades() {
             default: 'xlsx',
         },
     ])
-
-    console.log(grades)
 
     return (
         <>

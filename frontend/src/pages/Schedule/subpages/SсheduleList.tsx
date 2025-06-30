@@ -33,42 +33,46 @@ function SсheduleList() {
         }
         setData(filtered)
     }, [lessons, currentDate, typeOfSchedule])
-    
-    return data.length !== 0 ? (
-        <Table
-            keys={{
-                date: 'Дата',
-                start_time: {
-                    type: 'map',
-                    str: 'Время',
-                    f: (row) =>
-                        `${row.start_time.slice(0, 5)} - ${row.end_time.slice(0, 5)}`,
-                },
-                subject: { type: 'flat', keys: { name: 'Предмет' } },
-                classroom: { type: 'flat', keys: { title: 'Кабинет' } },
-                teacher: {
-                    type: 'flat',
-                    keys: {
-                        employer: {
-                            type: 'join',
-                            str: 'Преподаватель',
-                            keys: ['surname', 'name', 'patronymic'],
+
+    return (
+        <div className="relative w-full overflow-y-auto h-[60vh]">
+            {data.length !== 0 ? (
+                <Table
+                    keys={{
+                        date: 'Дата',
+                        start_time: {
+                            type: 'map',
+                            str: 'Время',
+                            f: (row) =>
+                                `${row.start_time.slice(0, 5)} - ${row.end_time.slice(0, 5)}`,
                         },
-                    },
-                },
-                group: {
-                    type: 'flat',
-                    keys: { name: 'Группа' },
-                },
-            }}
-            data={data}
-            showSkeleton={!lessons}
-            skeletonAmount={20}
-        />
-    ) : (
-        <div className="flex flex-col items-center justify-center w-full h-full">
-            <h3 className="text-4xl">Пусто =(</h3>
-            <p>Данных за текущий период не найдено</p>
+                        subject: { type: 'flat', keys: { name: 'Предмет' } },
+                        classroom: { type: 'flat', keys: { title: 'Кабинет' } },
+                        teacher: {
+                            type: 'flat',
+                            keys: {
+                                employer: {
+                                    type: 'join',
+                                    str: 'Преподаватель',
+                                    keys: ['surname', 'name', 'patronymic'],
+                                },
+                            },
+                        },
+                        group: {
+                            type: 'flat',
+                            keys: { name: 'Группа' },
+                        },
+                    }}
+                    data={data}
+                    showSkeleton={!lessons}
+                    skeletonAmount={20}
+                />
+            ) : (
+                <div className="flex flex-col items-center justify-center w-full h-full">
+                    <h3 className="text-4xl">Пусто =(</h3>
+                    <p>Данных за текущий период не найдено</p>
+                </div>
+            )}
         </div>
     )
 }
