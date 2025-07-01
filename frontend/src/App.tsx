@@ -19,6 +19,9 @@ import SсheduleByMonth from './pages/Schedule/subpages/ScheduleByMonth'
 import SсheduleByWeek from './pages/Schedule/subpages/ScheduleByWeek'
 import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
 import SсheduleList from './pages/Schedule/subpages/SсheduleList'
+import EmployeesVacationMain from './pages/Employees/subpages/EmployeesVacationMain'
+import EmployeesVacationCards from './pages/Employees/subpages/EmployeesVacationCards'
+import EmployeesVacationCalendar from './pages/Employees/subpages/EmployeesVacationCalendar'
 
 function App() {
     return (
@@ -45,6 +48,21 @@ function App() {
                     </Route>
                     <Route path="employees" element={<Employees />}>
                         <Route path="main" element={<EmployeesMain />} />
+                        <Route
+                            path="vacation"
+                            element={<EmployeesVacationMain />}
+                        >
+                            <Route
+                                path="by-cards"
+                                element={<EmployeesVacationCards />}
+                            />
+                            <Route
+                                path="by-calendar"
+                                element={<EmployeesVacationCalendar />}
+                            />
+                        </Route>
+                        <Route path="analytics" element={'analytics'} />
+                        <Route path="archive" element={'archive'} />
                         <Route path="*" element={<Navigate to="../main" />} />
                     </Route>
                     <Route path="students" element={<StudentsPage />}>

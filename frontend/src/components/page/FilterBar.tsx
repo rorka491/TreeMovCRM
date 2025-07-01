@@ -84,7 +84,7 @@ export function FilterBar({
                     {props.date ? (
                         <input
                             type="date"
-                            className="border-2 border-solid p-2 rounded-2xl bg-white"
+                            className="p-2 bg-white border-2 border-solid rounded-2xl"
                         />
                     ) : (
                         <Select
@@ -104,6 +104,10 @@ export function FilterBar({
                             onSelected={(newSelected) => {
                                 selected[filterData[index].id] = newSelected
                                 setSelected({ ...selected })
+                                filterData[index].onSelected?.(
+                                    newSelected as any
+                                )
+                                filterData[index].setSelected?.(newSelected)
                             }}
                             selected={selected[filterData[index].id]}
                         />

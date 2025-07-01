@@ -3,6 +3,7 @@ import { FilterBar } from '../../../components/page/FilterBar'
 import { Employee } from '../../../api/api'
 import { api } from '../../../api'
 import { Table } from '../../../components/Table'
+import { useNavigate } from 'react-router-dom'
 
 const filterData = [
     {
@@ -32,21 +33,43 @@ const filterData = [
     },
 ]
 
-export function EmployeesMain() {
-    const [employees, setEmployees] = useState<Employee[]>([])
+const departments = [{}]
 
-    useEffect(() => {
-        api.employees.getAllEmployees().then(setEmployees)
-    }, [])
+export function EmployeesMain() {
+    // const [departments, setDepartments] = useState<Department[]>([])
+    const navigate = useNavigate()
+
+    // useEffect(() => {
+    //     api.department.getAllDepartments().then(setDepartments)
+    // }, [])
 
     return (
         <>
             <FilterBar filterData={filterData} />
-            <Table data={employees.map(employee => ({...employee, fullName: `${employee.surname} ${employee.name} ${employee.patronymic}`}))} keys={{
-                id: "№",
-                fullName: "ФИО",
-
-            }} />
+            <Table
+                data={departments}
+                keys={{
+                    department: 'Все отделы',
+                    countOfEmployees: 'Кол-во сотрудников',
+                    access: 'Права доступа',
+                    countOfEmployeesOnShift: 'Сейчас на смене',
+                    id: 'Код отдела',
+                }}
+                showSkeleton={departments.length === 0}
+                skeletonAmount={18}
+                rowActions={{
+                    Открыть: (department) =>
+                        navigate('/department/' + department.id),
+                    Изменить: (department) =>
+                        navigate('/department/' + department.id + '/edit'),
+                    'В архив': () => {
+                        //TODO!
+                    },
+                    Удалить: () => {
+                        //TODO!
+                    },
+                }}
+            />
         </>
     )
 }
