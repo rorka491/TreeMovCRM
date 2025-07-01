@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react'
+import { getMousePos } from '../../lib/mousePos'
 
 export function PopUpMenu({
     open,
@@ -6,11 +7,13 @@ export function PopUpMenu({
     onClose,
     children,
     className,
+    followMouse
 }: React.PropsWithChildren<{
     open?: boolean
     setOpen?: React.Dispatch<React.SetStateAction<boolean>>
     onClose?: () => void
     className?: string
+    followMouse?: boolean
 }>) {
     const mountRef = useRef<HTMLDivElement>(null)
     const rectRef = useRef<HTMLDivElement>(null)
@@ -34,7 +37,19 @@ export function PopUpMenu({
         }
     }, [open])
 
+    useLayoutEffect(() => {
+        if (!open || !followMouse) {
+            return
+        }
+
+        setPos(getMousePos())
+    }, [open])
+
     function reposition() {
+        if (followMouse) {
+            return
+        }
+
         const parent = mountRef.current?.parentElement as HTMLElement
 
         if (!parent || !mountRef.current || !rectRef.current) {

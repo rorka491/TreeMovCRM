@@ -114,6 +114,7 @@ function ScheduleByDay() {
                                     <PopUpMenu
                                         open={contextMenuOpen === hour}
                                         onClose={() => setContextMenuOpen(-1)}
+                                        followMouse
                                         className="flex flex-col gap-2 bg-white rounded-xl border-1"
                                     >
                                         <button
