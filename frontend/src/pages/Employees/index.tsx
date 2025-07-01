@@ -7,7 +7,7 @@ function EmpoloyeesPage() {
     const activeSection = match?.params?.lastPart
 
     return (
-        <section className="flex flex-col h-full gap-y-5">
+        <section className="flex h-[100%] flex-col gap-y-5">
             <CategoryBar
                 categories={[
                     { url: 'main', label: 'Основное' },

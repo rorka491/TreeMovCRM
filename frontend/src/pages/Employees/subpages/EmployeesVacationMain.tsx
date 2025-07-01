@@ -4,10 +4,13 @@ import { Employee } from '../../../api/api'
 import { api } from '../../../api'
 import { Table } from '../../../components/Table'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import StatisticsCard from '../components/StatisticsCard'
 
 export function EmployeesVacationMain() {
     const navigate = useNavigate()
-    const [employees, setEmployees] = useState<Employee[]>([])
+    // const [employees, setEmployees] = useState<Employee[]>([])
+    const employees = [{}, {}, {}, {}]
+    const statistics = [{}, {}, {}]
     const route = useLocation()
     const dataView = {
         Таблица: '',
@@ -58,9 +61,9 @@ export function EmployeesVacationMain() {
         },
     ]
 
-    useEffect(() => {
-        api.employees.getAllEmployees().then(setEmployees)
-    }, [])
+    // useEffect(() => {
+    //     api.employees.getAllEmployees().then(setEmployees)
+    // }, [])
 
     return (
         <>
@@ -100,6 +103,15 @@ export function EmployeesVacationMain() {
             ) : (
                 <Outlet context={employees} />
             )}
+            {route.pathname.split('/')[3] === '' ||
+            route.pathname.split('/')[3] === undefined ||
+            route.pathname.split('/')[3] === 'by-cards' ? (
+                <ul className="flex gap-[20px]">
+                    {statistics.map((card, i) => {
+                        return <StatisticsCard {...card} key={i} />
+                    })}
+                </ul>
+            ) : null}
         </>
     )
 }
