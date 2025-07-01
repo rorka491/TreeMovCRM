@@ -83,6 +83,13 @@ export type Group = {
     name: string
 }
 
+export type Classroom = {
+    id: number
+    title: string
+    floor: number
+    building: number
+}
+
 export type Lesson = {
     id: number
     title: string
@@ -91,11 +98,7 @@ export type Lesson = {
     date: string
     teacher: Teacher
     week_day: number
-    classroom: {
-        title: string
-        floor: number
-        building: number
-    }
+    classroom: Classroom
     group: Group
     subject: {
         name: string
@@ -192,6 +195,17 @@ export const realApi = {
 
             return preStudents.map(preStudentToStudent)
         },
+        async getSearch(str: string) {
+            return mapResult(
+                await axios
+                    .post(`/students/students/search/`, {
+                        query: str,
+                    })
+                    .then((res) => realApi.isOk<PreStudent[]>(res)),
+                (s) => s,
+                () => []
+            ).map(preStudentToStudent)
+        },
         async getAllGroups() {
             const [preGroups, error] = await axios
                 .get(`/students/student_groups`)
@@ -235,10 +249,9 @@ export const realApi = {
 
             const grades: Grade[] = mapResult(
                 await axios
-                    .get(`/schedules/grades/?test=true&student=${id}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
+                    .get(`/schedules/grades/`, {
+                        params: {
+                            student: id,
                         },
                     })
                     .then((res) => realApi.isOk<PreGrade[]>(res)),
@@ -287,6 +300,19 @@ export const realApi = {
                 date: formatDate(new Date(schedule.date), 'DD.MM.YYYY'),
             }))
         },
+        async getSearch(str: string) {
+            const [schedules, error] = await axios
+                .post(`/schedules/schedules/search/`, {
+                    query: str,
+                })
+                .then((res) => realApi.isOk<Lesson[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return schedules
+        },
         async getSubjects() {
             const [subjects, error] = await axios
                 .get(`/schedules/subjects/`)
@@ -300,14 +326,15 @@ export const realApi = {
         },
 
         async getClassrooms() {
-            return await axios
-                .get(`/schedules/classrooms/`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then((res) => realApi.isOk(res))
+            const [classrooms, error] = await axios
+                .get(`/schedules/classrooms`)
+                .then((res) => realApi.isOk<Classroom[]>(res))
+
+            if (error !== null) {
+                return []
+            }
+
+            return classrooms
         },
 
         async getShedulesByClassrooms(query: Schedule) {
@@ -345,18 +372,6 @@ export const realApi = {
             }
 
             return teachers
-        },
-
-        async getSearch(query: string) {
-            return await axios
-                .get(`/schedules/search/`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    params: query,
-                })
-                .then((res) => realApi.isOk(res))
         },
 
         async token() {

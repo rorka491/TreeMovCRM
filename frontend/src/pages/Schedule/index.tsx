@@ -5,6 +5,9 @@ import CalendarBar from '../../components/page/CalendarBar'
 import CategoryBar from '../../components/page/CategoryBar'
 import { api } from '../../api'
 import { useLessons } from './hooks/useLessons'
+import { Lesson } from '../../api/api'
+import { debounce } from '../../lib/debounce'
+import { parseDate } from '../../lib/parseDate'
 
 export function Schedule() {
     const [currentDate, setCurrentDate] = useState(new Date())
@@ -12,6 +15,8 @@ export function Schedule() {
         currentDate,
         new Date(+currentDate + 31 * 24 * 60 * 60 * 1000)
     )
+
+    const [searchLessons, setSearchLessons] = useState<Lesson[]>(lessons)
 
     const [filtersSelected, setFiltersSelected] = useState<{
         [k: string]: any
@@ -51,6 +56,14 @@ export function Schedule() {
         },
     ])
 
+    const onSearchChange = debounce((s: string) => {
+        if (s === "") {
+            return
+        }
+        
+        api.schedules.getSearch(s).then(setSearchLessons)
+    }, 400)
+
     useEffect(() => {
         api.schedules.getTeachers().then((teachers) => {
             // @ts-ignore
@@ -72,6 +85,12 @@ export function Schedule() {
             filterData[2].options = subjects.map((sub) => sub.name)
             setFilterData([...filterData])
         })
+
+        api.schedules.getClassrooms().then((classrooms) => {
+            // @ts-ignore
+            filterData[3].options = classrooms.map((sub) => sub.title)
+            setFilterData([...filterData])
+        })
     }, [])
 
     return (
@@ -79,12 +98,17 @@ export function Schedule() {
             <CategoryBar
                 categories={[]}
                 searchPlaceholder="Найти в расписании..."
-                searchOptions={lessons.map((lesson) => ({
+                searchOptions={searchLessons.map((lesson) => ({
                     id: lesson.id,
-                    onSelect: () => {},
+                    onSelect: (lesson: Lesson) => {
+                        console.log(lesson)
+                        console.log(lesson.date, parseDate(lesson.date))
+                        setCurrentDate(parseDate(lesson.date))
+                    },
                     object: lesson,
                     title: `${lesson.subject.name} ${lesson.classroom.title} ${lesson.date} ${lesson.start_time.split(':').slice(0, 2).join(':')}`,
                 }))}
+                onSearchInputChange={onSearchChange}
             />
             <FilterBar
                 disableAddButton={true}
@@ -113,6 +137,10 @@ export function Schedule() {
                             subject: {
                                 type: 'includes',
                                 mapValue: (subject) => subject.name,
+                            },
+                            classroom: {
+                                type: 'includes',
+                                mapValue: (c) => c.title,
                             },
                         },
                         filtersSelected

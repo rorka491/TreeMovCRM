@@ -61,6 +61,12 @@ export function StudentsMain() {
             <FilterBar
                 filterData={filterData}
                 selectedChange={setFiltersSelected}
+                addButtonOptions={[
+                    {
+                        label: 'Добавить студента',
+                        call: () => navigate('/students/create-profile/'),
+                    },
+                ]}
             />
             <Table
                 data={filter(

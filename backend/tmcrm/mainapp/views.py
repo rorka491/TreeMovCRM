@@ -68,14 +68,14 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
 def base_search(func):
     @wraps(func)
     def wrapper(self: BaseViewSetWithOrdByOrg, request: Request, *args, **kwargs) -> Response:
-        query = request.data.get('query', '').strip()
+        query = request.data.get('query', '')
         
         if not query:
             return Response({'error': 'Пустой запрос'}, status=400)
         
         words = [word for word in query.split()]
 
-        q: Q = func(self, request, words=words, *args, **kwargs)
+        q: Q = func(self, request, words, *args, **kwargs)
 
         results = self.get_queryset().filter(q)
         serializer = self.serializer_class(results, many=True)

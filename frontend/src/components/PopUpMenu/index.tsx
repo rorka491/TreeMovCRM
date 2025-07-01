@@ -18,9 +18,9 @@ export function PopUpMenu({
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (
-                selfRef.current &&
-                !selfRef.current.parentNode?.contains(e.target as Node)
+                !selfRef.current?.parentNode?.contains(e.target as Node)
             ) {
+                console.log("closing")
                 setOpen?.(false)
 
                 if (open) {
@@ -35,7 +35,7 @@ export function PopUpMenu({
             document.removeEventListener('click', handleClickOutside)
             window.removeEventListener('resize', reposition)
         }
-    }, [])
+    }, [open])
 
     function reposition() {
         const parent = selfRef.current?.parentElement as HTMLElement

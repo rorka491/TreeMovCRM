@@ -79,25 +79,24 @@ class ScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     def search(self, request, query=None):
         q = Q()
 
-        for word in query.split():
-            q |= (
-                Q(title__icontains=word)
-                | Q(start_time__icontains=word)
-                | Q(end_time__icontains=word)
-                | Q(date__icontains=word)
-                | Q(teacher__employer__name__icontains=word)
-                | Q(teacher__employer__surname__icontains=word)
-                | Q(teacher__employer__patronymic__icontains=word)
-                | Q(classroom__title__icontains=word)
-                | Q(classroom__floor__icontains=word)
-                | Q(classroom__building__icontains=word)
-                | Q(group__name__icontains=word)
-                | Q(subject__name__icontains=word)
-            )
+        if query:
+            for word in query:
+                q |= (
+                    Q(title__icontains=word)
+                    | Q(start_time__icontains=word)
+                    | Q(end_time__icontains=word)
+                    | Q(date__icontains=word)
+                    | Q(teacher__employer__name__icontains=word)
+                    | Q(teacher__employer__surname__icontains=word)
+                    | Q(teacher__employer__patronymic__icontains=word)
+                    | Q(classroom__title__icontains=word)
+                    | Q(classroom__floor__icontains=word)
+                    | Q(classroom__building__icontains=word)
+                    | Q(group__name__icontains=word)
+                    | Q(subject__name__icontains=word)
+                )
 
-        results = self.get_queryset().filter(q)
-        serializer = self.serializer_class(results, many=True)
-        return Response(serializer.data)
+        return q
 
 
 class PeriodScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):

@@ -1,3 +1,4 @@
+import { PopUpMenu } from '../PopUpMenu'
 import { Select, SelectProps } from '../Select'
 import { useEffect, useState } from 'react'
 
@@ -236,11 +237,17 @@ export function FilterBar({
     selectedChange,
     disableAddButton,
     disableExportButton,
+    addButtonOptions,
 }: {
     filterData: FilterPart[]
     selectedChange?: (r: { [k: string]: any | undefined }) => void
     disableAddButton?: boolean
     disableExportButton?: boolean
+    addButtonOptions?: {
+        key?: string
+        label: string
+        call: () => void
+    }[]
 }) {
     const [selected, setSelected] = useState<{ [k: string]: any | undefined }>(
         getSelectedFromParams(filterData)
@@ -266,12 +273,34 @@ export function FilterBar({
         selectedChange?.(selected)
     }, [selected])
 
+    const [addOptionsOpen, setAddOptionsOpen] = useState(false)
+
     return (
         <div className="flex items-end gap-x-2.5 w-full bg-white p-4 rounded-[12.5px] *:rounded-[12.5px]">
             {!disableAddButton && (
-                <button className="grid w-10 text-base text-center duration-100 border place-items-center aspect-square hover:bg-gray-50">
-                    <span className="flex w-min h-min">+</span>
-                </button>
+                <div>
+                    <button
+                        onClick={() => setAddOptionsOpen(true)}
+                        className="grid w-10 text-base text-center duration-100 border rounded-2xl place-items-center aspect-square hover:bg-gray-50"
+                    >
+                        <span className="flex w-min h-min">+</span>
+                    </button>
+                    <PopUpMenu
+                        className="flex flex-col gap-3"
+                        open={addOptionsOpen}
+                        onClose={() => setAddOptionsOpen(false)}
+                    >
+                        {addButtonOptions?.map((option) => (
+                            <button
+                                key={option.key ?? option.label}
+                                onClick={() => option.call()}
+                                className="bg-white rounded-xl p-2 border shadow-md hover:bg-[#F0E5FB]"
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </PopUpMenu>
+                </div>
             )}
 
             {filterData.map((part) => (

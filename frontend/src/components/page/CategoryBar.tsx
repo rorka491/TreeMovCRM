@@ -1,6 +1,6 @@
 import { createContext, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getSearchScore, SearchParams } from '../../lib/search'
+import { SearchParams } from '../../lib/search'
 import { PopUpMenu } from '../PopUpMenu'
 
 export const categoryBarContext = createContext({
@@ -10,7 +10,7 @@ export const categoryBarContext = createContext({
 export type SearchOption<T> = {
     id: string | number
     title?: string
-    onSelect: (s: SearchOption<T>) => void
+    onSelect: (s: T) => void
     object: T
     searchOptions?: SearchParams<T>
 }
@@ -60,54 +60,48 @@ export function CategoryBar({
             </ul>
             {searchActive && (
                 <>
-                    <form
-                        onSubmit={(e) => e.preventDefault()}
+                    <div
+                        onSubmit={(e) => {
+                            alert('div')
+                            e.preventDefault()
+                        }}
                         className="flex h-[100%] items-center gap-2.5 px-3 py-[5px] bg-white rounded-[12.5px]"
                     >
                         <PopUpMenu
                             className="bg-white rounded-2xl"
                             open={searchOptionsOpen}
+                            onClose={() => setSearchOptionsOpen(false)}
                         >
                             <div className="flex flex-col">
                                 {searchOptions && searchOptions.length > 0 ? (
-                                    searchOptions
-                                        .sort((a, b) => {
-                                            return (
-                                                getSearchScore(
-                                                    b.object,
-                                                    b.searchOptions ?? {},
-                                                    searchValue,
-                                                    !b.searchOptions
-                                                )[0] -
-                                                getSearchScore(
-                                                    a.object,
-                                                    a.searchOptions ?? {},
-                                                    searchValue,
-                                                    !a.searchOptions
-                                                )[0]
-                                            )
-                                        })
-                                        .map((option) => (
-                                            <div
-                                                key={option.id}
-                                                className="p-3 hover:bg-gray-100"
-                                            >
-                                                {option.title}
-                                            </div>
-                                        ))
+                                    searchOptions.map((option) => (
+                                        <button
+                                            key={option.id}
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                option.onSelect(option.object)
+                                            }}
+                                            type="button"
+                                            className="p-3 hover:bg-gray-100"
+                                        >
+                                            {option.title}
+                                        </button>
+                                    ))
                                 ) : (
-                                    <div>Нечего искать</div>
+                                    <div className="p-3">Ничего</div>
                                 )}
                             </div>
                         </PopUpMenu>
                         <input
                             placeholder={searchPlaceholder ?? 'Введите'}
                             value={searchValue}
-                            onChange={(e) => setSearchValue(e.target.value)}
+                            onChange={(e) => {
+                                setSearchValue(e.target.value)
+                                onSearchInputChange?.(e.target.value)
+                            }}
                             onFocus={() => setSearchOptionsOpen(true)}
-                            onBlur={() => setSearchOptionsOpen(false)}
                         />
-                        <button>
+                        <button onClick={() => setSearchValue('')}>
                             <svg
                                 width="26"
                                 height="26"
@@ -122,11 +116,12 @@ export function CategoryBar({
                             </svg>
                         </button>
                         <input
+                            onClick={() => onSearch?.(searchValue)}
                             className="rounded-[12.5px] border px-[14.5px] py-[5px] text-[#616161] hover:bg-gray-200 duration-100"
                             type="submit"
                             value={searchButtonLabel ?? 'Поиск'}
                         />
-                    </form>
+                    </div>
                 </>
             )}
         </div>
