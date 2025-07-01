@@ -3,17 +3,17 @@ from mainapp.serializers import BaseSerializerExcludeFields
 from .models import Teacher, Employer, Documents, DocumentsTypes
 
 
-class EmployerSerializer(serializers.ModelSerializer):
-    class Meta:
+class EmployerSerializer(BaseSerializerExcludeFields):
+
+    class Meta(BaseSerializerExcludeFields.Meta):
         model = Employer
-        fields = ['name', 'surname', 'patronymic']
+
 
 class TeacherSerializer(BaseSerializerExcludeFields):
     employer = EmployerSerializer(read_only=True) 
 
-    class Meta:
+    class Meta(BaseSerializerExcludeFields.Meta):
         model = Teacher
-        fields = ['employer']
 
 
 class DocumentsTypesSerializer(BaseSerializerExcludeFields):

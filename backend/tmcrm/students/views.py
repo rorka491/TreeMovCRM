@@ -1,14 +1,16 @@
-from django.shortcuts import render
-from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
-from .models import *
-from .serializers import *
 from rest_framework.decorators import action
-from django.db.models import Q
 from rest_framework.response import Response
-import django_filters
-from lesson_schedule.serializers import GradeSerializer
+from django.db.models import Q
+from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
 from lesson_schedule.models import Grade
-
+from lesson_schedule.serializers import GradeSerializer
+from .models import StudentGroup, Student
+from .serializers import (
+    StudentGroupSerializer,
+    StudentSerializer,
+    Parent,
+    ParentSerializer,
+)
 
 
 class StudentGroupViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -33,8 +35,15 @@ class StudentGroupViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
 class StudentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    
-    @action(detail=False, methods=['post'], url_path='search')
+
+    @action(detail=False, methods=["get"], url_path="get_count_students")
+    def get_count_students(self, request):
+        dick = request.query_params.get('dick')
+        count_students = super().get_queryset().count()
+
+        return Response({"count": count_students, "dick": dick})
+
+    @action(detail=False, methods=["post"], url_path="search")
     @base_search
     def search(self, request, words: list[str]):
         q = Q()
@@ -47,7 +56,7 @@ class StudentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
                 Q(email__icontains=word)
             )
         return q
-    
+
 class StudentGradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Grade.objects.all()
     serializer_class = GradeSerializer
@@ -73,13 +82,7 @@ class StudentGradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
         return queryset
 
 
-
-
-
-
-
 class ParentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Parent.objects.all()
     prefetch_related_fields = ['child']
     serializer_class = ParentSerializer 
-    

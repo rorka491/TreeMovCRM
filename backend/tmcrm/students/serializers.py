@@ -1,8 +1,6 @@
-from rest_framework import serializers
-from mainapp.serializers import BaseSerializerExcludeFields
-from .models import *
 from lesson_schedule.models import Attendance
-
+from mainapp.serializers import BaseSerializerExcludeFields
+from .models import StudentGroup, Student, Parent
 
 
 class AttendanceSerializer(BaseSerializerExcludeFields):
@@ -18,10 +16,11 @@ class StudentGroupSerializer(BaseSerializerExcludeFields):
         model = StudentGroup
 
 class StudentSerializer(BaseSerializerExcludeFields):
-    groups = StudentGroupSerializer(many=True, read_only=True, exclude_fields=['students', 'org'])
+    groups = StudentGroupSerializer(many=True, read_only=True, exclude_fields=['students'])
 
     class Meta(BaseSerializerExcludeFields.Meta):
         model = Student
+
 
 class ParentSerializer(BaseSerializerExcludeFields):
     child = StudentSerializer(many=True, read_only=True, exclude_fields=[])

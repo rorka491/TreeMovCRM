@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export function PopUpMenu({
     open,
@@ -61,7 +62,7 @@ export function PopUpMenu({
         })
     }, [ref, open])
 
-    return (
+    return createPortal(
         <>
             {open && (
                 <div
@@ -75,6 +76,7 @@ export function PopUpMenu({
                     {children}
                 </div>
             )}
-        </>
+        </>,
+        document.body
     )
 }

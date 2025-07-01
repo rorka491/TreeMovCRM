@@ -17,13 +17,9 @@ class BaseSerializerExcludeFields(serializers.ModelSerializer):
 
     таким образом группа будет сереализоована без студентов
     """
-    class Meta:
-        model = None
-        exclude = ['org', 'created_by']
+
 
     def __init__(self, instance=None, *args, **kwargs):
-        
-
         #передан instance чтобы сохранить совместимостсь с DRF
         meta_excludes = getattr(self.Meta, 'exclude_fields', [])
 
@@ -42,6 +38,10 @@ class BaseSerializerExcludeFields(serializers.ModelSerializer):
             for field in list(self.fields):
                 if field not in un_exclude_fields:
                     self.fields.pop(field)
+
+    class Meta:
+        model = None
+        exclude = ['org', 'created_by']
 
 
 class ColorSerializer(BaseSerializerExcludeFields):
