@@ -1,9 +1,9 @@
-from django.db import models
-from mainapp.models import SubjectColor
-from students.models import *
-from employers.models import *
-from django.core.exceptions import ValidationError
 from datetime import date
+from django.db import models
+from django.core.exceptions import ValidationError
+from employers.models import Teacher
+from students.models import StudentGroup, Student
+from mainapp.models import SubjectColor, BaseModelOrg
 
 WEEK_DAY_CHOICES = (
     (1, "Monday"),
@@ -154,8 +154,12 @@ class Schedule(BaseModelOrg):
 
         filters = {
             "date": self.date,
-            "lesson": self.lesson,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
         }
+
+        if self.lesson:
+            filters["lesson"] = self.lesson
 
         if self.pk:
             exclude = {"pk": self.pk}
@@ -170,7 +174,7 @@ class Schedule(BaseModelOrg):
         )
 
         if teacher_qs.exists():
-            raise ValidationError("У этого преподавателя на эту пару и дату занятие")
+            raise ValidationError("У этого преподавателя на пару и дату занятие")
         if group_qs.exists():
             raise ValidationError("У этой группы на эту пару и дату занятие")
 

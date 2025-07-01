@@ -1,52 +1,53 @@
-from rest_framework.response import Response
-from collections import defaultdict
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
-import json
 from datetime import time, timedelta, datetime
 from typing import List
+import json
+from collections import defaultdict
+from rest_framework.response import Response
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 
 def _grouped_response(self, field_name=None, serializer_class=None):
     schedules = self.get_queryset().exclude(**{f"{field_name}__isnull": True})
     filterset = self.filterset_class(self.request.GET, queryset=schedules)
     schedules = filterset.qs
-    
+
     grouped = defaultdict(list)
     for schedule in schedules:
         key = getattr(schedule, field_name)
         grouped[key].append(schedule)
-    
+
     response_data = []
     for key_obj, schedule_list in grouped.items():
-        serializer = serializer_class(instance={
-            f'{field_name}': key_obj,
-                'schedules': schedule_list
-        })
+        serializer = serializer_class(
+            instance={f"{field_name}": key_obj, "schedules": schedule_list}
+        )
         response_data.append(serializer.data)
-        
+
     return Response(response_data)
 
 
-# Создает таску в
+# Создает таску
 def create_update_complete_lessons_task():
     schedule, _ = IntervalSchedule.objects.get_or_create(
-        every=1,
-        period=IntervalSchedule.MINUTES
+        every=1, period=IntervalSchedule.MINUTES
     )
 
     PeriodicTask.objects.update_or_create(
-        name='Задача обновление статуса урока если он завершен по времени',
+        name="Задача обновление статуса урока если он завершен по времени",
         defaults={
-            'interval': schedule,
-            'task': 'lesson_schedule.tasks.update_complete_lessons',
-            'args': json.dumps([]),
-            'kwargs': json.dumps({})
-        }
+            "interval": schedule,
+            "task": "lesson_schedule.tasks.update_complete_lessons",
+            "args": json.dumps([]),
+            "kwargs": json.dumps({}),
+        },
     )
 
 
+
 class LessonSlot:
-    def __init__(self, start_time: time, end_time: time, break_duration: timedelta):
+    def __init__(
+        self, start_time: time, end_time: time, break_duration: timedelta = timedelta(0)
+    ):
         if not self._validate_time(start_time, end_time):
             raise ValueError("Некорректное время урока")
         self.start_time = start_time
@@ -87,8 +88,8 @@ class LessonSlot:
     @staticmethod
     def find_free_slots_at_day(
         lessons: List["LessonSlot"],
-        day_start: time = time(8, 0),
-        day_end: time = time(20, 0),
+        day_start: time = time(6, 0),
+        day_end: time = time(23, 0),
     ) -> List[tuple[time, time]]:
         if not lessons:
             return [(day_start, day_end)]

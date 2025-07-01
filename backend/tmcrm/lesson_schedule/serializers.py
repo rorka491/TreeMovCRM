@@ -88,5 +88,5 @@ class GradeSerializer(BaseSerializerExcludeFields):
 
     class Meta(BaseSerializerExcludeFields.Meta):
         model = Grade
-        exclude =  ['org', 'created_at', 'updated_at']
+        exclude =  ['updated_at']
 

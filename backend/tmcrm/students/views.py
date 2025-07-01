@@ -1,13 +1,16 @@
-from django.shortcuts import render
-from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
-from .models import *
-from .serializers import *
 from rest_framework.decorators import action
-from django.db.models import Q
 from rest_framework.response import Response
-import django_filters
-from lesson_schedule.serializers import GradeSerializer
+from django.db.models import Q
+from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
 from lesson_schedule.models import Grade
+from lesson_schedule.serializers import GradeSerializer
+from .models import StudentGroup, Student
+from .serializers import (
+    StudentGroupSerializer,
+    StudentSerializer,
+    Parent,
+    ParentSerializer,
+)
 
 
 class StudentGroupViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):

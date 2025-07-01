@@ -16,7 +16,7 @@ from rest_framework.request import Request
 
 class SelectRelatedViewSet(ModelViewSet):
     """
-    Класс который будет использоваться для оптимизированных запросов 
+    Класс который будет использоваться для оптимизированных запросов
     и решения N+1 проблемы
 
     Наслдуется перед BaseViewSetWithOrdByOrg
@@ -33,46 +33,42 @@ class SelectRelatedViewSet(ModelViewSet):
         if self.prefetch_related_fields:
             qs = qs.prefetch_related(*self.prefetch_related_fields)
 
-        return qs 
+        return qs
 
 
 class BaseViewAuthPermission(ModelViewSet):
 
-    # permission_classes = [IsAuthenticated, IsSameOrganization]    
-    ...
+    permission_classes = [IsAuthenticated, IsSameOrganization]
+
 
 class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
     """
     Базовый ViewSet с автоматической фильтрацией по организации пользователя
     и дополнительными проверками прав доступа
     """
+    def filter_by_user_org(self, queryset):
+        user = self.request.user
+        if user.is_superuser or getattr(user, "role", None) == "admin":
+            return queryset
+        if hasattr(user, "org"):
+            return queryset.filter(Q(org=user.org) | Q(org__isnull=True))
+        return queryset.filter(org__isnull=True)
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
-        user = self.request.user
+        return self.filter_by_user_org(queryset)
 
-        if self.request.GET.get("test", False):
-            return queryset
-        
-        if user.is_superuser or (hasattr(user, "role") and user.role == 'admin'):
-            return queryset
-            
-        if hasattr(user, 'org') and user.org is not None:
-            queryset = queryset.filter(Q(org=user.org) | Q(org__isnull=True))
-        else:
-            queryset = queryset.filter(org__isnull=True)
-
-        return queryset
 
 def base_search(func):
     @wraps(func)
-    def wrapper(self: BaseViewSetWithOrdByOrg, request: Request, *args, **kwargs) -> Response:
-        query = request.data.get('query', '').strip()
-        
+    def wrapper(
+        self: BaseViewSetWithOrdByOrg, request: Request, *args, **kwargs
+    ) -> Response:
+        query = request.data.get("query", "").strip()
+
         if not query:
-            return Response({'error': 'Пустой запрос'}, status=400)
-        
+            return Response({"error": "Пустой запрос"}, status=400)
+
         words = [word for word in query.split()]
 
         q: Q = func(self, request, words=words, *args, **kwargs)
@@ -80,7 +76,5 @@ def base_search(func):
         results = self.get_queryset().filter(q)
         serializer = self.serializer_class(results, many=True)
         return Response(serializer.data)
-    
-    return wrapper
-    
 
+    return wrapper

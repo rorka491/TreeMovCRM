@@ -1,5 +1,5 @@
-from django.db import models
 from datetime import timedelta
+from django.db import models
 from django.core.exceptions import ValidationError
 from mainapp.models import BaseModelOrg
 from mainapp.validators import phone_number_regex
@@ -27,7 +27,7 @@ class Student(BaseModelOrg):
 
     def __str__(self):
         return self.name
-    
+
 class Parent(BaseModelOrg):
     name = models.CharField(max_length=100)
     surname = models.CharField(max_length=100)
@@ -45,7 +45,6 @@ class Parent(BaseModelOrg):
 
     def __str__(self):
         return f'{self.name} {self.surname}'
-
 
 
 class StudentGroup(BaseModelOrg):
@@ -72,7 +71,6 @@ class Subscription(models.Model):
         verbose_name = 'Абонемент'
         verbose_name_plural = 'Абонементы'
 
-
     def save(self, *args, **kwargs):
         days = kwargs.get('days')
 
@@ -80,11 +78,9 @@ class Subscription(models.Model):
             if days:
                 try:
                     self.end_date = self.start_date + timedelta(days=days)
-                except:
-                    raise ValidationError('Параметр "days" должен быть числом.')
+                except Exception as exc:
+                    raise ValidationError('Параметр "days" должен быть числом.') from exc
             else:
                 raise ValueError('не передан период days')
 
-
         super().save(*args, **kwargs)
-

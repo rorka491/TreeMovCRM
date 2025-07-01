@@ -1,51 +1,43 @@
-from .models import Organization, OrgSettings
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
-from functools import wraps
-from django.db import connection
-from django.db.utils import OperationalError
-from functools import wraps
-from django.apps import AppConfig
-from functools import total_ordering
+from functools import wraps, total_ordering
 from datetime import date, datetime
+import inspect
 import pytz
-from django.utils import timezone
 from django.db import connection, ProgrammingError, OperationalError
+from django.apps import AppConfig
+from django.core.cache import cache
+from django.utils import timezone
+from .models import Organization, OrgSettings
 
 
-#Кэшированные оргинзации
-_orgs_cache = None 
+def get_cache(key):
+    return cache.get(key)
 
+def delete_cache(key):
+    cache.delete(key)
 
-def get_orgs():
-    """Метод для получения оганизаций
-    кеширование реализовано чтобы минимизировать количесвто 
-    запросов к базе
-    Если в каком либо методе надо получить организации то делается это церез
-    request_orgs который лежит в mainapp.signals
-    Пример: 
-    @request_orgs
-    some_func(orgs=None)
-        Дальше используйте orgs как хотите
-    """
-    
-    global _orgs_cache
-    if _orgs_cache is None:
-        _orgs_cache = Organization.objects.all()
-    return _orgs_cache
-
-
-def get_org_local_time(org):
+def get_org_local_datetime(org):
     """"Функция возвращает локальное время для заданной организации"""
 
-    tz = pytz.timezone(org.orgsettings.first().timezone)
+    tz = pytz.timezone(org.settings.timezone)
     return timezone.now().astimezone(tz)
-    
 
-@receiver([post_save, post_delete], sender=Organization)
-def clear_orgs_cache(sender, **kwargs):
-    global _orgs_cache
-    _orgs_cache = None  # Сбрасываем кеш, чтобы он обновился при следующем вызове
+
+# Декоратор который передает в функцию дополнительный
+# позиционный аргумент который получает все возможные организации
+def request_orgs(func):
+    @wraps
+    def wrap(*args, **kwargs):
+        orgs = get_cache("orgs")
+
+        # Проверяем, принимает ли функция параметр orgs
+        sig = inspect.signature(func)
+        if "orgs" in sig.parameters:
+            kwargs["orgs"] = orgs
+
+        return func(*args, **kwargs)
+
+    return wrap
+
 
 @total_ordering
 class DateFieldExcludeYear():
@@ -74,7 +66,9 @@ class DateFieldExcludeYear():
             return self._as_tuple()
         if isinstance(other, (date, datetime)):
             return (other.month, other.day)
-        raise TypeError(f'Получен класс не поддерживающийся для конвертации ожидалось date, datetime, DateFieldExcludeYear')
+        raise TypeError(
+            'Получен класс не поддерживающийся для конвертации ожидалось date,' \
+            ' datetime, DateFieldExcludeYear')
 
     def __eq__(self, other):
         try: 
@@ -90,7 +84,7 @@ class DateFieldExcludeYear():
 
 
 def checkout_table(func):
-    """Декоратор используется для сигналов которые использзуются через
+    """Декоратор используется для сигналов которые используются через
     post_migrate"""
     @wraps(func)
     def wrapper(sender, **kwargs):

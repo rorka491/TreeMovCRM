@@ -22,7 +22,6 @@ class Employer(BaseModelOrg):
     passport_num = models.CharField(max_length=6, null=True, blank=True)      
     inn = models.CharField(max_length=12, null=True, blank=True) 
     
-
     class Meta: 
         verbose_name = 'Сотрудник'
         verbose_name_plural = 'Сотрудники'
@@ -33,14 +32,14 @@ class Employer(BaseModelOrg):
 
 
 class Teacher(BaseModelOrg):
-    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, primary_key=True)
+    employer = models.OneToOneField(Employer, on_delete=models.CASCADE)
 
     class Meta: 
         verbose_name = 'Преподаватель'
         verbose_name_plural = 'Преподаватели'
         
     def __str__(self):
-        return f'Преподаватель {self.employer.name, self.employer.surname}'
+        return f'{self.employer.name} {self.employer.surname}'
     
 class JobTitle(BaseModelOrg):
     title = models.CharField(max_length=100)
