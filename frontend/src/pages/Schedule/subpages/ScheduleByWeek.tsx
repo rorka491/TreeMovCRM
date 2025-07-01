@@ -5,7 +5,9 @@ import { getLessonStyle } from '../../../lib/getLessonStyle'
 import { weekDaysShort } from '../../../lib/datesHelpers'
 import { useEffect, useState } from 'react'
 import { filterLessons } from '../../../lib/filterLessons'
-import { Lesson } from '../../../api/api'
+import { createEmptyLesson, Lesson } from '../../../api/api'
+import { PopUpMenu } from '../../../components/PopUpMenu'
+import EditLessonPopUp from '../../../components/EditLessonPopUp'
 
 function ScheduleByWeek() {
     const {
@@ -16,7 +18,16 @@ function ScheduleByWeek() {
         lessons: Lesson[]
     } = useOutletContext()
     const navigate = useNavigate()
+
+    const [editLesson, setEditLesson] = useState<Lesson | null>(null)
     const [weekLessons, setWeekLessons] = useState<Lesson[]>([])
+    const [contextMenuOpen, setContextMenuOpen] = useState<{
+        row: number
+        col: number
+    }>({
+        row: -1,
+        col: -1,
+    })
 
     useEffect(() => {
         setWeekLessons(filterLessons(lessons, currentDate, 'by-week'))
@@ -61,6 +72,18 @@ function ScheduleByWeek() {
 
     return (
         <div className="relative w-full overflow-y-auto h-[60vh]  special-scroll">
+            <PopUpMenu
+                open={editLesson !== null}
+                onClose={() => setEditLesson(null)}
+            >
+                <EditLessonPopUp
+                    lesson={editLesson!}
+                    onSave={() => {
+                        setEditLesson(null)
+                    }}
+                    onClose={() => setEditLesson(null)}
+                />
+            </PopUpMenu>
             <table className="w-full bg-[#EAECF0] border rounded-xl overflow-hidden">
                 <thead className="sticky top-0">
                     <tr>
@@ -119,7 +142,52 @@ function ScheduleByWeek() {
                                             position: 'relative',
                                             minHeight: 125,
                                         }}
+                                        onContextMenu={(e) => {
+                                            e.preventDefault()
+
+                                            setContextMenuOpen({
+                                                row: rowIdx,
+                                                col: colIdx,
+                                            })
+                                        }}
                                     >
+                                        <PopUpMenu
+                                            open={
+                                                contextMenuOpen.col ===
+                                                    colIdx &&
+                                                contextMenuOpen.row === rowIdx
+                                            }
+                                            onClose={() =>
+                                                setContextMenuOpen({
+                                                    row: -1,
+                                                    col: -1,
+                                                })
+                                            }
+                                            className="flex flex-col gap-2 bg-white rounded-xl border-1"
+                                        >
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                    setEditLesson(
+                                                        createEmptyLesson()
+                                                    )
+                                                    setContextMenuOpen({
+                                                        col: -1,
+                                                        row: -1,
+                                                    })
+                                                }}
+                                                className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2"
+                                            >
+                                                Создать урок
+                                            </button>
+
+                                            {dayLessons.length > 0 && (
+                                                <button className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2">
+                                                    Удалить
+                                                </button>
+                                            )}
+                                        </PopUpMenu>
                                         {dayLessons.map((lesson, i) => {
                                             const style = getLessonStyle(
                                                 lesson,

@@ -3,8 +3,10 @@ import LessonCard from '../../../components/LessonCard'
 import { getLessonStyle } from '../../../lib/getLessonStyle'
 import { useEffect, useState } from 'react'
 import { filterLessons } from '../../../lib/filterLessons'
-import { Lesson } from '../../../api/api'
+import { createEmptyLesson, Lesson } from '../../../api/api'
 import { weekDays } from '../../../lib/datesHelpers'
+import { PopUpMenu } from '../../../components/PopUpMenu'
+import EditLessonPopUp from '../../../components/EditLessonPopUp'
 
 function ScheduleByDay() {
     const {
@@ -31,6 +33,9 @@ function ScheduleByDay() {
     const [hours, setHours] = useState<number[]>(
         Array.from({ length: 24 }, (_, i) => i)
     )
+
+    const [editLesson, setEditLesson] = useState<Lesson | null>(null)
+    const [contextMenuOpen, setContextMenuOpen] = useState<number>(-1)
 
     useEffect(() => {
         const minHour = Math.max(
@@ -59,7 +64,7 @@ function ScheduleByDay() {
                   ) + 2
                 : 24
         )
-        
+
         setHours(
             Array.from({ length: maxHour - minHour }, (_, i) => i + minHour)
         )
@@ -67,6 +72,18 @@ function ScheduleByDay() {
 
     return (
         <div className="relative w-full overflow-y-auto h-[60vh]  special-scroll">
+            <PopUpMenu
+                open={editLesson !== null}
+                onClose={() => setEditLesson(null)}
+            >
+                <EditLessonPopUp
+                    lesson={editLesson!}
+                    onSave={() => {
+                        setEditLesson(null)
+                    }}
+                    onClose={() => setEditLesson(null)}
+                />
+            </PopUpMenu>
             <table className="w-full bg-[#EAECF0] border rounded-xl overflow-hidden">
                 <thead className="sticky top-0">
                     <tr>
@@ -86,7 +103,39 @@ function ScheduleByDay() {
                                 <td className="text-center align-middle border">
                                     {hour}:00
                                 </td>
-                                <td className="relative align-top min-h-[125px]">
+                                <td
+                                    onContextMenu={(e) => {
+                                        e.preventDefault()
+
+                                        setContextMenuOpen(hour)
+                                    }}
+                                    className="relative align-top min-h-[125px]"
+                                >
+                                    <PopUpMenu
+                                        open={contextMenuOpen === hour}
+                                        onClose={() => setContextMenuOpen(-1)}
+                                        className="flex flex-col gap-2 bg-white rounded-xl border-1"
+                                    >
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                setEditLesson(
+                                                    createEmptyLesson()
+                                                )
+                                                setContextMenuOpen(-1)
+                                            }}
+                                            className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2"
+                                        >
+                                            Создать урок
+                                        </button>
+
+                                        {dayLessons.length > 0 && (
+                                            <button className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2">
+                                                Удалить
+                                            </button>
+                                        )}
+                                    </PopUpMenu>
                                     {dayLessons.map((lesson, i) => {
                                         const style = getLessonStyle(
                                             lesson,

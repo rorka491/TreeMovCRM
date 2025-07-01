@@ -50,14 +50,16 @@ function EditLessonPopUp({
             end_time: form.end_time,
             subject: {
                 ...lesson.subject,
-                teacher: form.teacher,
                 color: form.color,
             },
             classroom: {
                 ...lesson.classroom,
                 title: form.classroom,
             },
-            group: Number(form.group),
+            group: {
+                ...lesson.group,
+                name: form.group,
+            },
         })
     }
 
@@ -73,7 +75,7 @@ function EditLessonPopUp({
                 <div className="flex items-center gap-2 mb-2">
                     <span
                         className="inline-block w-6 h-6 border rounded-md"
-                        style={{ background: form.color }}
+                        style={{ background: form.color.color_hex }}
                     ></span>
                     <input
                         className="flex-1 text-lg font-medium bg-transparent border-none outline-none"
@@ -133,10 +135,14 @@ function EditLessonPopUp({
                         key: t,
                         value: `${t.employer.surname} ${t.employer.name} ${t.employer.patronymic}`,
                     }))}
-                    selected={selectedTeacher ? {
-                        key: selectedTeacher,
-                        value: `${selectedTeacher.employer.surname} ${selectedTeacher.employer.name} ${selectedTeacher.employer.patronymic}`
-                    } : undefined}
+                    selected={
+                        selectedTeacher
+                            ? {
+                                  key: selectedTeacher,
+                                  value: `${selectedTeacher.employer.surname} ${selectedTeacher.employer.name} ${selectedTeacher.employer.patronymic}`,
+                              }
+                            : undefined
+                    }
                     onSelected={({ key }) => {
                         setSelectedTeacher(key)
                     }}

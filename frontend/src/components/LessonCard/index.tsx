@@ -67,22 +67,19 @@ function LessonCard({
                     {lesson.end_time.slice(0, -3)}
                 </span>
             </div>
-            {isOpen && (
-                <PopUpMenu
-                    open={isOpen}
+            <PopUpMenu
+                open={isOpen}
+                onClose={() => setIsOpen(false)}
+            >
+                <EditLessonPopUp
+                    lesson={lesson}
+                    onSave={(updatedLesson) => {
+                        onSave?.(updatedLesson)
+                        setIsOpen(false)
+                    }}
                     onClose={() => setIsOpen(false)}
-                    setOpen={() => setIsOpen(!isOpen)}
-                >
-                    <EditLessonPopUp
-                        lesson={lesson}
-                        onSave={(updatedLesson) => {
-                            onSave?.(updatedLesson)
-                            setIsOpen(false)
-                        }}
-                        onClose={() => setIsOpen(false)}
-                    />
-                </PopUpMenu>
-            )}
+                />
+            </PopUpMenu>
         </>
     )
 }

@@ -4,8 +4,10 @@ import { formatDate } from '../../../lib/formatDate'
 import { useEffect, useState } from 'react'
 import { getMonthMatrix } from '../../../lib/getMonthMatrix'
 import { filterLessons } from '../../../lib/filterLessons'
-import { Lesson } from '../../../api/api'
+import { createEmptyLesson, Lesson } from '../../../api/api'
 import { weekDaysShort } from '../../../lib/datesHelpers'
+import { PopUpMenu } from '../../../components/PopUpMenu'
+import EditLessonPopUp from '../../../components/EditLessonPopUp'
 
 function ScheduleByMonth() {
     const {
@@ -17,6 +19,15 @@ function ScheduleByMonth() {
     } = useOutletContext()
     const navigate = useNavigate()
 
+    const [contextMenuOpen, setContextMenuOpen] = useState<{
+        day: number
+        week: number
+    }>({
+        day: -1,
+        week: -1,
+    })
+
+    const [editLesson, setEditLesson] = useState<Lesson | null>(null)
     const [monthLessons, setMonthLessons] = useState<Lesson[]>([])
     const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
     const [isHovered, setIsHovered] = useState<Date | null>(null)
@@ -43,6 +54,18 @@ function ScheduleByMonth() {
 
     return (
         <div className="relative w-full overflow-y-auto h-[60vh]  special-scroll">
+            <PopUpMenu
+                open={editLesson !== null}
+                onClose={() => setEditLesson(null)}
+            >
+                <EditLessonPopUp
+                    lesson={editLesson!}
+                    onSave={() => {
+                        setEditLesson(null)
+                    }}
+                    onClose={() => setEditLesson(null)}
+                />
+            </PopUpMenu>
             <table className="w-full bg-[#EAECF0] border rounded-xl overflow-hidden">
                 <thead className="sticky top-0">
                     <tr>
@@ -92,9 +115,53 @@ function ScheduleByMonth() {
                                             navigate('/schedule/by-day')
                                             currentDate.setDate(date.getDate())
                                         }}
+                                        onContextMenu={(e) => {
+                                            e.preventDefault()
+                                            setContextMenuOpen({
+                                                week: weekIdx,
+                                                day: dayIdx,
+                                            })
+                                        }}
                                         key={dayIdx}
                                         className={`w-0 min-w-0 overflow-visible max-w-[1px] relative align-top h-[125px] bg-white ${currentMonth ? '' : 'text-[#B3B3B3]'} border border-[#EAECF0] min-h-[125px] transition hover:bg-gray-100 px-[8px] py-[10px]`}
                                     >
+                                        <PopUpMenu
+                                            open={
+                                                contextMenuOpen.week ===
+                                                    weekIdx &&
+                                                contextMenuOpen.day === dayIdx
+                                            }
+                                            onClose={() =>
+                                                setContextMenuOpen({
+                                                    week: -1,
+                                                    day: -1,
+                                                })
+                                            }
+                                            className="flex flex-col gap-2 bg-white rounded-xl border-1"
+                                        >
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    e.stopPropagation()
+                                                    setEditLesson(
+                                                        createEmptyLesson()
+                                                    )
+                                                    setContextMenuOpen({
+                                                        week: -1,
+                                                        day: -1,
+                                                    })
+                                                }}
+                                                className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2"
+                                            >
+                                                Создать урок
+                                            </button>
+
+                                            {dayLessons.length > 0 && (
+                                                <button className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2">
+                                                    Удалить
+                                                </button>
+                                            )}
+                                        </PopUpMenu>
                                         {date && (
                                             <div className="mb-[4px] font-semibold">
                                                 {date.getDate()}

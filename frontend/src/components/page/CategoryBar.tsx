@@ -68,7 +68,7 @@ export function CategoryBar({
                         className="flex h-[100%] items-center gap-2.5 px-3 py-[5px] bg-white rounded-[12.5px]"
                     >
                         <PopUpMenu
-                            className="bg-white rounded-2xl"
+                            className="bg-white rounded-2xl min-w-[300px]"
                             open={searchOptionsOpen}
                             onClose={() => setSearchOptionsOpen(false)}
                         >
@@ -88,7 +88,7 @@ export function CategoryBar({
                                         </button>
                                     ))
                                 ) : (
-                                    <div className="p-3">Ничего</div>
+                                    <div className="p-3 border-1 text-center">Ничего</div>
                                 )}
                             </div>
                         </PopUpMenu>

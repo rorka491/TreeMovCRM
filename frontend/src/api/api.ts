@@ -90,6 +90,52 @@ export type Classroom = {
     building: number
 }
 
+export function createEmptyLesson(): Lesson {
+    return {
+        id: 0,
+        title: '',
+        start_time: '',
+        end_time: '',
+        date: '',
+        teacher: {
+            employer: {
+                id: 0,
+                name: '',
+                surname: '',
+                patronymic: '',
+                birthday: '',
+                email: '',
+                passport_series: '',
+                passport_num: '',
+                inn: '',
+                department: 0,
+            },
+        },
+        week_day: 0,
+        classroom: {
+            id: 0,
+            title: '',
+            floor: 0,
+            building: 0,
+        },
+        group: {
+            id: 0,
+            name: '',
+        },
+        subject: {
+            name: '',
+            color: {
+                id: 0,
+                title: '',
+                color_hex: '',
+            },
+        },
+        is_canceled: false,
+        is_completed: false,
+        lesson: 0,
+    }
+}
+
 export type Lesson = {
     id: number
     title: string

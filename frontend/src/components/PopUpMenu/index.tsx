@@ -12,18 +12,15 @@ export function PopUpMenu({
     onClose?: () => void
     className?: string
 }>) {
-    const selfRef = useRef<HTMLDivElement>(null)
+    const mountRef = useRef<HTMLDivElement>(null)
+    const rectRef = useRef<HTMLDivElement>(null)
     const [pos, setPos] = useState({ x: 0, y: 0 })
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
-            if (
-                !selfRef.current?.parentNode?.contains(e.target as Node)
-            ) {
-                console.log("closing")
-                setOpen?.(false)
-
+            if (!mountRef.current?.parentNode?.contains(e.target as Node)) {
                 if (open) {
+                    setOpen?.(false)
                     onClose?.()
                 }
             }
@@ -38,17 +35,17 @@ export function PopUpMenu({
     }, [open])
 
     function reposition() {
-        const parent = selfRef.current?.parentElement as HTMLElement
+        const parent = mountRef.current?.parentElement as HTMLElement
 
-        if (!parent || !selfRef.current) {
+        if (!parent || !mountRef.current || !rectRef.current) {
             return
         }
 
-        const selfRect = selfRef.current!.getBoundingClientRect()
+        const selfRect = rectRef.current.getBoundingClientRect()
         const parentRect = parent.getBoundingClientRect()
 
         if (window.innerHeight - parentRect.bottom > 100) {
-            selfRef.current.style.maxHeight = `${window.innerHeight - parentRect.bottom}px`
+            mountRef.current.style.maxHeight = `${window.innerHeight - parentRect.bottom}px`
         }
 
         selfRect.x = parentRect.left
@@ -76,23 +73,25 @@ export function PopUpMenu({
         })
     }
 
-    useLayoutEffect(reposition, [selfRef, open])
+    useLayoutEffect(reposition, [mountRef, open])
 
     return (
         <>
             {open && (
-                <div
-                    ref={selfRef}
-                    className={
-                        className +
-                        ` absolute z-10 max-h-[90vh] overflow-y-auto special-scroll`
-                    }
-                    style={{
-                        top: pos.y,
-                        left: pos.x,
-                    }}
-                >
-                    {children}
+                <div ref={mountRef} className="fixed top-0 left-0 z-10">
+                    <div
+                        ref={rectRef}
+                        className={
+                            className +
+                            ` absolute z-10 max-h-[90vh] overflow-y-auto special-scroll`
+                        }
+                        style={{
+                            top: pos.y,
+                            left: pos.x,
+                        }}
+                    >
+                        {children}
+                    </div>
                 </div>
             )}
         </>
