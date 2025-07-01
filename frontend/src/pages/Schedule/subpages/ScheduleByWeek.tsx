@@ -164,8 +164,11 @@ function ScheduleByWeek() {
                                                 })
                                             }
                                             followMouse
-                                            className="flex flex-col gap-2 bg-white rounded-xl border-1"
+                                            className="flex flex-col bg-white rounded-l border-1"
                                         >
+                                            <button className="text-left bg-white min-w-[140px] border-b-1 hover:bg-gray-100 px-3 py-2">
+                                                Подробнее
+                                            </button>
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault()
@@ -178,9 +181,15 @@ function ScheduleByWeek() {
                                                         row: -1,
                                                     })
                                                 }}
-                                                className="bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2"
+                                                className="text-left bg-white min-w-[140px] hover:bg-gray-100 px-3 py-2"
                                             >
                                                 Создать урок
+                                            </button>
+                                            <button className="text-left bg-white min-w-[140px] border-b-1 hover:bg-gray-100 px-3 py-2">
+                                                Перенести
+                                            </button>
+                                            <button className="text-left bg-white text-nowrap min-w-[140px] border-b-1 hover:bg-gray-100 px-3 py-2">
+                                                Повторить через неделю
                                             </button>
 
                                             {dayLessons.length > 0 && (
