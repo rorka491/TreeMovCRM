@@ -1,6 +1,6 @@
+from tabnanny import verbose
 from django.db import models
 from mainapp.models import BaseModelOrg, Organization
-
 
 
 class Department(BaseModelOrg):
@@ -30,7 +30,6 @@ class Employer(BaseModelOrg):
         return f'Сотрудник {self.name, self.surname}'
 
 
-
 class Teacher(BaseModelOrg):
     employer = models.OneToOneField(Employer, on_delete=models.CASCADE)
 
@@ -40,7 +39,7 @@ class Teacher(BaseModelOrg):
         
     def __str__(self):
         return f'{self.employer.name} {self.employer.surname}'
-    
+
 class JobTitle(BaseModelOrg):
     title = models.CharField(max_length=100)
 
@@ -49,12 +48,10 @@ class JobTitle(BaseModelOrg):
         verbose_name_plural = 'Должности'
 
 
-
 class LeaveType(models.TextChoices):
     VACATION = "vacation", "Отпуск"
     SICK = "sick", "Больничный"
     UNPAID = "unpaid", "За свой счет"
-
 
 
 class LeaveRequest(BaseModelOrg):
@@ -70,10 +67,18 @@ class LeaveRequest(BaseModelOrg):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = 'Запросы на отпуск'
+        verbose_name_plural = "Запросы на отпуск"
+    
+    def __str__(self) -> str:
+        return f'{self.leave_type}'
+                                   
+
 class DocumentsTypes(BaseModelOrg):
     """
     Класс тип документа
-    Переопределен org так как он должен допускать поумолчанию 
+    Переопределен org так как он должен допускать по умолчанию 
     значение default
     """
     title = models.CharField(max_length=100)
@@ -86,8 +91,6 @@ class DocumentsTypes(BaseModelOrg):
 
     def __str__(self):
         return f'{self.title}'
-
-
 
 
 class Documents(BaseModelOrg):
@@ -103,5 +106,3 @@ class Documents(BaseModelOrg):
     class Meta: 
         verbose_name = 'Документ'
         verbose_name_plural = 'Документы'
-
-

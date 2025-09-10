@@ -1,6 +1,7 @@
-from datetime import date
+from datetime import date, datetime
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from employers.models import Teacher
 from students.models import StudentGroup, Student
 from mainapp.models import SubjectColor, BaseModelOrg
@@ -40,7 +41,7 @@ class Subject(BaseModelOrg):
     def clean(self):
         super().clean()
 
-        qs = Subject.objects.filter(org=self.org, color=self.color)
+        qs = Subject.objects.filter(color=self.color)
 
         if self.pk:
             qs = qs.exclude(pk=self.pk)
@@ -110,7 +111,7 @@ class Schedule(BaseModelOrg):
     """Класс для всех занятий в том числе и периодических"""
 
     title = models.CharField(max_length=100, blank=True)
-    date = models.DateField(default=date.today())
+    date = models.DateField(default=timezone.now)
     week_day = models.PositiveSmallIntegerField(blank=False)
     is_canceled = models.BooleanField(default=False, blank=True)
     is_completed = models.BooleanField(default=False, blank=True)
@@ -147,6 +148,12 @@ class Schedule(BaseModelOrg):
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
         ordering = ["date", "start_time"]
+
+    @property
+    def duration_hours(self):
+        start_dt = datetime.combine(date.today(), self.start_time)
+        end_dt = datetime.combine(date.today(), self.end_time)
+        return round((end_dt - start_dt).total_seconds() / 3600, 2)
 
     def clean(self):
         if self.start_time >= self.end_time:
@@ -187,21 +194,30 @@ class Schedule(BaseModelOrg):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.teacher} {self.title} {self.subject}"
+        return f"{self.teacher} {self.title} {self.date}"
 
 
 class Attendance(BaseModelOrg):
     student = models.ForeignKey(
-        Student, on_delete=models.CASCADE, related_name="attendances"
+        'students.Student', on_delete=models.CASCADE, related_name="attendances"
     )
     lesson = models.ForeignKey(
         Schedule, on_delete=models.CASCADE, related_name="attendances"
     )
+    lesson_date = models.DateField(null=True, blank=True)
     was_present = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Посещение"
         verbose_name_plural = "Посещения"
+
+    def save(self, *args, **kwargs):
+        print(
+            f"[SAVE] lesson: {self.lesson}, lesson.date: {getattr(self.lesson, 'date', None)}"
+        )
+        if not self.lesson_date:
+            self.lesson_date = self.lesson.date
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (
@@ -220,6 +236,7 @@ class Grade(BaseModelOrg):
     )
     value = models.IntegerField(choices=GRADE_CHOICES, null=True, blank=True)
     comment = models.CharField(max_length=250, blank=True)
+    grade_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -236,13 +253,6 @@ class Grade(BaseModelOrg):
         return f"{self.value} оценка ученика {self.student.name} за {self.updated_at if self.updated_at else self.created_at}"
 
     def save(self, *args, **kwargs):
-        was_present = Attendance.objects.filter(
-            student=self.student, lesson=self.lesson, was_present=True
-        ).exists()
-
-        if not was_present:
-            raise ValueError(
-                "Нельзя поставить оценку: студент не присутствовал на занятии."
-            )
-
+        if self.lesson.date and self.lesson:
+            self.grade_date = self.lesson.date
         return super().save(*args, **kwargs)

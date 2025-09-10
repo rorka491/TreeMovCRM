@@ -1,29 +1,21 @@
+from typing import Tuple
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import django_filters
-from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from .serializers.read import AttendanceReadSerializer, ClassroomReadSerializer, GradeReadSerializer, SubjectReadSerializer, PeriodScheduleReadSerializer
+from .serializers.write import AttendanceWriteSerializer, ClassroomWriteSerializer, GradeWriteSerializer, PeriodScheduleWriteSerializer, SubjectWriteSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
+from mainapp.filters import DateRangeMixin
 from .utils import _grouped_response
-from .serializers import (
-    AttendanceSerializer,
-    ClassroomScheduleSerializer,
-    ClassroomSerializer,
-    PeriodScheduleSerializer,
-    ScheduleSerializer,
-    SubjectSerializer,
-    TeacherScheduleSerializer,
-    GroupScheduleSerializer,
-    GradeSerializer,
-)
 from .models import Attendance, Schedule, Subject, PeriodSchedule, Grade, Classroom
 from .mixins import SerializerUpdateMixin, LessonValidationMixin
+from .serializers.other import GroupScheduleSerializer, TeacherScheduleSerializer, ClassroomScheduleSerializer
 
 
 # filters
-class ScheduleFilter(django_filters.FilterSet):
-    start_date = django_filters.DateFilter(field_name="date", lookup_expr="gte")
-    end_date = django_filters.DateFilter(field_name="date", lookup_expr="lte")
+class ScheduleFilter(DateRangeMixin, django_filters.FilterSet):
 
     class Meta:
         model = Schedule
@@ -38,16 +30,50 @@ class GradeFilter(django_filters.FilterSet):
 
 
 # views
-class ScheduleViewSet(
+class AbstractScheduleViewSet(
     SelectRelatedViewSet,
     BaseViewSetWithOrdByOrg,
     SerializerUpdateMixin,
     LessonValidationMixin,
 ):
+    """
+    Класс объединяет в себе методы и атрибуты классов
+    ScheduleViewSet и PeriodScheduleViewSet для избежания дублирования
+    """
+    abstract = True
+    critical_fields: Tuple[str, ...] = ()
+
+    def _has_critical_fields(self, data: dict) -> bool:
+        return any(field in data for field in self.critical_fields)
+
+    def _can_update(self, serializer, is_force_update) -> bool:
+        raise NotImplementedError("Метод не был реализован в наслдениках")
+
+    def get_lessons_queryset(self):
+        queryset = Schedule.objects.all()
+        return queryset
+
+    def update(self, request, *args, **kwargs):
+        is_force_update = request.query_params.get("is_force_update")
+        data = request.data
+        partial = kwargs.get("partial", False) # Если false то запрос PUT в обратном случае PATCH
+        instance = self.get_object()
+        serializer = self.get_update_serializer(instance, data, partial)
+
+        if not self._has_critical_fields(data) or self._can_update(
+            serializer=serializer,
+            is_force_update=is_force_update,
+        ):
+            serializer.save()
+            return Response(serializer.data)
+
+        raise ValidationError({"detail": "Невозможно обновить критичные поля"})
+
+
+class ScheduleViewSet(AbstractScheduleViewSet):
     queryset = Schedule.objects.all()
-    serializer_class = ScheduleSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = ScheduleFilter
+
 
     critical_fields = (
         "classroom",
@@ -73,23 +99,11 @@ class ScheduleViewSet(
         "by-classrooms": ("classroom", ClassroomScheduleSerializer),
     }
 
-    def update(self, request, *args, **kwargs):
-        is_force_update = request.query_params.get("is_force_update")
 
-        data = request.data
-        partial = kwargs.get("partial", False)
-        instance = self.get_object()
-        serializer = self.get_update_serializer(instance, data, partial)
-
-        should_check = any(field in data for field in self.critical_fields)
-
-        if not should_check or self.can_update_alone_lesson(
-            serializer=serializer,
-            is_force_update=is_force_update,
-        ):
-            serializer.save()
-
-        return Response(serializer.data)
+    def _can_update(self, serializer, is_force_update) -> bool:
+        return self.can_update_alone_lesson(
+            serializer=serializer, is_force_update=is_force_update
+        )
 
     def _grouped_action(self, key):
         field_name, serializer = self.grouped_fields[key]
@@ -133,11 +147,12 @@ class ScheduleViewSet(
         return Response(serializer.data)
 
 
-class PeriodScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg, SerializerUpdateMixin):
+class PeriodScheduleViewSet(AbstractScheduleViewSet):
     queryset = PeriodSchedule.objects.all()
-    serializer_class = PeriodScheduleSerializer
-    filter_backends = [DjangoFilterBackend]
+    write_serializer_class = PeriodScheduleWriteSerializer
+    read_serializer_class = PeriodScheduleReadSerializer
 
+    
     critical_fields = (
         "start_time",
         "end_time",
@@ -146,43 +161,27 @@ class PeriodScheduleViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg, Seria
         "group",
     )
 
-    def get_lessons_queryset(self):
-        queryset = Schedule.objects.all()
-        return self.filter_by_user_org(queryset)
-        
-
-    def update(self, request, *args, **kwargs):
-        data = request.data
-        partial = kwargs.get("partial", False)
-        instance = self.get_object()
-        serializer = self.get_update_serializer(instance, data, partial)
-
-        should_check = any(field in data for field in self.critical_fields)
-
-        if not should_check or self.can_update_period_lesson(serializer=serializer):
-            serializer.save()
-        
-
-        return Response(serializer.data)
+    def _can_update(self, serializer, is_force_update) -> bool:
+        return self.can_update_period_lesson(serializer=serializer, is_force_update=is_force_update)
 
 
 class SubjectViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Subject.objects.all()
-    serializer_class = SubjectSerializer
-    filter_backends = [DjangoFilterBackend]
+    read_serializer_class = SubjectReadSerializer
+    write_serializer_class = SubjectWriteSerializer
 
 
 class ClassroomViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Classroom.objects.all()
-    serializer_class = ClassroomSerializer
-    filter_backends = [DjangoFilterBackend]
+    read_serializer_class = ClassroomReadSerializer
+    write_serializer_class = ClassroomWriteSerializer
 
 
 class GradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Grade.objects.all()
     filterset_class = GradeFilter
-    serializer_class = GradeSerializer
-    filter_backends = [DjangoFilterBackend]
+    read_serializer_class = GradeReadSerializer
+    write_serializer_class = GradeWriteSerializer
 
     def get_queryset(self):
 
@@ -197,5 +196,6 @@ class GradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
 
 class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Attendance.objects.all()
-    serializer_class = AttendanceSerializer
-    filter_backends = [DjangoFilterBackend]
+    read_serializer_class = AttendanceReadSerializer
+    write_serializer_class = AttendanceWriteSerializer
+

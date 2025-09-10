@@ -1,9 +1,16 @@
 from datetime import time, timedelta, datetime
+from typing import Type, TYPE_CHECKING
 from typing import List
 import json
 from collections import defaultdict
 from rest_framework.response import Response
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from .models import Attendance, Schedule
+
+    
+
+if TYPE_CHECKING:
+    from mainapp.models import Organization
 
 
 def _grouped_response(self, field_name=None, serializer_class=None):
@@ -27,7 +34,7 @@ def _grouped_response(self, field_name=None, serializer_class=None):
 
 
 # Создает таску
-def create_update_complete_lessons_task():
+def init_task_create_update_complete_lessons_task():
     schedule, _ = IntervalSchedule.objects.get_or_create(
         every=1, period=IntervalSchedule.MINUTES
     )
@@ -41,6 +48,22 @@ def create_update_complete_lessons_task():
             "kwargs": json.dumps({}),
         },
     )
+
+def init_task_create_attendences_for_all_passes():
+    schedule, _ = IntervalSchedule.objects.get_or_create(
+        every=1, period=IntervalSchedule.MINUTES
+    )
+
+    PeriodicTask.objects.update_or_create(
+        name="Задача создание записей о пропусках учеников не отмеченных как присутствующих",
+        defaults={
+            "interval": schedule,
+            "task": "lesson_schedule.tasks.create_attendences_for_all_passes",
+            "args": json.dumps([]),
+            "kwargs": json.dumps({}),
+        },
+    )
+
 
 
 
@@ -129,3 +152,28 @@ class LessonSlot:
             f"Урок: {self.start_time.strftime('%H:%M')}-{self.end_time.strftime('%H:%M')} "
             f"(Перерыв {str(self.break_duration)} до {self.break_end_time.strftime('%H:%M')})"
         )
+
+
+def _create_missing_attendances_for_lesson(lesson: Schedule) -> list[Attendance]:
+    org = lesson.get_org(
+        raise_if_none=True
+    )  # Параметр установлен так как org обязателен
+    group_students = lesson.group.students.all()
+    lesson_date = lesson.date
+    existing_students_ids = Attendance.objects.filter(lesson=lesson).values_list(
+        "student_id", flat=True
+    )
+    missing_students = group_students.exclude(id__in=existing_students_ids)
+
+    return [
+        Attendance(student=student, lesson=lesson, org=org, was_present=False, lesson_date=lesson_date)
+        for student in missing_students
+    ]
+
+
+def _get_complited_lessons_for_org(org: "Organization") -> list[Schedule]:
+    return Schedule.objects.filter_by_org(org).filter(
+        is_canceled=False, is_completed=True
+    )
+
+

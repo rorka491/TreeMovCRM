@@ -1,0 +1,95 @@
+[
+	{
+		"model": "mainapp.organization",
+		"pk": 1,
+		"fields": {
+			"name": "OpenAI"
+		}
+	},
+	{
+		"model": "mainapp.organization",
+		"pk": 2,
+		"fields": {
+			"name": "Google"
+		}
+	},
+	{
+		"model": "employers.employer",
+		"pk": 1,
+		"fields": {
+			"name": "Иван",
+			"surname": "Иванов",
+			"patronymic": "Иванович",
+			"email": "ivanov@openai.com",
+			"org": 1
+		}
+	},
+	{
+		"model": "employers.employer",
+		"pk": 2,
+		"fields": {
+			"name": "Петр",
+			"surname": "Петров",
+			"patronymic": "Петрович",
+			"email": "petrov@google.com",
+			"org": 2
+		}
+	},
+	{
+		"model": "employers.teacher",
+		"pk": 1,
+		"fields": {
+			"employer": 1,
+			"org": 1
+		}
+	},
+	{
+		"model": "employers.teacher",
+		"pk": 2,
+		"fields": {
+			"employer": 2,
+			"org": 2
+		}
+	},
+	{
+		"model": "lesson_schedule.classroom",
+		"pk": 1,
+		"fields": {
+			"title": "101",
+			"floor": 1,
+			"building": "A",
+			"org": 1
+		}
+	},
+	{
+		"model": "lesson_schedule.classroom",
+		"pk": 2,
+		"fields": {
+			"title": "202",
+			"floor": 2,
+			"building": "B",
+			"org": 2
+		}
+	},
+
+	{
+		"model": "lesson_schedule.subject",
+		"pk": 1,
+		"fields": {
+			"name": "Математика",
+			"teacher": [],
+			"color": null,
+			"org": 1
+		}
+	},
+	{
+		"model": "lesson_schedule.subject",
+		"pk": 2,
+		"fields": {
+			"name": "Информатика",
+			"teacher": [],
+			"color": null,
+			"org": 2
+		}
+	}
+]

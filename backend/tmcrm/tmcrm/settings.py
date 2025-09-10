@@ -26,29 +26,40 @@ SECRET_KEY = 'django-insecure-c529uc_cl)xwsw%#c^1u7z4^pskg7bi-!5kwv5ulo5$ktqxhp1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
 
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_celery_beat',
-    'analisys',
-    'financial_reporting',
-    'lesson_schedule',
-    'employers',
-    'mainapp',
-    'students',
-    'rest_framework',
-    'corsheaders',
-    'django_filters',
+
+DJANGO_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 ]
+
+OTHER_APPS = [
+    "rest_framework",
+    "corsheaders",
+    "django_filters",
+    "django_celery_beat",
+]
+
+APPS = [
+    "analisys",
+    "financial_reporting",
+    "lesson_schedule",
+    "employers",
+    "mainapp",
+    "students",
+]
+
+INSTALLED_APPS = DJANGO_APPS + OTHER_APPS + APPS
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -56,6 +67,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mainapp.middleware.jwt_middleware.JWTMiddleware",
     "mainapp.middleware.threadlocals.GetCurrentUserMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -100,11 +112,11 @@ DATABASES = {
     }, 
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'treemovcrm_db',
-        'USER': 'myuser',
-        'PASSWORD': '1234',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
-        'PORT': '5432', 
+        'PORT': '5433', 
     }
 }
 
@@ -146,8 +158,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -177,6 +188,7 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'mainapp.User'
 
+
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
@@ -185,3 +197,26 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+}
+
+
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.your-email-provider.com"
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = "your_email@example.com"
+# EMAIL_HOST_PASSWORD = "your_email_password"
+# EMAIL_USE_TLS = True
+# DEFAULT_FROM_EMAIL = "Your Project <your_email@example.com>"

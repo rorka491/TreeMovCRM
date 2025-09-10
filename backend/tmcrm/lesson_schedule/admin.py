@@ -20,7 +20,9 @@ class PeriodScheduleAdmin(BaseAdminFilterView):
 admin.site.register(PeriodSchedule, PeriodScheduleAdmin)
 
 
-
+class AttendanceAdmin(BaseAdminFilterView):
+    list_display = ("student", "lesson_date", "was_present")
+admin.site.register(Attendance, AttendanceAdmin)
 
 
 for model in app_models:
@@ -32,10 +34,3 @@ for model in app_models:
 
     except AlreadyRegistered:
         ...
-
-
-
-
-
-
-

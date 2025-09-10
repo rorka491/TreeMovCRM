@@ -1,16 +1,58 @@
 from functools import wraps, total_ordering
+from typing import Type
+from enum import Enum
 from datetime import date, datetime
 import inspect
 import pytz
-from django.db import connection, ProgrammingError, OperationalError
+from django.apps import apps
+from django.db import connection, ProgrammingError, OperationalError, models
 from django.apps import AppConfig
 from django.core.cache import cache
 from django.utils import timezone
-from .models import Organization, OrgSettings
 
 
-def get_cache(key):
-    return cache.get(key)
+class CacheType(str, Enum):
+    MODEL = "model"
+    OTHER = 'other'
+
+
+def _get_model(app_model: str) -> Type[models.Model]:
+    try:
+        app_label, model_name = app_model.split(".")
+    except ValueError:
+        raise ValueError("Ключ должен быть в формате 'app_label.ModelName'")
+
+    model = apps.get_model(app_label, model_name)
+    if model is None:
+        raise ValueError(f"Модель '{app_model}' не найдена")
+
+    return model
+
+
+def get_cache(key: str, cache_type: CacheType='model'):
+    """
+    Для доступа к моделям и бд
+    key должен быть в формате 'app_label.ModelName'
+    Например: 'mainapp.Organization' или 'users.User'
+    
+    """
+    result = cache.get(key, None)
+    if result is not None:
+        return result
+    
+    match cache_type:
+        case 'model':
+            model = _get_model(key)
+            result = list(model.objects.all())
+        case 'other':
+            ...
+    
+    if result is None:
+        raise ValueError(f"Не удалось получить значение для ключа: {key} (тип кэша: {cache_type})")
+
+    cache.set(key, result, timeout=0)
+    return result
+
 
 def delete_cache(key):
     cache.delete(key)
@@ -27,7 +69,7 @@ def get_org_local_datetime(org):
 def request_orgs(func):
     @wraps
     def wrap(*args, **kwargs):
-        orgs = get_cache("orgs")
+        orgs = get_cache("mainapp.Organization")
 
         # Проверяем, принимает ли функция параметр orgs
         sig = inspect.signature(func)
@@ -41,7 +83,7 @@ def request_orgs(func):
 
 @total_ordering
 class DateFieldExcludeYear():
-    """Класс нужен для того что бы исопльзовать 
+    """Класс нужен для того что бы использовать 
     date для определения только дня и месяца
     Пример: 
     date = DateFieldExcludeYear(6, 23)
@@ -116,3 +158,5 @@ def checkout_interval_schedule_table(func):
             return
         return func(sender, **kwargs)
     return wrapper
+
+

@@ -1,16 +1,23 @@
+import pytz
+from typing import Optional
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.core.exceptions import ValidationError
-from datetime import date
 from .validators import color_regex
 from .fields import MonthDayField
-from django.conf import settings
-import pytz
+from .managers import (
+    OrgRestrictedManager,
+    OrgFullAccessManager,
+    OrgCreatorManager,
+)
+from django.db import models
 
 
-class CreatedBy(models.Model):
-    create_by = models.ForeignKey(
+class Organization(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
@@ -18,12 +25,9 @@ class CreatedBy(models.Model):
         related_name="created_%(class)s_set",
     )
 
-    class Meta:
-        abstract = True
-
-
-class Organization(CreatedBy):
-    name = models.CharField(max_length=100, unique=True)
+    objects = OrgFullAccessManager()
+    org_objects = OrgRestrictedManager()
+    create_manager: OrgCreatorManager["Self"] = OrgCreatorManager()
 
     class Meta:
         verbose_name = "Организация"
@@ -41,7 +45,6 @@ class BaseModelOrg(models.Model):
         blank=True,
         related_name="%(class)s",
     )
-
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -49,6 +52,20 @@ class BaseModelOrg(models.Model):
         on_delete=models.SET_NULL,
         related_name="created_%(class)s_set",
     )
+
+    def get_org(self, raise_if_none: bool = False) -> Optional[Organization]:
+        """
+        Возвращает организацию или None, если org отсутствует.
+        Если raise_if_none=True и org=None — возбуждается исключение.
+        """
+        if raise_if_none and self.org is None:
+            raise ValueError("Организация отсутствует, а raise_if_none=True")
+        return self.org
+
+    @property
+    def has_org(self) -> bool:
+        """Проверка наличия организации"""
+        return self.org is not None
 
     class Meta:
         abstract = True
@@ -70,15 +87,7 @@ class BaseModelOrg(models.Model):
                             f" (ожидалось: {self.org} получено: {related_org})"
                         )
         if errors:
-            raise ValidationError({"field": ["ошибка"]})
-
-    @classmethod
-    def create_with_user_org(cls, user, **kwargs):
-        return cls.objects.create(org=user.org, created_by=user, **kwargs)
-
-    @classmethod
-    def create_with_create_by(cls, user, **kwargs):
-        return cls.objects.create(created_by=user, **kwargs)
+            raise ValidationError(errors)
 
 
 class SubjectColor(BaseModelOrg):
@@ -101,6 +110,13 @@ class User(AbstractUser, BaseModelOrg):
     )
 
     role = models.CharField(max_length=20, choices=ROLES, default="user")
+    
+
+
+    def has_role(self, *roles) -> bool:
+        return getattr(self, "role", None) in roles
+    
+
 
     def __str__(self):
         return f"{self.username} ({self.role})"
@@ -108,16 +124,13 @@ class User(AbstractUser, BaseModelOrg):
 
 class UserSettings(BaseModelOrg):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")
-    repeat_lessons_until = MonthDayField(
-        default="08-31"
-    )  # Кастомное поле в формате MM-DD
 
     def __str__(self):
         return f"Настройки пользователя {self.user.username}"
 
     class Meta:
-        verbose_name = "Настройки пользоователя"
-        verbose_name_plural = "Настройки пользоователя"
+        verbose_name = "Настройки пользователя"
+        verbose_name_plural = "Настройки пользователя"
 
 
 class OrgSettings(BaseModelOrg):
@@ -131,6 +144,9 @@ class OrgSettings(BaseModelOrg):
         choices=TIMEZONE_CHOICES,
         default="UTC",
         help_text="Часовой пояс организации",
+    )
+    repeat_lessons_until = MonthDayField(
+        default="08-31"
     )
 
     class Meta:

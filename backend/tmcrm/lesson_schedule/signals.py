@@ -1,19 +1,20 @@
+from __future__ import annotations
 from lesson_schedule.models import Schedule, PeriodSchedule
 from django.dispatch import receiver
-from django.db.models.signals import post_save, post_migrate
+from django.db.models.signals import post_save, post_migrate, pre_save
 from datetime import timedelta
 from mainapp.utils import checkout_interval_schedule_table
-
+from .models import Attendance, Grade
 
 
 @receiver(post_save, sender=PeriodSchedule)
 def create_lessons_until_date(sender, created, instance, **kwargs):
     if created:
-        user_settings = instance.created_by.settings
+        org_settings = instance.org.settings
         # Получаем дату продлеиня занятий если нет то берем эту дату из настроек
         repeat_until = getattr(instance, 'repeat_lessons_until_date', None) 
         if not repeat_until:
-            repeat_until = user_settings.repeat_lessons_until
+            repeat_until = org_settings.repeat_lessons_until
 
         period = instance.period
         current_date = instance.start_date
@@ -40,7 +41,6 @@ def create_lessons_until_date(sender, created, instance, **kwargs):
             Schedule.objects.bulk_create(lessons_to_create)
         else:
             raise ValueError('не указана периодичность')
-        
 
 
 @receiver(post_save, sender=PeriodSchedule)
@@ -62,7 +62,22 @@ def update_data_not_complete_lessons(sender, created, instance, **kwargs):
 @receiver(post_migrate)
 @checkout_interval_schedule_table
 def setup_periodic_tasks(sender, **kwargs):
-    from .utils import create_update_complete_lessons_task
-    create_update_complete_lessons_task()
+    from .utils import (
+        init_task_create_update_complete_lessons_task,
+        init_task_create_attendences_for_all_passes,
+    )
+    init_task_create_update_complete_lessons_task()
+    init_task_create_attendences_for_all_passes()
+    
 
+
+@receiver(pre_save, sender=Attendance)
+def set_attendance_date(sender, instance, **kwargs) -> None:
+    if instance.lesson and instance.lesson.date:
+        instance.date = instance.lesson.date
+
+@receiver(pre_save, sender=Grade)
+def set_grade_date(sender, instance, **kwargs):
+    if instance.lesson and instance.lesson.date:
+        instance.date = instance.lesson.date
 

@@ -1,17 +1,62 @@
-import traceback
-from django.shortcuts import render
-from .permissions import IsSameOrganization
-from rest_framework.viewsets import ViewSet, ModelViewSet
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.views import APIView
+import random
+from typing import TYPE_CHECKING
 from functools import wraps
+from django.core.cache import cache
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db.models import Q
+from django.conf import settings
+from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.exceptions import NotAuthenticated
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.request import Request
+from mainapp.serializers import BaseReadSerializer, BaseWriteSerializer
+from .models import Organization
+from .serializers import ColorSerializer, OrganizationWriteSerializer, OrganizationReadSerializer
+from .permissions import IsSameOrganization, OrgNameMatchPermission
+from .models import User, SubjectColor
+from .middleware.threadlocals import get_current_user
+
+if TYPE_CHECKING:
+    from rest_framework import permissions
+    from .serializers import (
+        BaseReadSerializer,
+        BaseWriteSerializer,
+        BaseSerializerExcludeFields,
+    )
+    from rest_framework.serializers import BaseSerializer
+
+
+class RequiredQueryParamsMixin:
+
+    def _return_resp_if_missing(self, missing: list):
+        if missing:
+            return Response(
+                {p: ["This parameter is required."] for p in missing}, status=400
+            )
+
+    def validate_required_params(self, request, required_params):
+        missing = [p for p in required_params if p not in request.GET]
+        self._return_resp_if_missing(missing=missing)
+
+    def validate_required_data(self, data, required_params):
+        missing = [p for p in required_params if p not in data]
+        self._return_resp_if_missing(missing=missing)
+
+class GetCurrentSerializerMixin:
+    read_serializer_class: type["BaseSerializer"] | None = None
+    write_serializer_class: type["BaseSerializer"] | None = None
+    serializer_class: type["BaseSerializer"] | None = None
+
+    def get_serializer_class(
+        self,
+    ) -> type["BaseSerializer"]:
+        """Метод возвращает нужный сериализатор в зависимости от метода"""
+        if self.request.method in ("HEAD", "GET", "OPTIONS"):
+            return self.read_serializer_class or self.serializer_class
+        return self.write_serializer_class or self.serializer_class
 
 
 class SelectRelatedViewSet(ModelViewSet):
@@ -38,25 +83,51 @@ class SelectRelatedViewSet(ModelViewSet):
 
 class BaseViewAuthPermission(ModelViewSet):
 
-    permission_classes = [IsAuthenticated, IsSameOrganization]
+    def get_permissions(self) -> list["permissions.BasePermission"]:
+        return [IsAuthenticated(), IsSameOrganization()]
 
 
-class BaseViewSetWithOrdByOrg(BaseViewAuthPermission):
+class BaseViewSetWithOrdByOrg(BaseViewAuthPermission, GetCurrentSerializerMixin):
     """
     Базовый ViewSet с автоматической фильтрацией по организации пользователя
     и дополнительными проверками прав доступа
     """
-    def filter_by_user_org(self, queryset):
-        user = self.request.user
-        if user.is_superuser or getattr(user, "role", None) == "admin":
-            return queryset
-        if hasattr(user, "org"):
-            return queryset.filter(Q(org=user.org) | Q(org__isnull=True))
-        return queryset.filter(org__isnull=True)
+
+    filter_backends = [DjangoFilterBackend]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data["org"] = self.get_current_org(request.user).pk
+        request._full_data = data
+        return super().create(request, *args, **kwargs)
+
+    def get_current_user(self) -> User:
+        current_user = get_current_user()
+        if isinstance(current_user, AnonymousUser):
+            raise NotAuthenticated("Пользователь не аутентифицирован.")
+        return current_user
+
+    def get_current_org(self, user: User) -> Organization:
+        org = user.get_org()
+        if not org:
+            raise ValueError("Организация не предоставлена")
+        return org
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return self.filter_by_user_org(queryset)
+        user = self.get_current_user()
+        return queryset.filter_by_user(user)
+
+
+class OrganizationViewSet(
+    GetCurrentSerializerMixin, BaseViewAuthPermission
+):
+    queryset = Organization.objects.all()
+    read_serializer_class = OrganizationReadSerializer
+    write_serializer_class = OrganizationWriteSerializer
+
+    def get_permissions(self) -> list[BasePermission]:
+        return [IsAuthenticated(), OrgNameMatchPermission()]
 
 
 def base_search(func):
@@ -78,3 +149,8 @@ def base_search(func):
         return Response(serializer.data)
 
     return wrapper
+
+
+class SubjectColorViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = SubjectColor.objects.all()
+    serializer_class = ColorSerializer

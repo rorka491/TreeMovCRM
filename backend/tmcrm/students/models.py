@@ -3,7 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from mainapp.models import BaseModelOrg
 from mainapp.validators import phone_number_regex
-
+from mainapp.utils import get_org_local_datetime
 
 class StudentManager(models.Manager):
 
@@ -84,3 +84,21 @@ class Subscription(models.Model):
                 raise ValueError('не передан период days')
 
         super().save(*args, **kwargs)
+
+
+class StudentsSnapshot(BaseModelOrg):
+    date = models.DateField()
+    total_clients = models.PositiveIntegerField()
+
+    class Meta:
+        verbose_name = "Снимок учеников"
+        verbose_name_plural = "Снимки учеников"
+
+    def __str__(self) -> str:
+        return f"Снапшот {self.pk}"
+
+    def save(self, *args, **kwargs):
+        if not self.date:
+            self.date = get_org_local_datetime(self.get_org(raise_if_none=True)).date()
+        super().save(*args, **kwargs)
+

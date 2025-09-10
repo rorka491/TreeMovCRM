@@ -1,27 +1,26 @@
-from django.http import Http404
-from django.shortcuts import render
-from employers.serializers import TeacherSerializer, EmployerSerializer, DocumentsSerializer
+from django.http import FileResponse
+from .serializers.read import EmployerReadSerializer, TeacherReadSerializer
+from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer
+from .serializers.other import DocumentsSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
 from .models import Teacher, Employer, Documents
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
-from django.http import FileResponse, Http404, HttpResponse
 from rest_framework.response import Response
-import zipfile
-import io
-import os
+from mainapp.constants import HttpMethodLiteral
 
 
 
 class TeacherViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     select_related_fields = []
-
     queryset = Teacher.objects.all()
-    serializer_class = TeacherSerializer
+    read_serializer_class = TeacherReadSerializer
+    write_serializer_class = TeacherWriteSerializer
+
 
 class EmployerViewSet(BaseViewSetWithOrdByOrg):
     queryset = Employer.objects.all()
-    serializer_class = EmployerSerializer
+    read_serializer_class = EmployerReadSerializer
+    write_serializer_class = EmployerWriteSerializer
 
 
 class DownloadDocumentViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):

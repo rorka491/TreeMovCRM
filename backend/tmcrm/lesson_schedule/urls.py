@@ -11,11 +11,11 @@ router.register(r'subjects', SubjectViewSet, basename='subject')
 router.register(r'classrooms', ClassroomViewSet, basename='classroom')
 router.register(r'attendances', AttendanceViewSet, basename='attendance')
 router.register(r'period_schedules', PeriodScheduleViewSet, basename='period_schedule')
-
+router.register(r'subject_colors', SubjectColorViewSet, basename="subject_color")
+router.register(r'grades', GradeViewSet, basename='grade')
 
 
 urlpatterns = [
     path('', include(router.urls))
 ]
-
-
+    
