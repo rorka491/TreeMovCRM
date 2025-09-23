@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import unknown_photo from '../../assets/images/unknown.png'
 import { useLocation } from 'react-router-dom'
+import { logout } from '../../api/authService'
+import { useNavigate } from 'react-router-dom'
 
 const headers = {
     schedule: {
@@ -37,7 +39,7 @@ export function PageHeader() {
         profilePhoto: null,
         username: 'Admin',
     })
-
+    const navigate = useNavigate()
     const path = useLocation().pathname
 
     const [isOpen, setIsOpen] = useState(false)
@@ -136,7 +138,13 @@ export function PageHeader() {
                             <li className="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                 Настройки
                             </li>
-                            <li className="px-4 py-2 text-red-500 cursor-pointer hover:bg-gray-100">
+                            <li 
+                                className="px-4 py-2 text-red-500 cursor-pointer hover:bg-gray-100"
+                                onClick={() => {
+                                    logout()
+                                    navigate('/login')
+                                }}
+                            >
                                 Выйти
                             </li>
                         </ul>

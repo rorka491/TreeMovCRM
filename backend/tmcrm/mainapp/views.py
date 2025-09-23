@@ -1,9 +1,8 @@
-import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 from functools import wraps
 from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser, AnonymousUser
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.conf import settings
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -29,21 +28,23 @@ if TYPE_CHECKING:
     from rest_framework.serializers import BaseSerializer
 
 
+T = TypeVar('T', bound=QuerySet)
+
 class RequiredQueryParamsMixin:
 
-    def _return_resp_if_missing(self, missing: list):
+    def _return_response_if_missing(self, missing: list):
         if missing:
             return Response(
                 {p: ["This parameter is required."] for p in missing}, status=400
             )
 
-    def validate_required_params(self, request, required_params):
+    def validate_required_query_params(self, request, required_params):
         missing = [p for p in required_params if p not in request.GET]
-        self._return_resp_if_missing(missing=missing)
+        return self._return_response_if_missing(missing=missing)
 
     def validate_required_data(self, data, required_params):
         missing = [p for p in required_params if p not in data]
-        self._return_resp_if_missing(missing=missing)
+        return self._return_response_if_missing(missing=missing)
 
 class GetCurrentSerializerMixin:
     read_serializer_class: type["BaseSerializer"] | None = None
@@ -79,6 +80,36 @@ class SelectRelatedViewSet(ModelViewSet):
             qs = qs.prefetch_related(*self.prefetch_related_fields)
 
         return qs
+
+class SelectrealtedByModelsViewSet(ModelViewSet):
+    """
+    То же самое решение только для вьюсетов которые используют несолько queryset'ов
+    Класс который будет использоваться для оптимизированных запросов
+    и решения N+1 проблемы
+
+    Наслдуется перед BaseViewSetWithOrdByOrg
+    Не наследуестя с SelectRelatedViewSet
+    """
+
+    select_related_fields_by_model: dict[str, tuple] = {}
+    prefetch_related_fields_by_model: dict[str, tuple] = {}
+
+    def optimize_queryset(self, queryset: T) -> T:
+        model_name = queryset.model.__name__
+
+        # select_related
+        if self.select_related_fields_by_model:
+            fields = self.select_related_fields_by_model.get(model_name, [])
+            if fields:
+                queryset = queryset.select_related(*fields)
+
+        # prefetch_related
+        if self.prefetch_related_fields_by_model:
+            fields = self.prefetch_related_fields_by_model.get(model_name, [])
+            if fields:
+                queryset = queryset.prefetch_related(*fields)
+        
+        return queryset
 
 
 class BaseViewAuthPermission(ModelViewSet):

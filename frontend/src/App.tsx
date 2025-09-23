@@ -19,12 +19,26 @@ import SсheduleByMonth from './pages/Schedule/subpages/ScheduleByMonth'
 import SсheduleByWeek from './pages/Schedule/subpages/ScheduleByWeek'
 import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
 import SсheduleList from './pages/Schedule/subpages/SсheduleList'
+import React, { useState } from 'react'
+import { ProtectedRoute } from './components/Routes/ProtectedRoute'
+import AnalyticsDashboard from './pages/Analisys/AnalyticsDashboard'
+
 
 function App() {
+    const [user, setUser] = useState(null)
+    
     return (
         <Router>
             <Routes>
-                <Route path="*" element={<Base />}>
+                <Route path="/login" element={<Login setUser={setUser} />} />
+                <Route
+                    path="*"
+                    element={
+                        <ProtectedRoute>
+                            <Base />
+                        </ProtectedRoute>
+                    }
+                >
                     <Route path="schedule" element={<Schedule />}>
                         <Route path="guidelines" element={'asd'} />
 

@@ -1,3 +1,4 @@
+from typing import Literal
 import logging
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
@@ -14,12 +15,23 @@ class IsSameOrganization(permissions.BasePermission):
         if request.user.is_superuser:
             return True
 
-        if hasattr(obj, "org"):
+        if obj.has_org:
             return obj.org == request.user.org
         else:
             raise PermissionDenied(
                 "Объект не имеет 'org', проверка организации невозможна. "
-                "Пермишн применен к модели не имющей org"
+                "Пермишн применен к модели не имеющей org"
+            )
+
+    def has_permission(self, request, view) -> Literal[True]:
+        if request.user.is_superuser:
+            return True
+        
+        if request.user.has_org:
+            return True
+        else:
+            raise PermissionDenied(
+                "Вы не не обладаете достаточными правами"
             )
 
 class OrgNameMatchPermission(permissions.BasePermission):
@@ -28,7 +40,6 @@ class OrgNameMatchPermission(permissions.BasePermission):
             return True
 
         return obj == request.user.org
-
 
 
 class OrgParamsPermission(permissions.BasePermission):
@@ -55,9 +66,3 @@ class OrgParamsPermission(permissions.BasePermission):
                 ):
                     return False
         return True
-    
-
-
-
-
-

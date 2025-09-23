@@ -20,7 +20,7 @@ class OrgQuerySet(QuerySet):
             return self
 
         if user.has_org:
-            user_org = user.get_org()
+            user_org = user.get_org
             return self.filter_by_org(user_org)
 
         return self.filter(org__isnull=True)

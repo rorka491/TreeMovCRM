@@ -12,6 +12,7 @@ from .managers import (
     OrgCreatorManager,
 )
 from django.db import models
+from .exceptions.user_exceptions import UserHasNoOrg
 
 
 class Organization(models.Model):
@@ -27,7 +28,7 @@ class Organization(models.Model):
 
     objects = OrgFullAccessManager()
     org_objects = OrgRestrictedManager()
-    create_manager: OrgCreatorManager["Self"] = OrgCreatorManager()
+    create_manager = OrgCreatorManager()
 
     class Meta:
         verbose_name = "Организация"
@@ -52,14 +53,15 @@ class BaseModelOrg(models.Model):
         on_delete=models.SET_NULL,
         related_name="created_%(class)s_set",
     )
+    objects = OrgFullAccessManager()
+    org_objects = OrgRestrictedManager()
+    create_manager= OrgCreatorManager()
 
-    def get_org(self, raise_if_none: bool = False) -> Optional[Organization]:
+    @property
+    def get_org(self) -> Organization | None:
         """
         Возвращает организацию или None, если org отсутствует.
-        Если raise_if_none=True и org=None — возбуждается исключение.
         """
-        if raise_if_none and self.org is None:
-            raise ValueError("Организация отсутствует, а raise_if_none=True")
         return self.org
 
     @property

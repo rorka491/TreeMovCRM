@@ -5,6 +5,7 @@ class DateRangeMixin(django_filters.FilterSet):
     start_date = django_filters.DateFilter(lookup_expr="gte")
     end_date = django_filters.DateFilter(lookup_expr="lte")
     date = django_filters.DateFilter()
+
     date_field = "date"
 
     def __init__(

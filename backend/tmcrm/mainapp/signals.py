@@ -45,7 +45,7 @@ def create_user_settings_with_org(sender, instance, created, **kwargs):
     if created and not instance.is_superuser and instance.org:
         UserSettings.objects.create(
             user=instance, 
-            org=instance.get_org(raise_if_none=True), 
+            org=instance.get_org(), 
             created_by=instance
         )
 

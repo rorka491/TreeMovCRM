@@ -6,3 +6,8 @@ class UserNotHasBeenGet(APIException):
     default_code = "user_not_found"
 
 
+class UserHasNoOrg(APIException):
+    status_code = 403
+    default_detail = "User does not have an organization."
+    default_code = "no_org"
+        

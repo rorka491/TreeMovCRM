@@ -12,7 +12,6 @@ from auth.tokens import token
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import datetime, timedelta
-import jwt
 from lesson_schedule.serializers.read import ScheduleReadSerializer
 from rest_framework.test import force_authenticate
 from rest_framework.test import APIClient
@@ -20,6 +19,7 @@ from rest_framework.test import APIClient
 User = get_user_model()
 
 class BaseSetupDB(APITestCase):
+     
 
     def _get_access_token(self):
         user = User.objects.get(username="testuser")

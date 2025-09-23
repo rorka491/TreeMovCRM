@@ -155,9 +155,7 @@ class LessonSlot:
 
 
 def _create_missing_attendances_for_lesson(lesson: Schedule) -> list[Attendance]:
-    org = lesson.get_org(
-        raise_if_none=True
-    )  # Параметр установлен так как org обязателен
+    org = lesson.get_org
     group_students = lesson.group.students.all()
     lesson_date = lesson.date
     existing_students_ids = Attendance.objects.filter(lesson=lesson).values_list(

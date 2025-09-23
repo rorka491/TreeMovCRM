@@ -1,26 +1,23 @@
 import { useState } from 'react'
+import { login } from '../api/authService'
+import { useNavigate } from 'react-router-dom'
 
 function Login({ setUser }) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState<string | null>(null)
+    const navigate = useNavigate()
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        fetch('/api/login/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include',
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error('Ошибка входа')
-                return res.json()
-            })
-            .then(() => {
-                setUser({ username })
-            })
-            .catch(() => setError('Неверные данные'))
+        const success = await login(username, password)
+        if (success) {
+            setUser({ username })
+            setError(null)
+            navigate('/schedule') 
+        } else {
+            setError('Неверные данные')
+        }
     }
 
     const styles = {

@@ -1,13 +1,17 @@
 import { formatDate } from '../lib/formatDate'
-import axios, { AxiosResponse } from 'axios'
 import { mapResult, Result } from '../lib/Result'
+import apiClient from './api_client'
+import axios, { AxiosResponse } from 'axios'
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api'
 
-axios.interceptors.request.use((config) => {
+
+
+apiClient.interceptors.request.use((config) => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+    }
     config.params ??= {}
-    config.params.timezone_offset = -new Date().getTimezoneOffset() / 60
-    config.params.test = true
 
     return config
 })
@@ -180,7 +184,7 @@ export const realApi = {
 
     students: {
         async getAll() {
-            const [preStudents, error] = await axios
+            const [preStudents, error] = await apiClient
                 .get(`/students/students`)
                 .then((res) => realApi.isOk<PreStudent[]>(res))
 
@@ -191,7 +195,7 @@ export const realApi = {
             return preStudents.map(preStudentToStudent)
         },
         async getAllGroups() {
-            const [preGroups, error] = await axios
+            const [preGroups, error] = await apiClient
                 .get(`/students/student_groups`)
                 .then((res) => realApi.isOk<PreGroup[]>(res))
 
@@ -202,7 +206,7 @@ export const realApi = {
             return preGroups.map((preGroup) => preGroup.name)
         },
         async getAllGrades(): Promise<Grade[]> {
-            const [preGrades, error] = await axios
+            const [preGrades, error] = await apiClient
                 .get(`/students/grades`)
                 .then((res) => realApi.isOk<PreGrade[]>(res))
 
@@ -216,7 +220,7 @@ export const realApi = {
             }))
         },
         async getById(id: number) {
-            const [preStudent, error] = await axios
+            const [preStudent, error] = await apiClient
                 .get(`/students/students/${id}/?test=true`, {
                     method: 'GET',
                     headers: {
@@ -232,7 +236,7 @@ export const realApi = {
             const student = preStudentToStudent(preStudent)
 
             const grades: Grade[] = mapResult(
-                await axios
+                await apiClient
                     .get(`/schedules/grades/?test=true&student=${id}`, {
                         method: 'GET',
                         headers: {
@@ -256,7 +260,7 @@ export const realApi = {
 
     schedules: {
         async getAll() {
-            const [schedules, error] = await axios
+            const [schedules, error] = await apiClient
                 .get(`/schedules/schedules`, {
                     method: 'GET',
                 })
@@ -272,13 +276,13 @@ export const realApi = {
             }))
         },
         async getSubjects() {
-            return await axios
+            return await apiClient
                 .get(`/schedules/subjects/`)
                 .then((res) => realApi.isOk(res))
         },
 
         async getClassrooms() {
-            return await axios
+            return await apiClient
                 .get(`/schedules/classrooms/`, {
                     method: 'GET',
                     headers: {
@@ -289,7 +293,7 @@ export const realApi = {
         },
 
         async getShedulesByClassrooms(query: Schedule) {
-            return await axios
+            return await apiClient
                 .get(`/schedules/classrooms/`, {
                     method: 'GET',
                     headers: {
@@ -301,7 +305,7 @@ export const realApi = {
         },
 
         async getGroups() {
-            return await axios
+            return await apiClient
                 .get(`/schedules/student_groups/`, {
                     method: 'GET',
                     headers: {
@@ -312,7 +316,7 @@ export const realApi = {
         },
 
         async getTeachers() {
-            const [teachers, error] = await axios
+            const [teachers, error] = await apiClient
                 .get(`/employers/teachers/`, {
                     method: 'GET',
                 })
@@ -326,7 +330,7 @@ export const realApi = {
         },
 
         async getSearch(query: string) {
-            return await axios
+            return await apiClient
                 .get(`/schedules/search/`, {
                     method: 'GET',
                     headers: {
@@ -338,7 +342,7 @@ export const realApi = {
         },
 
         async token() {
-            return await axios
+            return await apiClient
                 .post(`/token`, {
                     token: localStorage.getItem('refreshToken'),
                 })
@@ -349,7 +353,7 @@ export const realApi = {
     employees: {
         async getAllEmployees(): Promise<Employee[]> {
             return mapResult(
-                await axios
+                await apiClient
                     .get(`/schedules/search/`, {
                         method: 'GET',
                         headers: {

@@ -99,6 +99,6 @@ class StudentsSnapshot(BaseModelOrg):
 
     def save(self, *args, **kwargs):
         if not self.date:
-            self.date = get_org_local_datetime(self.get_org(raise_if_none=True)).date()
+            self.date = get_org_local_datetime(self.get_org).date()
         super().save(*args, **kwargs)
 

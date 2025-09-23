@@ -28,7 +28,6 @@ class RegisterStartView(APIView):
             timeout=300,
         )
 
-        print(code)
         return Response({"detail": "Code sent"})
 
 

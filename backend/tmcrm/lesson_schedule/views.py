@@ -4,6 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 import django_filters
 from django.db.models import Q
+
+from .filters import LessonFilter
 from .serializers.read import AttendanceReadSerializer, ClassroomReadSerializer, GradeReadSerializer, SubjectReadSerializer, PeriodScheduleReadSerializer
 from .serializers.write import AttendanceWriteSerializer, ClassroomWriteSerializer, GradeWriteSerializer, PeriodScheduleWriteSerializer, SubjectWriteSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
@@ -19,7 +21,7 @@ class ScheduleFilter(DateRangeMixin, django_filters.FilterSet):
 
     class Meta:
         model = Schedule
-        fields = "__all__"
+        exclude = ["duration"]
 
 
 class GradeFilter(django_filters.FilterSet):
@@ -72,7 +74,7 @@ class AbstractScheduleViewSet(
 
 class ScheduleViewSet(AbstractScheduleViewSet):
     queryset = Schedule.objects.all()
-    filterset_class = ScheduleFilter
+    filterset_class = LessonFilter
 
 
     critical_fields = (

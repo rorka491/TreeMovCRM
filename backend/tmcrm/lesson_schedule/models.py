@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from django.db import models
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError   
+from django.db.models import F, ExpressionWrapper, DurationField
 from django.utils import timezone
 from employers.models import Teacher
 from students.models import StudentGroup, Student
@@ -69,7 +70,7 @@ class Classroom(BaseModelOrg):
 
 class PeriodSchedule(BaseModelOrg):
     """Специльный класс для периодических занятий"""
-
+    
     period = models.PositiveSmallIntegerField(blank=True, null=True)
     title = models.CharField(max_length=200, null=True, blank=True)
     start_time = models.TimeField(blank=True, null=True)
@@ -118,6 +119,7 @@ class Schedule(BaseModelOrg):
 
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=True, null=True)
+
     teacher = models.ForeignKey(
         Teacher, on_delete=models.CASCADE, related_name="schedules"
     )
@@ -143,14 +145,15 @@ class Schedule(BaseModelOrg):
     period_schedule = models.ForeignKey(
         PeriodSchedule, on_delete=models.SET_NULL, blank=True, null=True
     )
+    duration = models.DurationField(blank=True, null=True, editable=False)
 
     class Meta:
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
         ordering = ["date", "start_time"]
 
-    @property
-    def duration_hours(self):
+    @property   
+    def calc_duration_hours(self):
         start_dt = datetime.combine(date.today(), self.start_time)
         end_dt = datetime.combine(date.today(), self.end_time)
         return round((end_dt - start_dt).total_seconds() / 3600, 2)
@@ -190,7 +193,8 @@ class Schedule(BaseModelOrg):
     def save(self, *args, **kwargs):
         if self.date:
             self.week_day = self.date.isoweekday()
-
+        if self.start_time and self.end_time:
+            self.duration = self.calc_duration_hours
         super().save(*args, **kwargs)
 
     def __str__(self):
