@@ -53,27 +53,26 @@ class LeaveType(models.TextChoices):
     SICK = "sick", "Больничный"
     UNPAID = "unpaid", "За свой счет"
 
+class LeaveStatus(models.TextChoices):
+    PENDING = 'pending', 'Ожидает'
+    APPROVED = "approved", "Одобрено"
+    REJECTED =   "rejected", "Отклонено"
 
 class LeaveRequest(BaseModelOrg):
     employee = models.ForeignKey(Employer, on_delete=models.CASCADE)
     leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
     start_date = models.DateField()
     end_date = models.DateField()
-    status = models.CharField(max_length=20, choices=[
-        ('pending', 'Ожидает'),
-        ('approved', 'Одобрено'),
-        ('rejected', 'Отклонено'),
-    ], default='pending')
-
+    status = models.CharField(max_length=20, choices=LeaveStatus.choices, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Запросы на отпуск'
         verbose_name_plural = "Запросы на отпуск"
-    
+
     def __str__(self) -> str:
         return f'{self.leave_type}'
-                                   
+
 
 class DocumentsTypes(BaseModelOrg):
     """

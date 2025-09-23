@@ -118,11 +118,14 @@ class BaseViewAuthPermission(ModelViewSet):
         return [IsAuthenticated(), IsSameOrganization()]
 
 
-class BaseViewSetWithOrdByOrg(BaseViewAuthPermission, GetCurrentSerializerMixin):
+class BaseViewSetWithOrdByOrg(
+    GetCurrentSerializerMixin, BaseViewAuthPermission
+):
     """
     Базовый ViewSet с автоматической фильтрацией по организации пользователя
     и дополнительными проверками прав доступа
     """
+
 
     filter_backends = [DjangoFilterBackend]
 
@@ -148,6 +151,7 @@ class BaseViewSetWithOrdByOrg(BaseViewAuthPermission, GetCurrentSerializerMixin)
         queryset = super().get_queryset()
         user = self.get_current_user()
         return queryset.filter_by_user(user)
+
 
 
 class OrganizationViewSet(
