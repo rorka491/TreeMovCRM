@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from employers.models import Teacher, Employer
+from employers.models import Teacher, Employer, Department
 from mainapp.serializers import BaseReadSerializer
 
 
@@ -14,3 +14,9 @@ class TeacherReadSerializer(BaseReadSerializer):
 
     class Meta(BaseReadSerializer.Meta):
         model = Teacher
+
+
+class DepartmentReadSerializer(BaseReadSerializer):
+
+    class Meta(BaseReadSerializer.Meta):
+        model = Department

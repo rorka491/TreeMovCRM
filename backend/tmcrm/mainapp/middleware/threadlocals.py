@@ -20,7 +20,7 @@ def get_current_org() -> 'Organization | None':
 
     if not user:
         raise UserNotHasBeenGet("Пользователь не найден")
-    return user.get_org()
+    return user.get_org
 
 class GetCurrentUserMiddleware():
 

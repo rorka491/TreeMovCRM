@@ -11,7 +11,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.request import Request
-from mainapp.serializers import BaseReadSerializer, BaseWriteSerializer
 from .models import Organization
 from .serializers import ColorSerializer, OrganizationWriteSerializer, OrganizationReadSerializer
 from .permissions import IsSameOrganization, OrgNameMatchPermission
@@ -142,7 +141,7 @@ class BaseViewSetWithOrdByOrg(
         return current_user
 
     def get_current_org(self, user: User) -> Organization:
-        org = user.get_org()
+        org = user.get_org
         if not org:
             raise ValueError("Организация не предоставлена")
         return org

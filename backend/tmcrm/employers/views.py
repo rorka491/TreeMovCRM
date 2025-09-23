@@ -1,12 +1,11 @@
 from django.http import FileResponse
-from .serializers.read import EmployerReadSerializer, TeacherReadSerializer
-from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer
+from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer
+from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer
 from .serializers.other import DocumentsSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
-from .models import Teacher, Employer, Documents
+from .models import Teacher, Employer, Documents, Department
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from mainapp.constants import HttpMethodLiteral
 
 
 class TeacherViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -15,14 +14,17 @@ class TeacherViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     read_serializer_class = TeacherReadSerializer
     write_serializer_class = TeacherWriteSerializer
 
-    def get_serializer_class(self):
-        return super().get_serializer_class()
 
 class EmployerViewSet(BaseViewSetWithOrdByOrg):
     queryset = Employer.objects.all()
     read_serializer_class = EmployerReadSerializer
     write_serializer_class = EmployerWriteSerializer
 
+
+class DepartmentViewSet(BaseViewSetWithOrdByOrg):
+    queryset = Department.objects.all()
+    read_serializer_class = DepartmentReadSerializer
+    write_serializer_class = DepartmentWriteSerializer
 
 class DownloadDocumentViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Documents.objects.all()

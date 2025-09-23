@@ -62,7 +62,7 @@ class OrgCreator(QuerySet):
             user = get_current_user()
 
         model_cls = self.model
-        user_org = user.get_org()
+        user_org = user.get_org
         if with_org and user_org is not None:
             return model_cls.objects.create(org=user_org, created_by=user, **kwargs)
 

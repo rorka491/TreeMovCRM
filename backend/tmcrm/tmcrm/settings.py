@@ -35,6 +35,7 @@ OTHER_APPS = [
     "corsheaders",
     "django_filters",
     "django_celery_beat",
+    "drf_yasg",
 ]
 
 APPS = [
@@ -180,7 +181,6 @@ else:
         "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
         "REFRESH_TOKEN_LIFETIME": timedelta(minutes=30),
     }
-
 
 
 AUTH_USER_MODEL = 'mainapp.User'
