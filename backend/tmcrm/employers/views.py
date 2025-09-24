@@ -26,6 +26,9 @@ class DepartmentViewSet(BaseViewSetWithOrdByOrg):
     read_serializer_class = DepartmentReadSerializer
     write_serializer_class = DepartmentWriteSerializer
 
+
+class 
+
 class DownloadDocumentViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Documents.objects.all()
     serializer_class = DocumentsSerializer
