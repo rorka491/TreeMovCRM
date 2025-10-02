@@ -1,9 +1,9 @@
 from django.http import FileResponse
-from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer
-from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer
+from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer, LeaveReadSerializer
+from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer, LeaveWriteSerializer
 from .serializers.other import DocumentsSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
-from .models import Teacher, Employer, Documents, Department
+from .models import Teacher, Employer, Documents, Department, Leave
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -45,3 +45,11 @@ class DownloadDocumentViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
             return Response({'detail': 'Document not found'}, status=404)
 
         return FileResponse(doc.file_path.open(), filename=doc.file_path.name)
+
+
+class LeaveViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = Leave.objects.all()
+    read_serializer_class = LeaveReadSerializer
+    write_serializer_class = LeaveWriteSerializer
+
+    

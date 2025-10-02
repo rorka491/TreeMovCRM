@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, TypeVar, Optional, Type
 from functools import wraps
 from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser, AnonymousUser
@@ -70,7 +70,7 @@ class SelectRelatedViewSet(ModelViewSet):
     select_related_fields = []
     prefetch_related_fields = []
 
-    def get_queryset(self):
+    def get_queryset(self) -> 'QuerySet':
         qs = super().get_queryset()
 
         if self.select_related_fields:
@@ -107,32 +107,35 @@ class SelectrealtedByModelsViewSet(ModelViewSet):
             fields = self.prefetch_related_fields_by_model.get(model_name, [])
             if fields:
                 queryset = queryset.prefetch_related(*fields)
-        
+
         return queryset
 
 
-class BaseViewAuthPermission(ModelViewSet):
-
-    def get_permissions(self) -> list["permissions.BasePermission"]:
-        return [IsAuthenticated(), IsSameOrganization()]
-
-
-class BaseViewSetWithOrdByOrg(
-    GetCurrentSerializerMixin, BaseViewAuthPermission
-):
+class BaseViewSetWithOrdByOrg(ModelViewSet):
     """
     Базовый ViewSet с автоматической фильтрацией по организации пользователя
     и дополнительными проверками прав доступа
     """
-
+    abstract = True
 
     filter_backends = [DjangoFilterBackend]
+    read_serializer_class: Optional[Type["BaseSerializer"]] = None
+    write_serializer_class: Optional[Type["BaseSerializer"]] = None
+    serializer_class: Optional[Type["BaseSerializer"]] = None
 
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        data["org"] = self.get_current_org(request.user).pk
-        request._full_data = data
-        return super().create(request, *args, **kwargs)
+    def get_serializer_class(
+        self,
+    ) -> type["BaseSerializer"]:
+        """Метод возвращает нужный сериализатор в зависимости от метода"""
+        if self.request.method in ("HEAD", "GET", "OPTIONS"):
+            return self.read_serializer_class or self.serializer_class
+        return self.write_serializer_class or self.serializer_class
+
+    def get_permissions(self) -> list["permissions.BasePermission"]:
+        return [IsAuthenticated(), IsSameOrganization()]
+
+    def perform_create(self, serializer):        
+        serializer.save(org=self.get_current_org(self.get_current_user()))
 
     def get_current_user(self) -> User:
         current_user = get_current_user()
@@ -146,15 +149,18 @@ class BaseViewSetWithOrdByOrg(
             raise ValueError("Организация не предоставлена")
         return org
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        user = self.get_current_user()
-        return queryset.filter_by_user(user)
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #     user = self.get_current_user()
+    #     return queryset.filter_by_user(user)
 
+    def get_queryset(self) -> "QuerySet":
+        queryset = super().get_queryset()
+        return queryset.filter(org=self.request.user.get_org)
 
 
 class OrganizationViewSet(
-    GetCurrentSerializerMixin, BaseViewAuthPermission
+    GetCurrentSerializerMixin, ModelViewSet
 ):
     queryset = Organization.objects.all()
     read_serializer_class = OrganizationReadSerializer

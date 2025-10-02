@@ -9,6 +9,7 @@ from .views import (
     EmployerViewSet,
     DownloadDocumentViewset,
     DepartmentViewSet,
+    LeaveViewSet,
 )
 
 router = DefaultRouter()
@@ -16,6 +17,7 @@ router.register(r'employers', EmployerViewSet, basename='employer')
 router.register(r'teachers', TeacherViewset, basename='teacher')
 router.register(r'documents', DownloadDocumentViewset, basename='documents')
 router.register(r"departments", DepartmentViewSet, basename="department")
+router.register(r"leaves", LeaveViewSet, basename="leave")
 
 urlpatterns = [
     path('', include(router.urls))

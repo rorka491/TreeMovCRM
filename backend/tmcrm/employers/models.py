@@ -1,4 +1,3 @@
-from tabnanny import verbose
 from django.db import models
 from mainapp.models import BaseModelOrg, Organization
 
@@ -64,7 +63,6 @@ class LeaveRequest(BaseModelOrg):
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=LeaveStatus.choices, default="pending")
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Запросы на отпуск'
@@ -72,6 +70,23 @@ class LeaveRequest(BaseModelOrg):
 
     def __str__(self) -> str:
         return f'{self.leave_type}'
+
+
+class Leave(BaseModelOrg): 
+    leave_request = models.OneToOneField(LeaveRequest, on_delete=models.CASCADE)
+    employee = models.ForeignKey("Employer", on_delete=models.CASCADE)
+    leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    class Meta:
+        verbose_name = "Отпуск"
+        verbose_name_plural = "Отпуска"
+
+    def __str__(self):
+        return (
+            f"{self.employee} — {self.leave_type} ({self.start_date} → {self.end_date})"
+        )
 
 
 class DocumentsTypes(BaseModelOrg):

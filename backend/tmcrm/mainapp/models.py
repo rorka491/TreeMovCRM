@@ -53,6 +53,8 @@ class BaseModelOrg(models.Model):
         on_delete=models.SET_NULL,
         related_name="created_%(class)s_set",
     )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    
     objects = OrgFullAccessManager()
     org_objects = OrgRestrictedManager()
     create_manager= OrgCreatorManager()

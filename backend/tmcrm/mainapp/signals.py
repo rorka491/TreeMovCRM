@@ -1,4 +1,3 @@
-from functools import wraps
 from django.db.models.signals import post_migrate, post_save, post_delete
 from django.dispatch import receiver
 from .utils import checkout_table, checkout_interval_schedule_table, delete_cache

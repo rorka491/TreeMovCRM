@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from mainapp.serializers import BaseWriteSerializer
-from employers.models import Department, Teacher, Employer
+from employers.models import Department, Teacher, Employer, Leave
 
 
 class EmployerWriteSerializer(BaseWriteSerializer):
@@ -20,3 +20,9 @@ class DepartmentWriteSerializer(BaseWriteSerializer):
 
     class Meta(BaseWriteSerializer.Meta):
         model = Department
+
+
+class LeaveWriteSerializer(BaseWriteSerializer):
+
+    class Meta(BaseWriteSerializer.Meta):
+        model = Leave
