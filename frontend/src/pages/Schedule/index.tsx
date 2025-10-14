@@ -7,6 +7,7 @@ import CategoryBar from '../../components/page/CategoryBar'
 import { api } from '../../api'
 import { Lesson } from '../../api/api'
 
+
 export function Schedule() {
     const [currentDate, setCurrentDate] = useState(new Date())
     let [lessons, setLessons] = useState<Lesson[]>([])
@@ -39,7 +40,7 @@ export function Schedule() {
         {
             id: 'teacher',
             label: 'Преводователь',
-            options: ['Роман', 'Никита', 'Родион'],
+            options: [] as string[],
             search: true,
             removeButton: true,
             multiple: true,
@@ -47,7 +48,7 @@ export function Schedule() {
         {
             id: 'group',
             label: 'Группа',
-            options: ['A', 'B'],
+            options: [] as string[],
             multiple: true,
             search: true,
             removeButton: true,
@@ -55,7 +56,7 @@ export function Schedule() {
         {
             id: 'subject',
             label: 'Предмет',
-            options: ['Информатика', 'История'],
+            options: [] as string[],
             multiple: true,
             search: true,
             removeButton: true,
@@ -68,7 +69,7 @@ export function Schedule() {
         {
             id: 'auditorium',
             label: 'Аудитория',
-            options: ['600', '1000'],
+            options: [] as string[],
             multiple: true,
             search: true,
             removeButton: true,
@@ -81,19 +82,27 @@ export function Schedule() {
             filterData[0].options = teachers.map(
                 (teacher) => teacher.employer.name
             )
-
             setFilterData([...filterData])
         })
 
         api.students.getAllGroups().then((groups) => {
             // @ts-ignore
-            filterData[1].options = groups
+            filterData[1].options = groups.map(
+                (group) => group.name
+            )
+            setFilterData([...filterData])
         })
 
-        api.schedules.getSubjects().then((subjects) => {})
+        api.schedules.getSubjects().then((subjects) => {
+            // @ts-ignore
+            filterData[2].options = subjects.map(
+                (subject) => subject.name
+            )
+            setFilterData([...filterData])
+        })
     }, [])
 
-    lessons = lessons
+    const filteredLessons = lessons
         .filter(
             (lesson) =>
                 !filtersSelected.teacher ||
@@ -106,7 +115,13 @@ export function Schedule() {
             (lesson) =>
                 !filtersSelected.group ||
                 filtersSelected.group.length === 0 ||
-                filtersSelected.group.some((g) => g === lesson.group.name)
+                filtersSelected.group.some((g) => g === lesson?.group?.name)
+        )
+        .filter(
+            (lesson) =>
+                !filtersSelected.subject ||
+                filtersSelected.subject.length === 0 ||
+                filtersSelected.subject.some((s) => s === lesson?.subject?.name)
         )
 
     return (
@@ -128,6 +143,7 @@ export function Schedule() {
                 disableAddButton={true}
                 filterData={filterData}
                 selectedChange={setFiltersSelected}
+                disableExportButton={true}
             />
             <CalendarBar
                 currentDate={currentDate}
@@ -136,7 +152,7 @@ export function Schedule() {
             <Outlet
                 context={{
                     currentDate,
-                    lessons,
+                    lessons: filteredLessons,
                     setCurrentDate,
                     upsertLesson,
                 }}

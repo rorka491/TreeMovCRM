@@ -15,7 +15,8 @@ class StudentWriteSerializer(BaseWriteSerializer):
 
 class StudentGroupWriteSerializer(BaseWriteSerializer):
     students = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Student.objects.all()
+        many=True, queryset=Student.objects.all(), 
+        required=False, default=list
     )
 
     class Meta(BaseWriteSerializer.Meta):

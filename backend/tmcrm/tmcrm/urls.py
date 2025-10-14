@@ -9,9 +9,6 @@ from lesson_schedule.urls import router as schedule_router
 from employers.urls import router as employers_router
 from students.urls import router as students_router
 
-from rest_framework import permissions
-
-
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -22,3 +19,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

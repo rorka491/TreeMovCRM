@@ -10,13 +10,11 @@ from .serializers.read import StudentGroupReadSerializer, StudentReadSerializer,
 from .serializers.write import StudentGroupWriteSerializer, StudentWriteSerializer, ParentWriteSerializer
 
 
-
 class StudentGroupViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = StudentGroup.objects.all()
     read_serializer_class = StudentGroupReadSerializer
-    write_serializer_class = StudentGroupReadSerializer
+    write_serializer_class = StudentGroupWriteSerializer
     prefetch_related_fields = ['students']
-
 
     @action(detail=False, methods=['post'], url_path='search')
     @base_search
@@ -59,7 +57,6 @@ class StudentGradeViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Grade.objects.all()
     read_serializer_class = GradeReadSerializer
     write_serializer_class = GradeReadSerializer
-
 
 
 class ParentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):

@@ -1,10 +1,19 @@
+from typing import TYPE_CHECKING
 from django.core.cache import cache
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from .serializers import RegeisterConfirmSerializer, RegisterStartSerializer
 from .utils import generate_six_digit_code
+from .models import Invite
 from django.contrib.auth import get_user_model
+from mainapp.permissions import IsSameOrganization
 
+                                
+if TYPE_CHECKING: 
+    from rest_framework.request import Request
+                        
 class RegisterStartView(APIView):
 
     def post(self, request) -> Response:
@@ -32,8 +41,9 @@ class RegisterStartView(APIView):
 
 
 class RegisterConfirmView(APIView):
+    permission_classes = [IsAuthenticated, IsSameOrganization]
 
-    def post(self, request):
+    def post(self, request) -> Response:
         serializer = RegeisterConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated = serializer.validated_data
@@ -56,3 +66,20 @@ class RegisterConfirmView(APIView):
                 {"code": 200, "detail": f"User {username} created successfully."}
             )
         return Response({"code": 403, "detail": "Invalid confirmation code."})
+
+
+class CreateInviteLink(APIView): 
+    permission_classes = [IsAuthenticated, IsSameOrganization]
+
+
+    def post(self, request): 
+        org = request.user.get_org
+        invite = Invite.create_manager.create()
+        link = request.build_absolute_uri(f"/join/{invite.token}/")
+        return Response({"invite_link": link})
+
+class JoinOrganizationView(APIView):
+
+    def post(self, request, token) -> Response:
+        ...
+        

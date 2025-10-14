@@ -12,7 +12,6 @@ const Sidebar = ({ isVisible, setIsVisible, setSection }) => {
         { path: '/employees', label: 'Сотрудники' },
         { path: '/students', label: 'Ученики' },
         { path: '/financial_reporting', label: 'Финансовая отчётность' },
-        { path: '/settings', label: 'Настройки' },
     ]
 
     useEffect(() => {

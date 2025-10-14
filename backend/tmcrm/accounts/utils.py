@@ -1,7 +1,11 @@
 import random
-from django.conf import settings
+from typing import TYPE_CHECKING
+from django.conf import settings      
 from django.core.mail import send_mail
+from django.http import request
 
+if TYPE_CHECKING:
+    from .models import Invite
 
 def send_email(email, code):
     subject = "Код подтверждения"
@@ -14,3 +18,4 @@ def send_email(email, code):
 
 def generate_six_digit_code() -> str:
     return str(random.randint(100000, 999999))
+

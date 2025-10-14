@@ -4,7 +4,7 @@ from mainapp.urls import router as mainapp_router
 
 
 urlpatterns = [
-    path("auth/", include("auth.urls")),
+    path("auth/", include("accounts.urls")),
     path("students/", include("students.urls")),
     path("schedules/", include("lesson_schedule.urls")),
     path("employers/", include("employers.urls")),
@@ -13,6 +13,3 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("", include(mainapp_router.urls)),
 ]
-
-
-

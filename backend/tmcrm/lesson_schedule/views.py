@@ -6,8 +6,8 @@ import django_filters
 from django.db.models import Q
 
 from .filters import LessonFilter
-from .serializers.read import AttendanceReadSerializer, ClassroomReadSerializer, GradeReadSerializer, SubjectReadSerializer, PeriodScheduleReadSerializer
-from .serializers.write import AttendanceWriteSerializer, ClassroomWriteSerializer, GradeWriteSerializer, PeriodScheduleWriteSerializer, SubjectWriteSerializer
+from .serializers.read import AttendanceReadSerializer, ClassroomReadSerializer, GradeReadSerializer, ScheduleReadSerializer, SubjectReadSerializer, PeriodScheduleReadSerializer
+from .serializers.write import AttendanceWriteSerializer, ClassroomWriteSerializer, GradeWriteSerializer, PeriodScheduleWriteSerializer, ScheduleWriteSerializer, SubjectWriteSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
 from mainapp.filters import DateRangeMixin
 from .utils import _grouped_response
@@ -75,6 +75,8 @@ class AbstractScheduleViewSet(
 class ScheduleViewSet(AbstractScheduleViewSet):
     queryset = Schedule.objects.all()
     filterset_class = LessonFilter
+    read_serializer_class = ScheduleReadSerializer
+    write_serializer_class = ScheduleWriteSerializer
 
 
     critical_fields = (

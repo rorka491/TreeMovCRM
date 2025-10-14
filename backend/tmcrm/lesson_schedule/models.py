@@ -153,10 +153,13 @@ class Schedule(BaseModelOrg):
         ordering = ["date", "start_time"]
 
     @property   
-    def calc_duration_hours(self):
-        start_dt = datetime.combine(date.today(), self.start_time)
-        end_dt = datetime.combine(date.today(), self.end_time)
-        return round((end_dt - start_dt).total_seconds() / 3600, 2)
+    def calc_duration(self):
+        """Возвращает timedelta между start_time и end_time"""
+        if self.start_time and self.end_time:
+            start_dt = datetime.combine(date.today(), self.start_time)
+            end_dt = datetime.combine(date.today(), self.end_time)
+            return end_dt - start_dt
+        return None
 
     def clean(self):
         if self.start_time >= self.end_time:
@@ -194,7 +197,7 @@ class Schedule(BaseModelOrg):
         if self.date:
             self.week_day = self.date.isoweekday()
         if self.start_time and self.end_time:
-            self.duration = self.calc_duration_hours
+            self.duration = self.calc_duration
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -111,7 +111,7 @@ class SelectrealtedByModelsViewSet(ModelViewSet):
         return queryset
 
 
-class BaseViewSetWithOrdByOrg(ModelViewSet):
+class BaseViewSetWithOrdByOrg(GetCurrentSerializerMixin, ModelViewSet):
     """
     Базовый ViewSet с автоматической фильтрацией по организации пользователя
     и дополнительными проверками прав доступа
@@ -119,23 +119,12 @@ class BaseViewSetWithOrdByOrg(ModelViewSet):
     abstract = True
 
     filter_backends = [DjangoFilterBackend]
-    read_serializer_class: Optional[Type["BaseSerializer"]] = None
-    write_serializer_class: Optional[Type["BaseSerializer"]] = None
-    serializer_class: Optional[Type["BaseSerializer"]] = None
-
-    def get_serializer_class(
-        self,
-    ) -> type["BaseSerializer"]:
-        """Метод возвращает нужный сериализатор в зависимости от метода"""
-        if self.request.method in ("HEAD", "GET", "OPTIONS"):
-            return self.read_serializer_class or self.serializer_class
-        return self.write_serializer_class or self.serializer_class
 
     def get_permissions(self) -> list["permissions.BasePermission"]:
         return [IsAuthenticated(), IsSameOrganization()]
 
     def perform_create(self, serializer):        
-        serializer.save(org=self.get_current_org(self.get_current_user()))
+        serializer.save(org=self.get_current_org(self.get_current_user()), created_by=self.get_current_user())
 
     def get_current_user(self) -> User:
         current_user = get_current_user()
@@ -156,7 +145,8 @@ class BaseViewSetWithOrdByOrg(ModelViewSet):
 
     def get_queryset(self) -> "QuerySet":
         queryset = super().get_queryset()
-        return queryset.filter(org=self.request.user.get_org)
+        user_org = self.request.user.get_org
+        return queryset.filter(Q(org=user_org) | Q(org__isnull=True))
 
 
 class OrganizationViewSet(

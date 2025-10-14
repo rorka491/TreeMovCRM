@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+
 from .validators import color_regex
 from .fields import MonthDayField
 from .managers import (
@@ -13,6 +14,7 @@ from .managers import (
 )
 from django.db import models
 from .exceptions.user_exceptions import UserHasNoOrg
+from .constants import UserRole, NoteCategory, TIMEZONE_CHOICES
 
 
 class Organization(models.Model):
@@ -107,21 +109,11 @@ class SubjectColor(BaseModelOrg):
 
 
 class User(AbstractUser, BaseModelOrg):
-    ROLES = (
-        ("admin", "Администратор"),
-        ("manager", "Менеджер"),
-        ("user", "Пользователь"),
-    )
-
-    role = models.CharField(max_length=20, choices=ROLES, default="user")
+    role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.USER)
     
-
-
     def has_role(self, *roles) -> bool:
         return getattr(self, "role", None) in roles
     
-
-
     def __str__(self):
         return f"{self.username} ({self.role})"
 
@@ -138,7 +130,6 @@ class UserSettings(BaseModelOrg):
 
 
 class OrgSettings(BaseModelOrg):
-    TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.all_timezones]
     org = models.OneToOneField(
         Organization, on_delete=models.CASCADE, related_name="settings"
     )
@@ -159,3 +150,27 @@ class OrgSettings(BaseModelOrg):
 
     def __str__(self):
         return f"Настройки {self.org.name}"
+
+
+class TeacherProfile(BaseModelOrg):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile", null=True)
+    teacher = models.OneToOneField("employers.Teacher", on_delete=models.CASCADE, related_name="profile")      
+
+
+class StudentProfile(BaseModelOrg): 
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="student_profile", null=True
+    )
+    student = models.OneToOneField("students.Student", on_delete=models.CASCADE, related_name="profile")
+
+
+class TeacherNote(BaseModelOrg): 
+    teacher = models.ForeignKey(
+        TeacherProfile,
+        on_delete=models.CASCADE,
+        related_name="notes",
+    )
+    title = models.CharField(max_length=255)
+    text = models.TextField(max_length=3000)
+    category = models.CharField(choices=NoteCategory.choices, default=NoteCategory.GENERAL)
+

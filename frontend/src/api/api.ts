@@ -203,7 +203,7 @@ export const realApi = {
                 return []
             }
 
-            return preGroups.map((preGroup) => preGroup.name)
+            return preGroups
         },
         async getAllGrades(): Promise<Grade[]> {
             const [preGrades, error] = await apiClient
@@ -276,11 +276,16 @@ export const realApi = {
             }))
         },
         async getSubjects() {
-            return await apiClient
+            const [subjects, error] = await apiClient
                 .get(`/schedules/subjects/`)
-                .then((res) => realApi.isOk(res))
-        },
+                .then((res) => realApi.isOk<{ name: string }[]>(res))
 
+            if (error !== null || !subjects) {
+                return []
+            }
+
+            return subjects
+        },
         async getClassrooms() {
             return await apiClient
                 .get(`/schedules/classrooms/`, {

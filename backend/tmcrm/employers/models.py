@@ -62,7 +62,9 @@ class LeaveRequest(BaseModelOrg):
     leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
     start_date = models.DateField()
     end_date = models.DateField()
-    status = models.CharField(max_length=20, choices=LeaveStatus.choices, default="pending")
+    status = models.CharField(
+        max_length=20, choices=LeaveStatus.choices, default=LeaveStatus.PENDING
+    )
 
     class Meta:
         verbose_name = 'Запросы на отпуск'
@@ -71,6 +73,9 @@ class LeaveRequest(BaseModelOrg):
     def __str__(self) -> str:
         return f'{self.leave_type}'
 
+    @property
+    def is_approved(self) -> bool:
+        return self.status == LeaveStatus.APPROVED
 
 class Leave(BaseModelOrg): 
     leave_request = models.OneToOneField(LeaveRequest, on_delete=models.CASCADE)
@@ -78,6 +83,8 @@ class Leave(BaseModelOrg):
     leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
     start_date = models.DateField()
     end_date = models.DateField()
+    comment= models.TextField(null=True)
+    documents = models.ManyToManyField("Documents", related_name='leaves')
 
     class Meta:
         verbose_name = "Отпуск"
@@ -87,7 +94,6 @@ class Leave(BaseModelOrg):
         return (
             f"{self.employee} — {self.leave_type} ({self.start_date} → {self.end_date})"
         )
-
 
 class DocumentsTypes(BaseModelOrg):
     """
