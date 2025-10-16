@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from employers.models import Teacher, Employer, Department, Leave
+from employers.models import Teacher, Employer, Department, Leave, TeacherNote
 from mainapp.serializers import BaseReadSerializer
 
 
@@ -26,3 +26,9 @@ class LeaveReadSerializer(BaseReadSerializer):
 
     class Meta(BaseReadSerializer.Meta):
         model = Leave
+
+
+class TeacherNoteReadSerializer(BaseReadSerializer):
+
+    class Meta(BaseReadSerializer.Meta):
+        model = TeacherNote

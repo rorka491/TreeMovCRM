@@ -1,5 +1,3 @@
-import pytz
-from typing import Optional
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -14,7 +12,7 @@ from .managers import (
 )
 from django.db import models
 from .exceptions.user_exceptions import UserHasNoOrg
-from .constants import UserRole, NoteCategory, TIMEZONE_CHOICES
+from .constants import UserRole, TIMEZONE_CHOICES
 
 
 class Organization(models.Model):
@@ -110,12 +108,22 @@ class SubjectColor(BaseModelOrg):
 
 class User(AbstractUser, BaseModelOrg):
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.USER)
-    
+
     def has_role(self, *roles) -> bool:
         return getattr(self, "role", None) in roles
-    
+
     def __str__(self):
         return f"{self.username} ({self.role})"
+
+
+    def get_student_profile(self):
+        return getattr(self, "student_profile", None)
+
+    def get_manager_profile(self):
+        return getattr(self, "manager_profile", None)
+
+    def get_teacher_profile(self):
+        return getattr(self, "teacher_profile", None)
 
 
 class UserSettings(BaseModelOrg):
@@ -152,6 +160,10 @@ class OrgSettings(BaseModelOrg):
         return f"Настройки {self.org.name}"
 
 
+class ManagerProfile(BaseModelOrg):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="manager_profile", null=True)
+    employer = models.OneToOneField("employers.Employer", on_delete=models.CASCADE, related_name="profile")      
+
 class TeacherProfile(BaseModelOrg):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile", null=True)
     teacher = models.OneToOneField("employers.Teacher", on_delete=models.CASCADE, related_name="profile")      
@@ -162,15 +174,3 @@ class StudentProfile(BaseModelOrg):
         User, on_delete=models.CASCADE, related_name="student_profile", null=True
     )
     student = models.OneToOneField("students.Student", on_delete=models.CASCADE, related_name="profile")
-
-
-class TeacherNote(BaseModelOrg): 
-    teacher = models.ForeignKey(
-        TeacherProfile,
-        on_delete=models.CASCADE,
-        related_name="notes",
-    )
-    title = models.CharField(max_length=255)
-    text = models.TextField(max_length=3000)
-    category = models.CharField(choices=NoteCategory.choices, default=NoteCategory.GENERAL)
-

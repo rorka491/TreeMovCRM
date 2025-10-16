@@ -36,6 +36,7 @@ OTHER_APPS = [
     "corsheaders",
     "django_filters",
     "django_celery_beat",
+    "debug_toolbar",
 ]
 
 APPS = [
@@ -63,6 +64,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -209,6 +211,11 @@ LOGGING = {
         "level": "DEBUG",
     },
 }
+
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

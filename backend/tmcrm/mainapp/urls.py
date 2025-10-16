@@ -10,12 +10,11 @@ from .views import OrganizationViewSet
 
 
 router = SimpleRouter()
-router.register(r'organizations', OrganizationViewSet, basename='organization')                      
+router.register(r'organizations', OrganizationViewSet, basename='organization')   
 
-
-                                                                               
+                                                                 
 urlpatterns = [                                             
-    path('', RedirectView.as_view(url="/admin/", permanent=False)),
+    path('', RedirectView.as_view(url="/admin/", permanent=True)),
 ]
 
 urlpatterns += router.urls

@@ -1,9 +1,10 @@
+from rest_framework.exceptions import ValidationError
 from django.http import FileResponse
-from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer, LeaveReadSerializer
-from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer, LeaveWriteSerializer
+from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer, LeaveReadSerializer, TeacherNoteReadSerializer
+from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer, LeaveWriteSerializer, TeacherNoteWriteSerializer
 from .serializers.other import DocumentsSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
-from .models import Teacher, Employer, Documents, Department, Leave
+from .models import Teacher, Employer, Documents, Department, Leave, TeacherNote
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -25,8 +26,6 @@ class DepartmentViewSet(BaseViewSetWithOrdByOrg):
     queryset = Department.objects.all()
     read_serializer_class = DepartmentReadSerializer
     write_serializer_class = DepartmentWriteSerializer
-
-
 
 
 class DownloadDocumentViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -52,4 +51,15 @@ class LeaveViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     read_serializer_class = LeaveReadSerializer
     write_serializer_class = LeaveWriteSerializer
 
-    
+
+class TeacherNoteViewSet(BaseViewSetWithOrdByOrg):
+    queryset = TeacherNote.objects.all()
+    read_serializer_class = TeacherNoteReadSerializer
+    write_serializer_class = TeacherNoteWriteSerializer
+
+    def perform_create(self, serializer):
+        teacher_profile = self.request.user.get_teacher_profile()
+        if not teacher_profile:
+            raise ValidationError("Профиль учителя не найден")
+
+        super().perform_create(serializer, teacher_profile=teacher_profile)

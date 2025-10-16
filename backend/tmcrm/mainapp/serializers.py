@@ -45,32 +45,40 @@ class BaseSerializerExcludeFields(serializers.ModelSerializer):
         fields = '__all__'
 
 class BaseReadSerializer(BaseSerializerExcludeFields):
+    def __init__(self, *args, **kwargs): # Все поля по умолчанию read_only
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.read_only = True
 
     class Meta(BaseSerializerExcludeFields.Meta):
         ...
 
-
 class BaseWriteSerializer(BaseSerializerExcludeFields):
 
     class Meta(BaseSerializerExcludeFields.Meta):
-        exclude = ['org', 'created_by']
+        exclude = ['org', 'created_by', 'created_at']
         fields = None
+
+
 
 class ColorSerializer(BaseSerializerExcludeFields):
 
     class Meta(BaseSerializerExcludeFields.Meta):
         model = SubjectColor
 
+
 class OrganizationReadSerializer(BaseReadSerializer):
     
     class Meta(BaseReadSerializer.Meta):
         model = Organization
+
 
 class OrganizationWriteSerializer(BaseWriteSerializer):
 
     class Meta(BaseWriteSerializer.Meta):
         model = Organization
         exclude = ["created_by"]
+
 
 class RegisterStartSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)

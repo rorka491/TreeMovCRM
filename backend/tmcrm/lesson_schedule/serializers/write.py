@@ -42,6 +42,7 @@ class ScheduleWriteSerializer(BaseWriteSerializer):
 
     class Meta(BaseWriteSerializer.Meta):
         model = Schedule
+        exclude_fields = ['week_day']
 
 
 class PeriodScheduleWriteSerializer(BaseWriteSerializer):

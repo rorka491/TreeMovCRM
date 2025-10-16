@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db.models import Q, QuerySet
 from django.conf import settings
 from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.decorators import action
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.views import APIView
@@ -123,8 +124,8 @@ class BaseViewSetWithOrdByOrg(GetCurrentSerializerMixin, ModelViewSet):
     def get_permissions(self) -> list["permissions.BasePermission"]:
         return [IsAuthenticated(), IsSameOrganization()]
 
-    def perform_create(self, serializer):        
-        serializer.save(org=self.get_current_org(self.get_current_user()), created_by=self.get_current_user())
+    def perform_create(self, serializer, **kwargs):        
+        serializer.save(org=self.get_current_org(self.get_current_user()), created_by=self.get_current_user(), **kwargs)
 
     def get_current_user(self) -> User:
         current_user = get_current_user()
@@ -138,16 +139,23 @@ class BaseViewSetWithOrdByOrg(GetCurrentSerializerMixin, ModelViewSet):
             raise ValueError("Организация не предоставлена")
         return org
 
-    # def get_queryset(self):
-    #     queryset = super().get_queryset()
-    #     user = self.get_current_user()
-    #     return queryset.filter_by_user(user)
-
     def get_queryset(self) -> "QuerySet":
         queryset = super().get_queryset()
         user_org = self.request.user.get_org
         return queryset.filter(Q(org=user_org) | Q(org__isnull=True))
 
+    @action(detail=False, methods=["POST", "GET"])
+    def schema(self, request): 
+        serializer = self.get_serializer()     
+        example = {}
+        for name, field in serializer.fields.items():
+            example[name] = {
+                "type": field.__class__.__name__,
+                "required": field.required,
+                "read_only": field.read_only,
+                "help_text": field.help_text,
+            }
+        return Response(example)
 
 class OrganizationViewSet(
     GetCurrentSerializerMixin, ModelViewSet

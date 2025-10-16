@@ -1,5 +1,6 @@
 from django.db import models
 from mainapp.models import BaseModelOrg, Organization
+from .constants import NoteCategory
 
 
 class Department(BaseModelOrg):
@@ -121,8 +122,25 @@ class Documents(BaseModelOrg):
     upload_at = models.DateTimeField(auto_now_add=True)
     access_to_document = models.ManyToManyField(User) 
     doc_type = models.ForeignKey(DocumentsTypes, on_delete=models.CASCADE, blank=True, null=True)
-    
 
     class Meta: 
         verbose_name = 'Документ'
         verbose_name_plural = 'Документы'
+
+
+class TeacherNote(BaseModelOrg):
+    teacher_profile = models.ForeignKey(
+        'mainapp.TeacherProfile',
+        on_delete=models.CASCADE,
+        related_name="notes",
+        )
+    title = models.CharField(max_length=255)
+    text = models.TextField(max_length=3000)
+    category = models.CharField(
+        choices=NoteCategory.choices, default=NoteCategory.GENERAL
+    )
+
+
+
+
+
