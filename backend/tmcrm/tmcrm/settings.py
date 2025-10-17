@@ -102,9 +102,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'PASSWORD': 'postgre',
         'HOST': 'localhost',
-        'PORT': '5433', 
+        'PORT': '5432', 
     }
 }
 
@@ -208,7 +208,30 @@ LOGGING = {
     },
 }
 
-
+# ВРЕМЕННО ДЛЯ ДЕБАГА - потом убери
+import sys
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    }
+}
 # EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_HOST = "smtp.your-email-provider.com"
 # EMAIL_PORT = 587
