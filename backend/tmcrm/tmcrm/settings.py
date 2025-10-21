@@ -106,7 +106,7 @@ DATABASES = {
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
-        'PORT': '5433', 
+        'PORT': '5432',
     }
 }
 
@@ -211,10 +211,11 @@ LOGGING = {
 }
 
 
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.your-email-provider.com"
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = "your_email@example.com"
-# EMAIL_HOST_PASSWORD = "your_email_password"
-# EMAIL_USE_TLS = True
-# DEFAULT_FROM_EMAIL = "Your Project <your_email@example.com>"
+# Надо заменить на другую почту
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.mail.ru"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "kurganovl07@mail.ru"
+EMAIL_HOST_PASSWORD = "SfahAFF1t1FeBbDyxEEv" 
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "TMCRM <kurganovl07@mail.ru>"
