@@ -1,5 +1,6 @@
 from rest_framework.exceptions import ValidationError
 from django.http import FileResponse
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer, LeaveReadSerializer, TeacherNoteReadSerializer
 from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer, LeaveWriteSerializer, TeacherNoteWriteSerializer
 from .serializers.other import DocumentsSerializer
@@ -7,6 +8,7 @@ from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
 from .models import Teacher, Employer, Documents, Department, Leave, TeacherNote
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from .permissions import IsTeacherProfile
 
 
 class TeacherViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -52,14 +54,15 @@ class LeaveViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     write_serializer_class = LeaveWriteSerializer
 
 
-class TeacherNoteViewSet(BaseViewSetWithOrdByOrg):
+class TeacherNoteViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    select_related_fields = ["teacher_profile", ]
     queryset = TeacherNote.objects.all()
     read_serializer_class = TeacherNoteReadSerializer
     write_serializer_class = TeacherNoteWriteSerializer
 
+    def get_permissions(self) -> list[BasePermission]:
+        return [IsAuthenticated(), IsTeacherProfile()]
+
     def perform_create(self, serializer):
         teacher_profile = self.request.user.get_teacher_profile()
-        if not teacher_profile:
-            raise ValidationError("Профиль учителя не найден")
-
         super().perform_create(serializer, teacher_profile=teacher_profile)

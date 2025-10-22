@@ -32,6 +32,7 @@ class AttendanceWriteSerializer(BaseWriteSerializer):
 
     class Meta(BaseWriteSerializer.Meta):
         model = Attendance
+        read_only_fields = ['lesson_date', ]
 
 
 class ScheduleWriteSerializer(BaseWriteSerializer):

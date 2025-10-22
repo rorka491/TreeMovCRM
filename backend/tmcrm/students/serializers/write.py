@@ -1,7 +1,8 @@
 from lesson_schedule.models import Attendance
 from mainapp.serializers import BaseWriteSerializer
 from rest_framework import serializers
-from students.models import StudentGroup, Student, Parent
+from students.models import StudentGroup, Student, Parent, Accrual
+from mainapp.models import TeacherProfile
 
 
 class StudentWriteSerializer(BaseWriteSerializer):
@@ -30,3 +31,15 @@ class ParentWriteSerializer(BaseWriteSerializer):
 
     class Meta(BaseWriteSerializer.Meta):
         model = Parent
+
+
+class AccrualWriteSerializer(BaseWriteSerializer): 
+    teacher_profile = serializers.PrimaryKeyRelatedField(
+        queryset=TeacherProfile.objects.all()
+    )
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+
+
+    class Meta(BaseWriteSerializer.Meta):
+        model = Accrual
+        

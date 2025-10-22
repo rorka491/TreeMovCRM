@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from mainapp.models import BaseModelOrg
 from mainapp.validators import phone_number_regex
 from mainapp.utils import get_org_local_datetime
+from .constants import AccuralCategory
 
 class StudentManager(models.Manager):
 
@@ -19,6 +20,7 @@ class Student(BaseModelOrg):
     birthday = models.DateField()
     email = models.EmailField(null=True, blank=True)
     avatar = models.ImageField(null=True, blank=True)
+    score = models.IntegerField(default=0)
 
 
     class Meta: 
@@ -101,4 +103,30 @@ class StudentsSnapshot(BaseModelOrg):
         if not self.date:
             self.date = get_org_local_datetime(self.get_org).date()
         super().save(*args, **kwargs)
+
+
+class Accrual(BaseModelOrg):
+    amount = models.IntegerField(verbose_name="Количество баллов")
+    teacher_profile = models.ForeignKey(
+        "mainapp.TeacherProfile",
+        on_delete=models.CASCADE,
+        related_name="accruals",
+        verbose_name="Профиль преподавателя",
+    )
+    student = models.ForeignKey(
+        "students.Student",
+        on_delete=models.CASCADE,
+    )
+    category = models.CharField(
+        max_length=30, 
+        choices=AccuralCategory, 
+        default=AccuralCategory.ATTENDANCE,
+        verbose_name="Категория начисления", 
+    )
+    comment = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        verbose_name = "Начисление баллов"
+        verbose_name_plural = "Начисления баллов"
+
 

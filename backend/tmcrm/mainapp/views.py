@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db.models import Q, QuerySet
 from django.conf import settings
-from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.exceptions import NotAuthenticated

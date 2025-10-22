@@ -203,3 +203,8 @@ class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     read_serializer_class = AttendanceReadSerializer
     write_serializer_class = AttendanceWriteSerializer
 
+    def perform_create(self, serializer):        
+        lesson = serializer.validated_data.get('lesson')
+        date = lesson.date  
+        super().perform_create(serializer, lesson_date=date)
+

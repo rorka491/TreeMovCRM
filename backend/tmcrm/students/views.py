@@ -5,9 +5,19 @@ from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_se
 from lesson_schedule.models import Grade
 from lesson_schedule.serializers.read import GradeReadSerializer
 from .models import StudentGroup, Student
-from students.models import Parent
-from .serializers.read import StudentGroupReadSerializer, StudentReadSerializer, ParentReadSerializer
-from .serializers.write import StudentGroupWriteSerializer, StudentWriteSerializer, ParentWriteSerializer
+from .models import Parent, Accrual
+from .serializers.read import (
+    StudentGroupReadSerializer,
+    StudentReadSerializer,
+    ParentReadSerializer,
+    AccrualReadSerializer,
+)
+from .serializers.write import (
+    StudentGroupWriteSerializer,
+    StudentWriteSerializer,
+    ParentWriteSerializer,
+    AccrualWriteSerializer,
+)
 
 
 class StudentGroupViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -64,3 +74,10 @@ class ParentViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     prefetch_related_fields = ['child']
     read_serializer_class = ParentReadSerializer
     write_serializer_class = ParentWriteSerializer
+
+
+class AccrualViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = Accrual.objects.all()
+    select_related_fields = ["teacher_profile", "student"]
+    read_serializer_class = AccrualReadSerializer
+    write_serializer_class = AccrualWriteSerializer

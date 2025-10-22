@@ -6,7 +6,7 @@ from .views import (
     ParentViewSet,
     StudentGroupViewSet,
     StudentGradeViewSet,
-
+    AccrualViewSet,
 )
 
 
@@ -15,6 +15,7 @@ router.register(r'students', StudentViewSet, basename='student')
 router.register(r'parents', ParentViewSet, basename='parent')
 router.register(r'student_groups', StudentGroupViewSet, basename='student_group')
 router.register(r'grades', StudentGradeViewSet, basename='all-student-grades') 
+router.register(r"accruals", AccrualViewSet, basename="accruals")
 
 
 # вложенный роутер работает как
