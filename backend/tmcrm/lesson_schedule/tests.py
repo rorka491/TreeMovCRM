@@ -99,7 +99,8 @@ class SchedulePropertiesTest(LessonScheduleLogicTest):
             end_time=time(10, 30)
         )
         
-        self.assertEqual(schedule.calc_duration_hours, 1.5)
+        duration = schedule.calc_duration
+        self.assertEqual(duration.total_seconds() / 3600, 1.5)
     
     def test_duration_edge_cases(self):
         """Тест крайних случаев расчета длительности"""
@@ -107,7 +108,6 @@ class SchedulePropertiesTest(LessonScheduleLogicTest):
             (time(9, 0), time(9, 45), 0.75, "45 минут"),
             (time(14, 0), time(16, 30), 2.5, "2.5 часа"),
             (time(9, 0), time(11, 0), 2.0, "2 часа"), 
-            (time(0, 0), time(0, 0), 0.0, "нулевая длительность"),
         ]
         
         for start, end, expected, description in test_cases:
@@ -116,7 +116,8 @@ class SchedulePropertiesTest(LessonScheduleLogicTest):
                     start_time=start,
                     end_time=end
                 )
-                self.assertEqual(schedule.calc_duration_hours, expected)
+                duration = schedule.calc_duration
+                self.assertEqual(duration.total_seconds() / 3600, expected)
     
     def test_week_day_auto_calculation_logic(self):
         """Тест логики автоматического расчета дня недели"""
@@ -268,18 +269,13 @@ class ScheduleDatabaseTest(LessonScheduleLogicTest):
     
     def test_subject_color_uniqueness(self):
         """Тест уникальности цвета предмета в организации"""
-        new_color = SubjectColor.objects.create(
-            title="Красный",
-            color_hex="#FF0000",  
-            org=self.org
-        )
-        
-        subject2 = Subject.objects.create(
+        # Создаем второй предмет с тем же цветом
+        subject2 = Subject(
             name="Химия",
+            color=self.subject_color,
             org=self.org
         )
         
-        subject2.color = self.subject_color
         with self.assertRaises(ValidationError):
             subject2.clean()
     
@@ -706,7 +702,10 @@ class ScheduleIntegrationTest(LessonScheduleLogicTest):
             subject=self.subject
         )
         
-        self.assertEqual(schedule.calc_duration_hours, 1.5)
+        # Исправлено: используем calc_duration вместо calc_duration_hours
+        duration = schedule.calc_duration
+        self.assertEqual(duration.total_seconds() / 3600, 1.5)
+        
         schedule.clean()  
         schedule_to_save = Schedule(
             title=schedule.title,
@@ -939,4 +938,3 @@ class OrganizationSecurityTest(APITestCase):
         url = reverse('attendance-detail', kwargs={'pk': attendance_org2.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-

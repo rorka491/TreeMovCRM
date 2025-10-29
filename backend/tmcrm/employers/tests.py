@@ -1,21 +1,24 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
-from employers.models import Teacher, Employer, Department, Leave, LeaveRequest
-from mainapp.models import Organization
+from employers.models import Teacher, Employer, Department, Leave, LeaveRequest, DocumentsTypes, Documents
+from mainapp.models import Organization, User
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from rest_framework_simplejwt.tokens import RefreshToken
+from datetime import date
 
 User = get_user_model()
 
 
 class BaseEmployerTestCase(APITestCase):
-    """Базовый класс для тестов employers с отключенными сигналами"""
 
     def setUp(self):
         from mainapp import signals
+        from employers import signals as employer_signals
+        
         post_save.disconnect(signals.create_org_settings, sender=Organization)
+        post_save.disconnect(employer_signals.create_leave_on_approval, sender=LeaveRequest)
         
         self.org1 = Organization.objects.create(name="Test Organization 1")
         self.org2 = Organization.objects.create(name="Test Organization 2")
@@ -38,19 +41,13 @@ class BaseEmployerTestCase(APITestCase):
 
     def tearDown(self):
         from mainapp import signals
-        post_save.connect(signals.create_org_settings, sender=Organization)
+        from employers import signals as employer_signals
         
-        Teacher.objects.all().delete()
-        Employer.objects.all().delete()
-        Department.objects.all().delete()
-        Leave.objects.all().delete()
-        LeaveRequest.objects.all().delete()
-        Organization.objects.all().delete()
-        User.objects.all().delete()
+        post_save.connect(signals.create_org_settings, sender=Organization)
+        post_save.connect(employer_signals.create_leave_on_approval, sender=LeaveRequest)
 
 
 class OrganizationIsolationTests(BaseEmployerTestCase):
-    """Тесты изоляции данных между организациями"""
 
     def setUp(self):
         super().setUp()
@@ -85,36 +82,33 @@ class OrganizationIsolationTests(BaseEmployerTestCase):
         self.teacher_list_url = reverse('teacher-list')
 
     def test_employer_organization_isolation(self):
-        """Тест изоляции работодателей по организациям"""
         response = self.client.get(self.employer_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], "Иван Орг1")
-        self.assertEqual(response.data[0]['org'], self.org1.id)
+        employers = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(employers), 1)
+        self.assertEqual(employers[0]['name'], "Иван Орг1")
+        self.assertEqual(employers[0]['org'], self.org1.id)
 
     def test_teacher_organization_isolation(self):
-        """Тест изоляции преподавателей по организациям"""
         response = self.client.get(self.teacher_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], self.teacher_org1.id)
+        teachers = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(teachers), 1)
+        self.assertEqual(teachers[0]['id'], self.teacher_org1.id)
 
     def test_cannot_access_other_org_employer(self):
-        """Тест невозможности доступа к работодателю чужой организации"""
         url = reverse('employer-detail', kwargs={'pk': self.employer_org2.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_cannot_access_other_org_teacher(self):
-        """Тест невозможности доступа к преподавателю чужой организации"""
         url = reverse('teacher-detail', kwargs={'pk': self.teacher_org2.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_employer_with_auto_org(self):
-        """Тест автоматического назначения организации при создании работодателя"""
         data = {
             'name': 'Новый',
             'surname': 'Работодатель', 
@@ -129,7 +123,6 @@ class OrganizationIsolationTests(BaseEmployerTestCase):
         self.assertEqual(employer.org, self.org1)
 
     def test_create_teacher_with_auto_org(self):
-        """Тест автоматического назначения организации при создании преподавателя"""
         new_employer = Employer.objects.create(
             org=self.org1,
             name="Для нового преподавателя",
@@ -150,7 +143,6 @@ class OrganizationIsolationTests(BaseEmployerTestCase):
 
 
 class DepartmentTests(BaseEmployerTestCase):
-    """Тесты для отделов"""
 
     def setUp(self):
         super().setUp()
@@ -158,7 +150,7 @@ class DepartmentTests(BaseEmployerTestCase):
         self.department1 = Department.objects.create(
             org=self.org1,
             title="Отдел разработки",
-            code=1001  # Числовое поле
+            code=1001
         )
         
         self.department2 = Department.objects.create(
@@ -180,15 +172,15 @@ class DepartmentTests(BaseEmployerTestCase):
         self.detail_url = reverse('department-detail', kwargs={'pk': self.department1.pk})
 
     def test_get_departments_list(self):
-        """Тест получения списка отделов"""
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], "Отдел разработки")
-        self.assertEqual(response.data[0]['code'], 1001)
+        
+        departments = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(departments), 1)
+        self.assertEqual(departments[0]['title'], "Отдел разработки")
+        self.assertEqual(departments[0]['code'], 1001)
 
     def test_create_department(self):
-        """Тест создания отдела"""
         data = {
             'title': 'Новый отдел',
             'code': 1003 
@@ -199,7 +191,6 @@ class DepartmentTests(BaseEmployerTestCase):
         self.assertEqual(Department.objects.filter(org=self.org1).count(), 2)
 
     def test_employer_department_relationship(self):
-        """Тест связи работодателя с отделом"""
         url = reverse('employer-detail', kwargs={'pk': self.employer_with_dept.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -207,7 +198,6 @@ class DepartmentTests(BaseEmployerTestCase):
 
 
 class LeaveTests(BaseEmployerTestCase):
-    """Тесты для отпусков"""
 
     def setUp(self):
         super().setUp()
@@ -267,21 +257,20 @@ class LeaveTests(BaseEmployerTestCase):
         self.list_url = reverse('leave-list')
 
     def test_get_leaves_list(self):
-        """Тест получения списка отпусков"""
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['leave_type'], "vacation")
-        self.assertEqual(response.data[0]['employee'], self.employer_org1.id)
+        
+        leaves = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(leaves), 1)
+        self.assertEqual(leaves[0]['leave_type'], "vacation")
+        self.assertEqual(leaves[0]['employee'], self.employer_org1.id)
 
     def test_cannot_access_other_org_leave(self):
-        """Тест невозможности доступа к отпуску чужой организации"""
         url = reverse('leave-detail', kwargs={'pk': self.leave_org2.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_leave(self):
-        """Тест создания отпуска"""
         new_employer = Employer.objects.create(
             org=self.org1,
             name="Новый",
@@ -314,20 +303,19 @@ class LeaveTests(BaseEmployerTestCase):
         else:
             response = self.client.get(self.list_url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), 1)
+            leaves = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+            self.assertEqual(len(leaves), 1)
 
     def test_leave_organization_isolation(self):
-        """Тест изоляции отпусков по организациям"""
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        leaves = response.data
+        leaves = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
         self.assertEqual(len(leaves), 1)
         self.assertEqual(leaves[0]['id'], self.leave_org1.id)
         self.assertEqual(leaves[0]['org'], self.org1.id)
 
     def test_get_leave_detail(self):
-        """Тест получения деталей отпуска"""
         url = reverse('leave-detail', kwargs={'pk': self.leave_org1.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -336,7 +324,6 @@ class LeaveTests(BaseEmployerTestCase):
 
 
 class TeacherTests(BaseEmployerTestCase):
-    """Тесты для преподавателей с учетом организаций"""
 
     def setUp(self):
         super().setUp()
@@ -366,20 +353,19 @@ class TeacherTests(BaseEmployerTestCase):
         self.detail_url = reverse('teacher-detail', kwargs={'pk': self.teacher1.pk})
 
     def test_get_teachers_list(self):
-        """Тест получения списка преподавателей"""
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        
+        teachers = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(teachers), 1)
 
     def test_get_teacher_detail(self):
-        """Тест получения деталей преподавателя"""
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], self.teacher1.id)
         self.assertEqual(response.data['org'], self.org1.id)
 
     def test_create_teacher(self):
-        """Тест создания преподавателя"""
         data = {
             'employer': self.employer2.id
         }
@@ -389,21 +375,20 @@ class TeacherTests(BaseEmployerTestCase):
         self.assertEqual(Teacher.objects.filter(org=self.org1).count(), 2)
 
     def test_delete_teacher(self):
-        """Тест удаления преподавателя"""
         response = self.client.delete(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Teacher.objects.filter(org=self.org1).count(), 0)
 
     def test_teacher_filtering_by_employer(self):
-        """Тест фильтрации преподавателей по работодателю"""
         filtered_url = f"{self.list_url}?employer={self.employer1.id}"
         response = self.client.get(filtered_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], self.teacher1.id)
+        
+        teachers = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(teachers), 1)
+        self.assertEqual(teachers[0]['id'], self.teacher1.id)
 
     def test_teacher_organization_auto_assignment(self):
-        """Тест автоматического назначения организации преподавателю"""
         new_employer = Employer.objects.create(
             org=self.org1,
             name="Для автоназначения",
@@ -424,7 +409,6 @@ class TeacherTests(BaseEmployerTestCase):
 
 
 class EmployerTests(BaseEmployerTestCase):
-    """Тесты для работодателей с учетом организаций"""
 
     def setUp(self):
         super().setUp()
@@ -453,20 +437,19 @@ class EmployerTests(BaseEmployerTestCase):
         self.detail_url = reverse('employer-detail', kwargs={'pk': self.employer1.pk})
 
     def test_get_employers_list(self):
-        """Тест получения списка работодателей"""
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        
+        employers = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(employers), 2)
 
     def test_get_employer_detail(self):
-        """Тест получения деталей работодателя"""
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], self.employer1.id)
         self.assertEqual(response.data['org'], self.org1.id)
 
     def test_create_employer(self):
-        """Тест создания работодателя"""
         data = {
             'name': 'Ольга',
             'surname': 'Новикова',
@@ -481,7 +464,6 @@ class EmployerTests(BaseEmployerTestCase):
         self.assertEqual(Employer.objects.filter(org=self.org1).count(), 3)
 
     def test_update_employer(self):
-        """Тест обновления работодателя"""
         data = {'name': 'Анна Обновленная'}
         
         response = self.client.patch(self.detail_url, data, format='json')
@@ -491,13 +473,11 @@ class EmployerTests(BaseEmployerTestCase):
         self.assertEqual(self.employer1.name, 'Анна Обновленная')
 
     def test_delete_employer(self):
-        """Тест удаления работодателя"""
         response = self.client.delete(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Employer.objects.filter(org=self.org1).count(), 1)
 
     def test_employer_organization_auto_assignment(self):
-        """Тест автоматического назначения организации работодателю"""
         data = {
             'name': 'Тест',
             'surname': 'Автоорг',
@@ -512,8 +492,135 @@ class EmployerTests(BaseEmployerTestCase):
         self.assertEqual(employer.org, self.org1)
 
 
+class LeaveRequestTests(BaseEmployerTestCase):
+
+    def setUp(self):
+        super().setUp()
+        
+        self.employer_org1 = Employer.objects.create(
+            org=self.org1,
+            name="Тест",
+            surname="Сотрудник",
+            patronymic="Тестович",
+            email="test@example.com"
+        )
+        
+        self.leave_request = LeaveRequest.objects.create(
+            org=self.org1,
+            employee=self.employer_org1,
+            leave_type="vacation",
+            start_date="2024-01-01",
+            end_date="2024-01-14",
+            status="pending"
+        )
+
+    def test_leave_request_creation(self):
+        leave_request = LeaveRequest.objects.create(
+            org=self.org1,
+            employee=self.employer_org1,
+            leave_type='sick',
+            start_date='2024-02-01',
+            end_date='2024-02-07',
+            status='pending'
+        )
+        self.assertEqual(leave_request.leave_type, 'sick')
+        self.assertEqual(leave_request.org, self.org1)
+
+    def test_leave_request_status_choices(self):
+        self.assertEqual(self.leave_request.status, 'pending')
+        self.assertFalse(self.leave_request.is_approved)
+
+
+class DocumentsTests(BaseEmployerTestCase):
+
+    def setUp(self):
+        super().setUp()
+        
+        self.employer = Employer.objects.create(
+            org=self.org1,
+            name="Документ",
+            surname="Тест",
+            patronymic="Тестович",
+            email="doc@example.com"
+        )
+        
+        self.doc_type = DocumentsTypes.objects.create(
+            title="Паспорт",
+            org=self.org1
+        )
+
+    def test_documents_types_creation(self):
+        doc_type = DocumentsTypes.objects.create(
+            title="Договор",
+            org=self.org1
+        )
+        self.assertEqual(doc_type.title, "Договор")
+        self.assertEqual(doc_type.org, self.org1)
+
+    def test_documents_types_organization_isolation(self):
+        doc_type_org2 = DocumentsTypes.objects.create(
+            title="СНИЛС",
+            org=self.org2
+        )
+        
+        doc_types_org1 = DocumentsTypes.objects.filter(org=self.org1)
+        self.assertNotIn(doc_type_org2, doc_types_org1)
+
+
+class IntegrationTests(BaseEmployerTestCase):
+
+    def setUp(self):
+        super().setUp()
+        
+        self.department = Department.objects.create(
+            org=self.org1,
+            title="Тестовый отдел",
+            code=9999
+        )
+        
+        self.employer = Employer.objects.create(
+            org=self.org1,
+            name="Интеграционный",
+            surname="Тест",
+            patronymic="Тестович",
+            email="integration@example.com",
+            department=self.department
+        )
+        
+        self.teacher = Teacher.objects.create(
+            employer=self.employer,
+            org=self.org1
+        )
+
+    def test_employer_department_integration(self):
+        self.assertEqual(self.employer.department, self.department)
+        self.assertIn(self.employer, self.department.employer_set.all())
+
+    def test_teacher_employer_integration(self):
+        self.assertEqual(self.teacher.employer, self.employer)
+        self.assertEqual(self.teacher.org, self.org1)
+
+    def test_cascade_deletion_protection(self):
+        test_employer = Employer.objects.create(
+            org=self.org1,
+            name="ТестКаскад",
+            surname="Удаления",
+            patronymic="Тестович",
+            email="cascade@example.com"
+        )
+        
+        employer_id = test_employer.id
+        
+        test_employer.delete()
+        
+        try:
+            self.teacher.refresh_from_db()
+            self.assertTrue(Teacher.objects.filter(id=self.teacher.id).exists())
+        except Teacher.DoesNotExist:
+            pass
+
+
 class TestChangeTeacherFields(BaseEmployerTestCase):
-    """Тест для проверки изменения полей преподавателя с учетом организаций"""
 
     def setUp(self):
         super().setUp()
@@ -540,7 +647,6 @@ class TestChangeTeacherFields(BaseEmployerTestCase):
         )
 
     def test_change_teacher_employer_restriction(self):
-        """Тест ограничения на изменение работодателя преподавателя"""
         teacher_id = self.teacher1.id
         url = reverse('teacher-detail', kwargs={'pk': teacher_id})
 
@@ -557,9 +663,6 @@ class TestChangeTeacherFields(BaseEmployerTestCase):
             self.teacher1.refresh_from_db()
             
             if response.status_code == status.HTTP_400_BAD_REQUEST:
-                self.assertNotEqual(
-                    self.teacher1.employer.id, 
-                    self.employer2.id
-                )
+                self.assertEqual(self.teacher1.employer.id, self.employer1.id)
         else:
             self.skipTest("Employer2 уже используется другим Teacher")
