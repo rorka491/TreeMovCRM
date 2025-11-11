@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from django.db import models
 from django.core.exceptions import ValidationError   
-from django.db.models import F, ExpressionWrapper, DurationField
+from django.db.models import Q
 from django.utils import timezone
 from employers.models import Teacher
 from students.models import StudentGroup, Student
@@ -162,42 +162,54 @@ class Schedule(BaseModelOrg):
         return None
 
     def clean(self):
-        if self.start_time >= self.end_time:
+        if self.start_time and self.end_time and self.start_time >= self.end_time:
             raise ValidationError("Конечное время должно быть позже начального")
 
-        filters = {
-            "date": self.date,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
-        }
+        # Проверяем конфликты только если есть временные параметры
+        if self.start_time and self.end_time and self.date:
+            time_filters = Q(
+                date=self.date,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time
+            )
 
-        if self.lesson:
-            filters["lesson"] = self.lesson
+            if self.pk:
+                exclude = Q(pk=self.pk)
+            else:
+                exclude = Q()
 
-        if self.pk:
-            exclude = {"pk": self.pk}
-        else:
-            exclude = {}
+            errors = []
+            
+            # Проверяем конфликты преподавателя
+            if self.teacher:
+                teacher_conflicts = Schedule.objects.filter(
+                    time_filters & Q(teacher=self.teacher)
+                ).exclude(exclude)
+                
+                if teacher_conflicts.exists():
+                    errors.append("У этого преподавателя на пару и дату занятие")
+            
+            # Проверяем конфликты группы
+            if self.group:
+                group_conflicts = Schedule.objects.filter(
+                    time_filters & Q(group=self.group)
+                ).exclude(exclude)
+                
+                if group_conflicts.exists():
+                    errors.append("У этой группы на эту пару и дату занятие")
 
-        teacher_qs = Schedule.objects.filter(teacher=self.teacher, **filters).exclude(
-            **exclude
-        )
-        group_qs = Schedule.objects.filter(group=self.group, **filters).exclude(
-            **exclude
-        )
-
-        if teacher_qs.exists():
-            raise ValidationError("У этого преподавателя на пару и дату занятие")
-        if group_qs.exists():
-            raise ValidationError("У этой группы на эту пару и дату занятие")
+            if errors:
+                raise ValidationError(errors)
 
         super().clean()
 
     def save(self, *args, **kwargs):
         if self.date:
             self.week_day = self.date.isoweekday()
+        
         if self.start_time and self.end_time:
             self.duration = self.calc_duration
+        
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -1,8 +1,8 @@
-# В файлах tasks располагаются фоновые процессы
 from celery import shared_task
 from mainapp.utils import get_org_local_datetime, get_cache, CacheType
 from mainapp.models import Organization 
 from django.db import transaction
+from django.db.models import Q 
 from .models import Schedule, Attendance
 from .utils import _get_complited_lessons_for_org, _create_missing_attendances_for_lesson
 
@@ -15,19 +15,22 @@ def update_complete_lessons(orgs=None):
         orgs: list[Organization] = get_cache("mainapp.Organization", cache_type=CacheType.MODEL)
 
     for org in orgs:
-        current_time = get_org_local_datetime(org).time()
-        current_date = get_org_local_datetime(org).date()
+        current_datetime = get_org_local_datetime(org)
+        current_date = current_datetime.date()
+        current_time = current_datetime.time()
+        
         print(f'\n{current_time}, {current_date}')
 
-        lessons = Schedule.objects.filter_by_org(org=org).filter(
-            end_time__lte=current_time,
-            date__lte=current_date,
-            is_completed=False,
-        )
+        lessons_to_complete = Schedule.objects.filter_by_org(org=org).filter(
+            Q(date__lt=current_date) | 
+            Q(date=current_date, end_time__lte=current_time),  
+            is_canceled=False  
+        ).distinct()
 
-        updated = lessons.update(is_completed=True)
-        if updated > 0:
+        updated = lessons_to_complete.update(is_completed=True)
+        if updated > 0: 
             results.append(f"{updated} урок(ов) обновлено для организации {org.name}")
+    
     return "\nРезультатов нет" if not results else results
 
 
