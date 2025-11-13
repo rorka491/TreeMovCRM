@@ -2,6 +2,7 @@ from typing import Literal
 import logging
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from mainapp.models import BaseModelOrg
 from django.shortcuts import get_object_or_404
 from django.db import models
@@ -9,30 +10,42 @@ from django.db import models
 
 logger = logging.getLogger(__name__)
 
-class IsSameOrganization(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj: BaseModelOrg):
 
-        if request.user.is_superuser:
+class IsAuthenticatedAndSameOrganization(IsAuthenticated):
+    """
+    Проверяет, что пользователь авторизован.
+    Если объект связан с организацией — требует совпадения org_id.
+    Если объект не имеет org — доступен всем авторизованным пользователям.
+    """
+
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+
+        user = request.user
+
+        if getattr(user, "is_superuser", False):
             return True
 
-        if obj.has_org:
-            return obj.org == request.user.org
-        else:
-            raise PermissionDenied(
-                "Объект не имеет 'org', проверка организации невозможна. "
-                "Пермишн применен к модели не имеющей org"
-            )
+        if not getattr(user, "has_org", False):
+            raise PermissionDenied("У пользователя нет организации")
 
-    def has_permission(self, request, view) -> Literal[True]:
-        if request.user.is_superuser:
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+
+        if getattr(user, "is_superuser", False):
             return True
-        
-        if request.user.has_org:
+
+        obj_org = getattr(obj, "org_id", None)
+        user_org = getattr(user, "org_id", None)
+
+        if obj_org is None:
             return True
-        else:
-            raise PermissionDenied(
-                "Вы не не обладаете достаточными правами"
-            )
+
+        return obj_org == user_org
+
 
 class OrgNameMatchPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):

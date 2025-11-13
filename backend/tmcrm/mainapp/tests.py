@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from .models import Organization
 from employers.models import Employer, Teacher
 from students.models import Student, StudentGroup
-from lesson_schedule.models import Schedule, Classroom, Subject
+from lesson_schedule.models import Lesson, Classroom, Subject
 from .services.orgs import create_user_with_org
 from auth.tokens import token
 from rest_framework import status
@@ -137,7 +137,7 @@ class BaseSetupDB(APITestCase):
             ]
         )
 
-        cls.schedule1 = Schedule.create_manager.create(
+        cls.schedule1 = Lesson.create_manager.create(
             teacher=cls.teacher1,
             subject=cls.subject,
             group=cls.group1,
@@ -152,7 +152,7 @@ class BaseSetupDB(APITestCase):
             org=cls.org,
             created_by=cls.user,
         )
-        cls.schedule2 = Schedule.create_manager.create(
+        cls.schedule2 = Lesson.create_manager.create(
             teacher=cls.teacher2,
             subject=cls.subject,
             group=cls.group2,
@@ -167,7 +167,7 @@ class BaseSetupDB(APITestCase):
             org=cls.org,
             created_by=cls.user,
         )
-        cls.schedule3 = Schedule.create_manager.create(
+        cls.schedule3 = Lesson.create_manager.create(
             teacher=cls.teacher1,
             subject=cls.subject,
             group=cls.group1,

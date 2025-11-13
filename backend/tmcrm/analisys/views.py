@@ -13,7 +13,7 @@ from mainapp.views import (
     SelectrealtedByModelsViewSet
 )
 from mainapp.permissions import OrgParamsPermission
-from lesson_schedule.models import Attendance, Grade, Schedule
+from lesson_schedule.models import Attendance, Grade, Lesson
 from lesson_schedule.serializers.read import ScheduleReadSerializer
 from employers.models import Employer, Teacher
 from students.models import Student, StudentsSnapshot, StudentGroup
@@ -53,7 +53,7 @@ class BaseMetricsViewSet(
             "student",
             "lesson",
         ),
-        "Schedule": (
+        "Lesson": (
             "classroom",
             "teacher",
             "group",
@@ -78,8 +78,8 @@ class BaseMetricsViewSet(
     def _get_student_snapshot(self) -> "QuerySet[StudentsSnapshot]":
         return StudentsSnapshot.org_objects.all()
 
-    def _get_lessons_queryset(self) -> "QuerySet[Schedule]":
-        return self.optimize_queryset(queryset=Schedule.org_objects.all())
+    def _get_lessons_queryset(self) -> "QuerySet[Lesson]":
+        return self.optimize_queryset(queryset=Lesson.org_objects.all())
 
 
 class MetricsViewSet(BaseMetricsViewSet):
@@ -229,7 +229,7 @@ class AnalyticsChartsViewSet(BaseMetricsViewSet):
             total=Count("id"), presents=Count("id", filter=Q(was_present=True))
         )   
 
-    def _get_worked_hours_by_date(self, queryset: "QuerySet[Schedule]"):
+    def _get_worked_hours_by_date(self, queryset: "QuerySet[Lesson]"):
         return queryset.values('date').annotate(total_hours=Sum(F('duration')))
 
     @action(
@@ -268,6 +268,6 @@ class AnalyticsChartsViewSet(BaseMetricsViewSet):
         url_path='worked_hours'
     )                          
     def get_worked_hours_by_date(self, request):
-        queryset = LessonFilter(request.GET, queryset=Schedule.org_objects.all()).qs
+        queryset = LessonFilter(request.GET, queryset=Lesson.org_objects.all()).qs
         data = self._get_worked_hours_by_date(queryset)
         return Response(data)

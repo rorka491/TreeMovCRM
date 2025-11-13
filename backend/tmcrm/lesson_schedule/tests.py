@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from mainapp.tests import BaseSetupDB
 from students.models import Student, StudentGroup
-from lesson_schedule.models import Schedule, Classroom, Subject
+from lesson_schedule.models import Lesson, Classroom, Subject
 from .serializers.read import ScheduleReadSerializer
 
 
@@ -114,7 +114,7 @@ class TestMoveTimeOuts(BaseSetupDB):
 
 class TestInsertSchedule(BaseSetupDB):
     def test1(self):
-        start_count = Schedule.objects.count()
+        start_count = Lesson.objects.count()
         schedule1 = self.schedule1
 
         serializer = ScheduleReadSerializer(schedule1)
@@ -128,7 +128,7 @@ class TestInsertSchedule(BaseSetupDB):
             [status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN],
         )
 
-        end_count = Schedule.objects.count()
+        end_count = Lesson.objects.count()
         schedule1.refresh_from_db()
         self.assertEqual(end_count, start_count)
 
@@ -137,4 +137,4 @@ class TestDeleteSchedule(BaseSetupDB):
     def test1(self):
 
         schedule1_id = self.schedule1.id
-        Schedule.objects.get(pk=schedule1_id).delete()
+        Lesson.objects.get(pk=schedule1_id).delete()

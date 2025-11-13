@@ -37,6 +37,7 @@ OTHER_APPS = [
     "django_filters",
     "django_celery_beat",
     "debug_toolbar",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 APPS = [
@@ -162,15 +163,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'mainapp.permissions.IsSameOrganization',
+    "DEFAULT_PERMISSION_CLASSES": [
+        "mainapp.permissions.IsAuthenticated",
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'
-    ],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 
@@ -178,11 +177,15 @@ if DEBUG:
     SIMPLE_JWT = {
         "ACCESS_TOKEN_LIFETIME": timedelta(days=365),
         "REFRESH_TOKEN_LIFETIME": timedelta(days=365),
+        "ROTATE_REFRESH_TOKENS": True,
+        "BLACKLIST_AFTER_ROTATION": True,
     }
 else:
     SIMPLE_JWT = {
         "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
         "REFRESH_TOKEN_LIFETIME": timedelta(minutes=30),
+        "ROTATE_REFRESH_TOKENS": True,
+        "BLACKLIST_AFTER_ROTATION": True,
     }
 
 

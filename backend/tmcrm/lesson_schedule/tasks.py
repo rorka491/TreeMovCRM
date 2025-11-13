@@ -3,7 +3,7 @@ from celery import shared_task
 from mainapp.utils import get_org_local_datetime, get_cache, CacheType
 from mainapp.models import Organization 
 from django.db import transaction
-from .models import Schedule, Attendance
+from .models import Lesson, Attendance
 from .utils import _get_complited_lessons_for_org, _create_missing_attendances_for_lesson
 
 
@@ -19,7 +19,7 @@ def update_complete_lessons(orgs=None):
         current_date = get_org_local_datetime(org).date()
         print(f'\n{current_time}, {current_date}')
 
-        lessons = Schedule.objects.filter_by_org(org=org).filter(
+        lessons = Lesson.objects.filter_by_org(org=org).filter(
             end_time__lte=current_time,
             date__lte=current_date,
             is_completed=False,

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from lesson_schedule.models import Schedule, PeriodSchedule
+from lesson_schedule.models import Lesson, PeriodLesson
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_migrate, pre_save
 from datetime import timedelta
@@ -7,7 +7,7 @@ from mainapp.utils import checkout_interval_schedule_table
 from .models import Attendance, Grade
 
 
-@receiver(post_save, sender=PeriodSchedule)
+@receiver(post_save, sender=PeriodLesson)
 def create_lessons_until_date(sender, created, instance, **kwargs):
     if created:
         org_settings = instance.org.settings
@@ -28,7 +28,7 @@ def create_lessons_until_date(sender, created, instance, **kwargs):
             lessons_to_create = []
             # Цикл отвечает за создание списка, 
             while current_date <= repeat_until:
-                new_lesson = Schedule(
+                new_lesson = Lesson(
                     date=current_date,
                     created_by=instance.created_by,
                     week_day=current_date.isoweekday(),
@@ -38,15 +38,15 @@ def create_lessons_until_date(sender, created, instance, **kwargs):
                 lessons_to_create.append(new_lesson)
                 current_date += timedelta(days=period)
 
-            Schedule.objects.bulk_create(lessons_to_create)
+            Lesson.objects.bulk_create(lessons_to_create)
         else:
             raise ValueError('не указана периодичность')
 
 
-@receiver(post_save, sender=PeriodSchedule)
+@receiver(post_save, sender=PeriodLesson)
 def update_data_not_complete_lessons(sender, created, instance, **kwargs):
     if not created:
-        lessons = Schedule.objects.filter(period_schedule=instance, is_completed=False)
+        lessons = Lesson.objects.filter(period_schedule=instance, is_completed=False)
 
         data = {
             f.name: getattr(instance, f.name)

@@ -4,9 +4,9 @@ from lesson_schedule.models import (
     Attendance,
     Classroom,
     Grade,
-    Schedule,
+    Lesson,
     Subject,
-    PeriodSchedule,
+    PeriodLesson,
 )
 from mainapp.models import SubjectColor
 from students.serializers.read import StudentGroupReadSerializer, StudentReadSerializer
@@ -39,7 +39,7 @@ class ScheduleReadSerializer(BaseReadSerializer):
     classroom = ClassroomReadSerializer()
 
     class Meta(BaseReadSerializer.Meta):
-        model = Schedule
+        model = Lesson
 
 
 class PeriodScheduleReadSerializer(BaseReadSerializer):
@@ -49,7 +49,7 @@ class PeriodScheduleReadSerializer(BaseReadSerializer):
     classroom = ClassroomReadSerializer()
 
     class Meta(BaseReadSerializer.Meta):
-        model = PeriodSchedule
+        model = PeriodLesson
 
 
 class GradeReadSerializer(BaseReadSerializer):

@@ -4,9 +4,9 @@ from students.models import Student, StudentGroup
 from lesson_schedule.models import (
     Attendance,
     Classroom,
-    Schedule,
+    Lesson,
     Subject,
-    PeriodSchedule,
+    PeriodLesson,
     Grade,
 )
 from mainapp.models import SubjectColor
@@ -28,7 +28,7 @@ class SubjectWriteSerializer(BaseWriteSerializer):
 
 class AttendanceWriteSerializer(BaseWriteSerializer):
     student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
-    lesson = serializers.PrimaryKeyRelatedField(queryset=Schedule.objects.all())
+    lesson = serializers.PrimaryKeyRelatedField(queryset=Lesson.objects.all())
 
     class Meta(BaseWriteSerializer.Meta):
         model = Attendance
@@ -42,7 +42,7 @@ class ScheduleWriteSerializer(BaseWriteSerializer):
     classroom = serializers.PrimaryKeyRelatedField(queryset=Classroom.objects.all())
 
     class Meta(BaseWriteSerializer.Meta):
-        model = Schedule
+        model = Lesson
         exclude_fields = ['week_day']
 
 
@@ -53,12 +53,12 @@ class PeriodScheduleWriteSerializer(BaseWriteSerializer):
     classroom = serializers.PrimaryKeyRelatedField(queryset=Classroom.objects.all())
 
     class Meta(BaseWriteSerializer.Meta):
-        model = PeriodSchedule
+        model = PeriodLesson
 
 
 class GradeWriteSerializer(BaseWriteSerializer):
     student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
-    lesson = serializers.PrimaryKeyRelatedField(queryset=Schedule.objects.all())
+    lesson = serializers.PrimaryKeyRelatedField(queryset=Lesson.objects.all())
 
     class Meta(BaseWriteSerializer.Meta):
         model = Grade   

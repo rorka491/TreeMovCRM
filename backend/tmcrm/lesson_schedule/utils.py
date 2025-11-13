@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 from rest_framework.response import Response
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
-from .models import Attendance, Schedule
+from .models import Attendance, Lesson
 
     
 
@@ -154,7 +154,7 @@ class LessonSlot:
         )
 
 
-def _create_missing_attendances_for_lesson(lesson: Schedule) -> list[Attendance]:
+def _create_missing_attendances_for_lesson(lesson: Lesson) -> list[Attendance]:
     org = lesson.get_org
     group_students = lesson.group.students.all()
     lesson_date = lesson.date
@@ -169,8 +169,8 @@ def _create_missing_attendances_for_lesson(lesson: Schedule) -> list[Attendance]
     ]
 
 
-def _get_complited_lessons_for_org(org: "Organization") -> list[Schedule]:
-    return Schedule.objects.filter_by_org(org).filter(
+def _get_complited_lessons_for_org(org: "Organization") -> list[Lesson]:
+    return Lesson.objects.filter_by_org(org).filter(
         is_canceled=False, is_completed=True
     )
 

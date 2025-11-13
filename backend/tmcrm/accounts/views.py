@@ -4,23 +4,24 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from .serializers import RegeisterConfirmSerializer, RegisterStartSerializer
 from .utils import generate_six_digit_code
 from .models import Invite
 from django.contrib.auth import get_user_model
-from mainapp.permissions import IsSameOrganization
 
-                                
+
 if TYPE_CHECKING: 
     from rest_framework.request import Request
-                        
+
 class RegisterStartView(APIView):
+    permission_classes = [AllowAny, ]
 
     def post(self, request) -> Response:
         serializer = RegisterStartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated = serializer.validated_data
-
+    
         email = validated["email"]
         username = validated["username"]
         password = validated["password"]
@@ -40,8 +41,9 @@ class RegisterStartView(APIView):
         return Response({"detail": "Code sent"})
 
 
+
 class RegisterConfirmView(APIView):
-    permission_classes = [IsAuthenticated, IsSameOrganization]
+
 
     def post(self, request) -> Response:
         serializer = RegeisterConfirmSerializer(data=request.data)
@@ -69,7 +71,6 @@ class RegisterConfirmView(APIView):
 
 
 class CreateInviteLink(APIView): 
-    permission_classes = [IsAuthenticated, IsSameOrganization]
 
 
     def post(self, request): 
@@ -82,4 +83,3 @@ class JoinOrganizationView(APIView):
 
     def post(self, request, token) -> Response:
         ...
-        

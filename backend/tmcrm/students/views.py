@@ -1,7 +1,8 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
-from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
+from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
+from mainapp.decorators import base_search
 from lesson_schedule.models import Grade
 from lesson_schedule.serializers.read import GradeReadSerializer
 from .models import StudentGroup, Student
