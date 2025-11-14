@@ -105,11 +105,11 @@ DATABASES = {
     }, 
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'tmcrm_db',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'PASSWORD': '1234',
         'HOST': 'localhost',
-        'PORT': '5433', 
+        'PORT': '5432', 
     }
 }
 

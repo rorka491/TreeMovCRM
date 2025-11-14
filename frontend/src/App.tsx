@@ -5,7 +5,7 @@ import {
     Routes,
     Navigate,
 } from 'react-router-dom'
-import Schedule from './pages/Schedule'
+import Lesson from './pages/Lesson'
 import Base from './components/page-defaults/Base'
 import Employees from './pages/Employees'
 import EmployeesMain from './pages/Employees/subpages/EmployeesMain'
@@ -15,10 +15,10 @@ import { StudentProfile } from './pages/Students/subpages/StudentProfile'
 import { StudentProfileEdit } from './pages/Students/subpages/StudentProfileEdit'
 import { StudentsGrades } from './pages/Students/subpages/StudentsGrades'
 import { StudentsPayments } from './pages/Students/subpages/StudentsPayments'
-import SсheduleByMonth from './pages/Schedule/subpages/ScheduleByMonth'
-import SсheduleByWeek from './pages/Schedule/subpages/ScheduleByWeek'
-import ScheduleByDay from './pages/Schedule/subpages/ScheduleByDay'
-import SсheduleList from './pages/Schedule/subpages/SсheduleList'
+import SсheduleByMonth from './pages/Lesson/subpages/ScheduleByMonth'
+import SсheduleByWeek from './pages/Lesson/subpages/ScheduleByWeek'
+import ScheduleByDay from './pages/Lesson/subpages/ScheduleByDay'
+import SсheduleList from './pages/Lesson/subpages/SсheduleList'
 import React, { useState } from 'react'
 import { ProtectedRoute } from './components/Routes/ProtectedRoute'
 import AnalyticsDashboard from './pages/Analisys/AnalyticsDashboard'
@@ -39,7 +39,7 @@ function App() {
                         </ProtectedRoute>
                     }
                 >
-                    <Route path="schedule" element={<Schedule />}>
+                    <Route path="schedule" element={<Lesson />}>
                         <Route path="guidelines" element={'asd'} />
 
                         <Route path="by-month" element={<SсheduleByMonth />} />

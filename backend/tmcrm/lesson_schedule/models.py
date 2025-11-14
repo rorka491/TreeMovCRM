@@ -119,13 +119,14 @@ class PeriodLesson(AbstrctLesson):
     start_date = models.DateField(blank=True, null=True)
 
     class Meta:
+        # db_table = "lesson_schedule_periodlesson"
         verbose_name = "Периодическое занятие"
         verbose_name_plural = "Периодические занятия"
 
 
 class Lesson(AbstrctLesson):
     """Класс для всех занятий в том числе и периодических"""
-    date = models.DateField(default=timezone.now, blank=False)
+    date = models.DateField(default=timezone.now, blank=Falsez)
     week_day = models.PositiveSmallIntegerField(blank=False)
     is_canceled = models.BooleanField(default=False, blank=True)
     is_completed = models.BooleanField(default=False, blank=True)
@@ -137,6 +138,7 @@ class Lesson(AbstrctLesson):
     comment = models.CharField(max_length=200, blank=True)
 
     class Meta:
+        # db_table = "lesson_schedule_lesson"
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
         ordering = ["date", "start_time"]
@@ -160,8 +162,6 @@ class Lesson(AbstrctLesson):
             "end_time": self.end_time,
         }
 
-        if self.lesson:
-            filters["lesson"] = self.lesson
 
         if self.pk:
             exclude = {"pk": self.pk}

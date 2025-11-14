@@ -57,7 +57,7 @@ class AbstractScheduleViewSet(
         return queryset
 
     def update(self, request, *args, **kwargs):
-        is_force_update = request.query_params.get("is_force_update")
+        is_force_update = request.query_params.get("is_force_update") == "true"
         data = request.data
         partial = kwargs.get("partial", False) # Если false то запрос PUT в обратном случае PATCH
         instance = self.get_object()
@@ -208,4 +208,3 @@ class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
         lesson = serializer.validated_data.get('lesson')
         date = lesson.date  
         super().perform_create(serializer, lesson_date=date)
-

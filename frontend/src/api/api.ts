@@ -16,7 +16,7 @@ apiClient.interceptors.request.use((config) => {
     return config
 })
 
-export type Schedule = {
+export type Lesson = {
     org?: string
     title?: string
     start_time?: string
@@ -297,7 +297,7 @@ export const realApi = {
                 .then((res) => realApi.isOk(res))
         },
 
-        async getShedulesByClassrooms(query: Schedule) {
+        async getShedulesByClassrooms(query: Lesson) {
             return await apiClient
                 .get(`/schedules/classrooms/`, {
                     method: 'GET',

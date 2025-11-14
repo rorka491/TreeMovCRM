@@ -8,7 +8,7 @@ import { api } from '../../api'
 import { Lesson } from '../../api/api'
 
 
-export function Schedule() {
+export function Lesson() {
     const [currentDate, setCurrentDate] = useState(new Date())
     let [lessons, setLessons] = useState<Lesson[]>([])
 
@@ -161,4 +161,4 @@ export function Schedule() {
     )
 }
 
-export default Schedule
+export default Lesson
