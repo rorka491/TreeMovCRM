@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from genericpath import exists
 from django.db import models
 from django.core.exceptions import ValidationError   
 from django.db.models import F, ExpressionWrapper, DurationField
@@ -126,7 +127,7 @@ class PeriodLesson(AbstrctLesson):
 
 class Lesson(AbstrctLesson):
     """Класс для всех занятий в том числе и периодических"""
-    date = models.DateField(default=timezone.now, blank=Falsez)
+    date = models.DateField(default=timezone.now, blank=False)
     week_day = models.PositiveSmallIntegerField(blank=False)
     is_canceled = models.BooleanField(default=False, blank=True)
     is_completed = models.BooleanField(default=False, blank=True)
@@ -206,6 +207,19 @@ class Attendance(BaseModelOrg):
     class Meta:
         verbose_name = "Посещение"
         verbose_name_plural = "Посещения"
+
+
+    def clean(self):
+        exists = (
+            Attendance.objects.filter(student=self.student, lesson=self.lesson)
+            .exclude(id=self.id)
+            .exists()
+        )
+
+        if exists:
+            raise ValidationError("Это посещение уже существует.")
+
+        return super().clean()
 
     def save(self, *args, **kwargs):
         print(
