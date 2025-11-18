@@ -120,7 +120,7 @@ class PeriodLesson(AbstrctLesson):
     start_date = models.DateField(blank=True, null=True)
 
     class Meta:
-        # db_table = "lesson_schedule_periodlesson"
+        db_table = "lesson_schedule_periodlesson"
         verbose_name = "Периодическое занятие"
         verbose_name_plural = "Периодические занятия"
 
@@ -139,7 +139,7 @@ class Lesson(AbstrctLesson):
     comment = models.CharField(max_length=200, blank=True)
 
     class Meta:
-        # db_table = "lesson_schedule_lesson"
+        db_table = "lesson_schedule_lesson"
         verbose_name = "Занятие"
         verbose_name_plural = "Занятия"
         ordering = ["date", "start_time"]
@@ -159,27 +159,24 @@ class Lesson(AbstrctLesson):
 
         filters = {
             "date": self.date,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
+            "start_time__lt": self.start_time,
+            "end_time__gt": self.end_time,
         }
 
+        exclude = {"pk": self.pk} if self.pk else {}
 
-        if self.pk:
-            exclude = {"pk": self.pk}
-        else:
-            exclude = {}
-
-        teacher_qs = Lesson.objects.filter(teacher=self.teacher, **filters).exclude(
-            **exclude
-        )
-        group_qs = Lesson.objects.filter(group=self.group, **filters).exclude(
-            **exclude
-        )
+        teacher_qs = Lesson.objects\
+        .filter(teacher=self.teacher, **filters)\
+        .exclude(**exclude)
+        
+        group_qs = Lesson.objects\
+        .filter(group=self.group, **filters)\
+        .exclude(**exclude)
 
         if teacher_qs.exists():
-            raise ValidationError("У этого преподавателя на пару и дату занятие")
+            raise ValidationError("У этого преподавателя на это время и дату занятие")
         if group_qs.exists():
-            raise ValidationError("У этой группы на эту пару и дату занятие")
+            raise ValidationError("У этой группы на эту это время и дату занятие")
 
         super().clean()
 
