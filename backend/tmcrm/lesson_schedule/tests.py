@@ -816,30 +816,59 @@ class BaseAPITestCase(APITestCase):
 
 
 # =============================================================================
-# API ТЕСТЫ КОНФЛИКТОВ РАСПИСАНИЯ
+# API ТЕСТЫ КОНФЛИКТОВ РАСПИСАНИЯ - ПОЛНОЕ И ЧАСТИЧНОЕ ПЕРЕСЕЧЕНИЕ
 # =============================================================================
 
 class ScheduleConflictAPITestCases(BaseAPITestCase):
-    """API тесты для проверки конфликтов расписания через LessonValidationMixin"""
+    """API тесты для проверки полного и частичного пересечения занятий через REST API"""
     
-    def test_create_schedule_success(self):
-        """Тест успешного создания занятия через API - должен вернуть 201 CREATED"""
-        schedule_data = self._create_valid_schedule_data(
-            title='Успешное занятие',
+    def test_full_overlap_conflict_api(self):
+        """
+        Тест ПОЛНОГО пересечения занятий через API - должен вернуть 400 BAD REQUEST
+        
+        Создаем два занятия с одинаковым временем, датой и ресурсами (преподаватель, группа, аудитория).
+        LessonValidationMixin должен обнаружить конфликт и предотвратить создание второго занятия.
+        """
+        # Создаем первое занятие
+        first_schedule_data = self._create_valid_schedule_data(
+            title='Первое занятие',
             start_time='09:00',
-            end_time='10:30'
+            end_time='10:30',
+            teacher=self.teacher1.id,
+            group=self.group1.id,
+            classroom=self.classroom1.id
+        )
+        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        
+        # Пытаемся создать второе занятие с ПОЛНЫМ пересечением (те же время, дата и ресурсы)
+        second_schedule_data = self._create_valid_schedule_data(
+            title='Второе занятие (полное пересечение)',
+            start_time='09:00',  # То же время начала!
+            end_time='10:30',    # То же время окончания!
+            teacher=self.teacher1.id,    # Тот же преподаватель!
+            group=self.group1.id,        # Та же группа!
+            classroom=self.classroom1.id # Та же аудитория!
         )
         
-        response = self.client.post(reverse('lesson-list'), schedule_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Lesson.objects.count(), 1)
+        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
         
-        created_lesson = Lesson.objects.first()
-        self.assertEqual(created_lesson.title, 'Успешное занятие')
+        # Должен вернуть 400 BAD REQUEST с информацией о конфликте
+        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response2.data)
+        self.assertIn('free_slots', response2.data)  # Должен предложить свободные слоты
+        
+        # Проверяем что создалось только одно занятие
+        self.assertEqual(Lesson.objects.count(), 1)
     
-    def test_create_schedule_time_conflict_teacher(self):
-        """Тест конфликта времени для преподавателя через API - должен вернуть 400 BAD REQUEST"""
-        # Создаем первое занятие для teacher1
+    def test_partial_overlap_conflict_api(self):
+        """
+        Тест ЧАСТИЧНОГО пересечения занятий через API - должен вернуть 400 BAD REQUEST
+        
+        Создаем второе занятие, которое частично пересекается по времени с первым.
+        Даже частичное пересечение должно быть заблокировано валидацией.
+        """
+        # Создаем первое занятие
         first_schedule_data = self._create_valid_schedule_data(
             title='Первое занятие',
             start_time='09:00',
@@ -849,177 +878,30 @@ class ScheduleConflictAPITestCases(BaseAPITestCase):
         response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
         
-        # Пытаемся создать второе занятие для того же преподавателя в пересекающееся время
+        # Пытаемся создать второе занятие с ЧАСТИЧНЫМ пересечением
         second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие (конфликт)',
-            start_time='09:30',  # Пересекается с первым занятием (9:00-10:30)
-            end_time='11:00',
+            title='Второе занятие (частичное пересечение)',
+            start_time='10:00',  # Начинается во время первого занятия
+            end_time='11:30',    # Заканчивается после первого занятия
             teacher=self.teacher1.id  # Тот же преподаватель!
         )
         
         response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
+        
+        # Должен вернуть 400 BAD REQUEST - частичное пересечение тоже конфликт
         self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('detail', response2.data)  # Должен вернуть описание ошибки
+        self.assertIn('detail', response2.data)
+        
+        # Проверяем что создалось только одно занятие
+        self.assertEqual(Lesson.objects.count(), 1)
     
-    def test_create_schedule_time_conflict_classroom(self):
-        """Тест конфликта времени для аудитории через API - должен вернуть 400 BAD REQUEST"""
-        # Создаем первое занятие в classroom1
-        first_schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            start_time='09:00',
-            end_time='10:30',
-            classroom=self.classroom1.id
-        )
-        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+    def test_update_schedule_with_full_overlap_conflict(self):
+        """
+        Тест обновления занятия с созданием ПОЛНОГО пересечения - должен вернуть 400 BAD REQUEST
         
-        # Пытаемся создать второе занятие в той же аудитории в пересекающееся время
-        second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие (конфликт)',
-            start_time='10:00',  # Пересекается с первым занятием (9:00-10:30)
-            end_time='11:30',
-            classroom=self.classroom1.id,  # Та же аудитория!
-            teacher=self.teacher2.id,      # Другой преподаватель
-            group=self.group2.id           # Другая группа
-        )
-        
-        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
-    
-    def test_create_schedule_time_conflict_group(self):
-        """Тест конфликта времени для группы через API - должен вернуть 400 BAD REQUEST"""
-        # Создаем первое занятие для group1
-        first_schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            start_time='09:00',
-            end_time='10:30',
-            group=self.group1.id
-        )
-        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        
-        # Пытаемся создать второе занятие для той же группы в пересекающееся время
-        second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие (конфликт)',
-            start_time='10:00',  # Пересекается с первым занятием (9:00-10:30)
-            end_time='11:30',
-            group=self.group1.id,  # Та же группа!
-            teacher=self.teacher2.id,  # Другой преподаватель
-            classroom=self.classroom2.id  # Другая аудитория
-        )
-        
-        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
-    
-    def test_no_time_conflict_different_times_api(self):
-        """Тест отсутствия конфликта при разном времени - должен вернуть 201 CREATED"""
-        # Создаем первое занятие
-        first_schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            start_time='09:00',
-            end_time='10:00'
-        )
-        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        
-        # Создаем второе занятие в другое время (без конфликта)
-        second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие',
-            start_time='10:30',  # После окончания первого
-            end_time='11:30',
-            teacher=self.teacher1.id,
-            group=self.group1.id,
-            classroom=self.classroom1.id
-        )
-        
-        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-    
-    def test_no_time_conflict_different_dates_api(self):
-        """Тест отсутствия конфликта при разных датах - должен вернуть 201 CREATED"""
-        # Создаем первое занятие
-        first_schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            date='2024-01-15',
-            week_day=1  # Понедельник
-        )
-        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        
-        # Создаем второе занятие в другую дату (без конфликта)
-        second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие',
-            date='2024-01-16',  # Вторник
-            week_day=2,         # Вторник
-            teacher=self.teacher1.id,
-            group=self.group1.id,
-            classroom=self.classroom1.id,
-            start_time='09:00',
-            end_time='10:30'
-        )
-        
-        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-    
-    def test_no_time_conflict_different_resources_api(self):
-        """Тест отсутствия конфликта при разных ресурсах - должен вернуть 201 CREATED"""
-        # Создаем первое занятие
-        first_schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            start_time='09:00',
-            end_time='10:30',
-            teacher=self.teacher1.id,
-            group=self.group1.id,
-            classroom=self.classroom1.id
-        )
-        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        
-        # Создаем второе занятие в то же время, но с разными ресурсами
-        second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие',
-            start_time='09:00',  # То же время!
-            end_time='10:30',    # То же время!
-            teacher=self.teacher2.id,    # Другой преподаватель
-            group=self.group2.id,        # Другая группа
-            classroom=self.classroom2.id # Другая аудитория
-        )
-        
-        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-
-
-class ScheduleUpdateConflictAPITestCases(BaseAPITestCase):
-    """API тесты для проверки конфликтов при обновлении расписания"""
-    
-    def test_update_schedule_success_no_conflict(self):
-        """Тест успешного обновления занятия без конфликта"""
-        # Создаем занятие
-        schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            start_time='09:00',
-            end_time='10:30'
-        )
-        response = self.client.post(reverse('lesson-list'), schedule_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        schedule_id = response.data['id']
-        
-        # Обновляем занятие без создания конфликта
-        update_data = {
-            'title': 'Обновленное занятие',
-            'start_time': '11:00',  # Меняем на свободное время
-            'end_time': '12:30'
-        }
-        
-        response_update = self.client.patch(
-            reverse('lesson-detail', kwargs={'pk': schedule_id}),
-            update_data,
-            format='json'
-        )
-        self.assertEqual(response_update.status_code, status.HTTP_200_OK)
-    
-    def test_update_schedule_with_conflict(self):
-        """Тест конфликта при обновлении занятия - должен вернуть 400 BAD REQUEST"""
+        Создаем два занятия в разное время, затем пытаемся обновить второе занятие 
+        так чтобы оно полностью пересекалось с первым.
+        """
         # Создаем первое занятие
         first_schedule_data = self._create_valid_schedule_data(
             title='Первое занятие',
@@ -1031,23 +913,21 @@ class ScheduleUpdateConflictAPITestCases(BaseAPITestCase):
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
         first_lesson_id = response1.data['id']
         
-        # Создаем второе занятие без конфликта
+        # Создаем второе занятие в другое время (без конфликта изначально)
         second_schedule_data = self._create_valid_schedule_data(
             title='Второе занятие',
             start_time='11:00',
             end_time='12:30',
-            teacher=self.teacher2.id,
-            group=self.group2.id,
-            classroom=self.classroom2.id
+            teacher=self.teacher1.id
         )
         response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
         second_lesson_id = response2.data['id']
         
-        # Пытаемся обновить второе занятие на конфликтующее время с первым
+        # Пытаемся обновить второе занятие на время первого (ПОЛНОЕ пересечение)
         update_data = {
             'start_time': '09:00',  # Конфликт с первым занятием!
-            'end_time': '10:30',
+            'end_time': '10:30',    # Полное совпадение времени
             'teacher': self.teacher1.id  # Тот же преподаватель!
         }
         
@@ -1056,12 +936,23 @@ class ScheduleUpdateConflictAPITestCases(BaseAPITestCase):
             update_data,
             format='json'
         )
+        
+        # Должен вернуть 400 BAD REQUEST
         self.assertEqual(response_update.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('detail', response_update.data)
-        self.assertIn('free_slots', response_update.data)  # Должны вернуть информацию о свободных слотах
+        self.assertIn('free_slots', response_update.data)
+        
+        # Проверяем что время второго занятия не изменилось
+        second_lesson_updated = Lesson.objects.get(id=second_lesson_id)
+        self.assertEqual(second_lesson_updated.start_time, time(11, 0))  # Осталось исходное время
     
-    def test_update_schedule_force_update_with_conflict(self):
-        """Тест принудительного обновления с конфликтом - должен вернуть 200 OK"""
+    def test_update_schedule_with_partial_overlap_conflict(self):
+        """
+        Тест обновления занятия с созданием ЧАСТИЧНОГО пересечения - должен вернуть 400 BAD REQUEST
+        
+        Создаем два занятия, затем пытаемся обновить второе так чтобы оно частично 
+        пересекалось с первым.
+        """
         # Создаем первое занятие
         first_schedule_data = self._create_valid_schedule_data(
             title='Первое занятие',
@@ -1073,22 +964,72 @@ class ScheduleUpdateConflictAPITestCases(BaseAPITestCase):
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
         first_lesson_id = response1.data['id']
         
-        # Создаем второе занятие без конфликта
+        # Создаем второе занятие в другое время
         second_schedule_data = self._create_valid_schedule_data(
             title='Второе занятие',
             start_time='11:00',
             end_time='12:30',
-            teacher=self.teacher2.id
+            teacher=self.teacher1.id
         )
         response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
         second_lesson_id = response2.data['id']
         
-        # Пытаемся обновить второе занятие на конфликтующее время с флагом принудительного обновления
+        # Пытаемся обновить второе занятие с ЧАСТИЧНЫМ пересечением
+        update_data = {
+            'start_time': '10:00',  # Начинается до окончания первого занятия
+            'end_time': '11:30',    # Заканчивается после начала оригинального времени второго
+            'teacher': self.teacher1.id
+        }
+        
+        response_update = self.client.patch(
+            reverse('lesson-detail', kwargs={'pk': second_lesson_id}),
+            update_data,
+            format='json'
+        )
+        
+        # Должен вернуть 400 BAD REQUEST
+        self.assertEqual(response_update.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response_update.data)
+        
+        # Проверяем что время второго занятия не изменилось
+        second_lesson_updated = Lesson.objects.get(id=second_lesson_id)
+        self.assertEqual(second_lesson_updated.start_time, time(11, 0))
+    
+    def test_force_update_with_overlap_conflict(self):
+        """
+        Тест ПРИНУДИТЕЛЬНОГО обновления с конфликтом - должен вернуть 200 OK
+        
+        Проверяем что с параметром is_force_update=true можно обновить занятие 
+        даже если это создает конфликт.
+        """
+        # Создаем первое занятие
+        first_schedule_data = self._create_valid_schedule_data(
+            title='Первое занятие',
+            start_time='09:00',
+            end_time='10:30',
+            teacher=self.teacher1.id
+        )
+        response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        first_lesson_id = response1.data['id']
+        
+        # Создаем второе занятие в другое время
+        second_schedule_data = self._create_valid_schedule_data(
+            title='Второе занятие',
+            start_time='11:00',
+            end_time='12:30',
+            teacher=self.teacher1.id
+        )
+        response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+        second_lesson_id = response2.data['id']
+        
+        # Пытаемся обновить второе занятие с конфликтом, но с флагом принудительного обновления
         update_data = {
             'start_time': '09:00',  # Конфликт с первым занятием!
             'end_time': '10:30',
-            'teacher': self.teacher1.id  # Тот же преподаватель!
+            'teacher': self.teacher1.id
         }
         
         response_update = self.client.patch(
@@ -1096,146 +1037,34 @@ class ScheduleUpdateConflictAPITestCases(BaseAPITestCase):
             update_data,
             format='json'
         )
+        
         # С is_force_update=true должно пройти несмотря на конфликт
         self.assertEqual(response_update.status_code, status.HTTP_200_OK)
-    
-    def test_update_non_critical_fields_no_validation(self):
-        """Тест обновления некритических полей без проверки конфликтов"""
-        # Создаем занятие
-        schedule_data = self._create_valid_schedule_data(
-            title='Первое занятие',
-            start_time='09:00',
-            end_time='10:30'
-        )
-        response = self.client.post(reverse('lesson-list'), schedule_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        lesson_id = response.data['id']
         
-        # Обновляем только некритические поля (не входящие в critical_fields)
-        update_data = {
-            'title': 'Новое название',
-            'comment': 'Новый комментарий'
-        }
+        # Проверяем что время второго занятия действительно изменилось
+        second_lesson_updated = Lesson.objects.get(id=second_lesson_id)
+        self.assertEqual(second_lesson_updated.start_time, time(9, 0))
+        self.assertEqual(second_lesson_updated.end_time, time(10, 30))
         
-        response_update = self.client.patch(
-            reverse('lesson-detail', kwargs={'pk': lesson_id}),
-            update_data,
-            format='json'
-        )
-        self.assertEqual(response_update.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_update.data['title'], 'Новое название')
-        self.assertEqual(response_update.data['comment'], 'Новый комментарий')
-
-
-class PeriodScheduleConflictAPITestCases(BaseAPITestCase):
-    """API тесты для проверки конфликтов периодического расписания"""
-    
-    def _create_valid_period_schedule_data(self, **overrides):
-        """Создает валидные данные для API запроса PeriodLesson"""
-        base_data = {
-            'title': 'Еженедельная математика',
-            'period': 7,  # Период повторения в днях (еженедельно)
-            'start_date': '2024-01-01',
-            'repeat_lessons_until_date': '2024-01-31',
-            'start_time': '09:00',
-            'end_time': '10:30',
-            'teacher': self.teacher1.id,
-            'group': self.group1.id,
-            'subject': self.subject.id,
-            'classroom': self.classroom1.id,
-        }
-        base_data.update(overrides)
-        return base_data
-    
-    def test_period_schedule_update_with_conflict(self):
-        """Тест конфликта при обновлении периодического расписания - должен вернуть 400 BAD REQUEST"""
-        # Создаем обычное занятие, которое будет конфликтовать
-        existing_lesson = Lesson.objects.create(
-            title='Существующее занятие',
-            date=date(2024, 1, 15),  # Эта дата попадет в периодическое расписание
-            week_day=1,  # Понедельник
-            start_time=time(9, 0),
-            end_time=time(10, 30),
-            teacher=self.teacher1,
-            group=self.group1,
-            subject=self.subject,
-            classroom=self.classroom1,
-            org=self.org
-        )
-        
-        # Создаем PeriodLesson
-        period_data = self._create_valid_period_schedule_data(
-            start_date='2024-01-01',
-            repeat_lessons_until_date='2024-01-31',
-            start_time='11:00',  # Без конфликта изначально
-            end_time='12:30'
-        )
-        
-        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        period_id = response.data['id']
-        
-        # Пытаемся обновить PeriodLesson на конфликтующее время
-        update_data = {
-            'start_time': '09:00',  # Конфликт с existing_lesson!
-            'end_time': '10:30'
-        }
-        
-        response_update = self.client.patch(
-            reverse('period_lesson-detail', kwargs={'pk': period_id}),
-            update_data,
-            format='json'
-        )
-        
-        # LessonValidationMixin должен обнаружить конфликт для всех созданных уроков
-        self.assertEqual(response_update.status_code, status.HTTP_400_BAD_REQUEST)
-    
-    def test_period_schedule_force_update_with_conflicts(self):
-        """Тест принудительного обновления PeriodLesson с конфликтами - должен вернуть 200 OK"""
-        # Создаем конфликтующее занятие
-        Lesson.objects.create(
-            title='Конфликтующее занятие',
+        # Теперь у нас два занятия в одно время - конфликт разрешен принудительно
+        self.assertEqual(Lesson.objects.filter(
             date=date(2024, 1, 15),
-            week_day=1,  # Понедельник
             start_time=time(9, 0),
             end_time=time(10, 30),
-            teacher=self.teacher1,
-            group=self.group1,
-            subject=self.subject,
-            classroom=self.classroom1,
-            org=self.org
-        )
-        
-        # Создаем PeriodLesson
-        period_data = self._create_valid_period_schedule_data(
-            start_time='11:00',
-            end_time='12:30'
-        )
-        
-        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
-        period_id = response.data['id']
-        
-        # Пытаемся обновить с флагом принудительного обновления
-        update_data = {
-            'start_time': '09:00',
-            'end_time': '10:30'
-        }
-        
-        response_update = self.client.patch(
-            f"{reverse('period_lesson-detail', kwargs={'pk': period_id})}?is_force_update=true",
-            update_data,
-            format='json'
-        )
-        
-        # С is_force_update=true должно пройти несмотря на конфликт
-        self.assertEqual(response_update.status_code, status.HTTP_200_OK)
+            teacher=self.teacher1
+        ).count(), 2)
 
 
-class ScheduleEdgeCaseAPITestCases(BaseAPITestCase):
-    """Тесты граничных случаев для конфликтов расписания через API"""
+class ScheduleEdgeCaseConflictAPITestCases(BaseAPITestCase):
+    """Тесты граничных случаев конфликтов через API"""
     
-    def test_boundary_times_no_conflict(self):
-        """Тест что занятия вплотную друг к другу не конфликтуют"""
+    def test_boundary_times_no_conflict_api(self):
+        """
+        Тест что занятия вплотную друг к другу не конфликтуют - должен вернуть 201 CREATED
+        
+        Занятия, которые заканчиваются и начинаются в одно и то же время, 
+        не считаются конфликтующими.
+        """
         # Создаем первое занятие
         first_schedule_data = self._create_valid_schedule_data(
             title='Первое занятие',
@@ -1257,26 +1086,437 @@ class ScheduleEdgeCaseAPITestCases(BaseAPITestCase):
         
         response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)  # Не должно быть конфликта
+        
+        # Проверяем что оба занятия создались
+        self.assertEqual(Lesson.objects.count(), 2)
     
-    def test_partial_overlap_conflict(self):
-        """Тест частичного пересечения занятий - должен вернуть 400 BAD REQUEST"""
+    def test_different_resources_no_conflict_api(self):
+        """
+        Тест что занятия в одно время но с разными ресурсами не конфликтуют - 201 CREATED
+        
+        Если занятия используют разных преподавателей, группы или аудитории, 
+        они могут проходить одновременно.
+        """
         # Создаем первое занятие
         first_schedule_data = self._create_valid_schedule_data(
             title='Первое занятие',
             start_time='09:00',
             end_time='10:30',
-            teacher=self.teacher1.id
+            teacher=self.teacher1.id,
+            group=self.group1.id,
+            classroom=self.classroom1.id
         )
         response1 = self.client.post(reverse('lesson-list'), first_schedule_data, format='json')
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
         
-        # Пытаемся создать второе занятие с частичным пересечением
+        # Создаем второе занятие в то же время, но с РАЗНЫМИ ресурсами
         second_schedule_data = self._create_valid_schedule_data(
-            title='Второе занятие (частичное пересечение)',
-            start_time='10:00',  # Начинается во время первого занятия
-            end_time='11:30',    # Заканчивается после первого занятия
-            teacher=self.teacher1.id  # Тот же преподаватель!
+            title='Второе занятие',
+            start_time='09:00',  # То же время!
+            end_time='10:30',    # То же время!
+            teacher=self.teacher2.id,    # ДРУГОЙ преподаватель
+            group=self.group2.id,        # ДРУГАЯ группа
+            classroom=self.classroom2.id # ДРУГАЯ аудитория
         )
         
         response2 = self.client.post(reverse('lesson-list'), second_schedule_data, format='json')
-        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)  # Должен быть конфликт
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)  # Не должно быть конфликта
+        
+        # Проверяем что оба занятия создались
+        self.assertEqual(Lesson.objects.count(), 2)
+
+        # =============================================================================
+# API ТЕСТЫ КОНФЛИКТОВ ПЕРИОДИЧЕСКОГО РАСПИСАНИЯ
+# =============================================================================
+
+class PeriodScheduleConflictAPITestCases(BaseAPITestCase):
+    """API тесты для проверки конфликтов периодического расписания"""
+    
+    def _create_valid_period_schedule_data(self, **overrides):
+        """Создает валидные данные для API запроса PeriodLesson"""
+        base_data = {
+            'title': 'Еженедельная математика',
+            'period': 7,  # Период повторения в днях (еженедельно)
+            'start_date': '2024-01-01',
+            'repeat_lessons_until_date': '2024-01-31',
+            'start_time': '09:00',
+            'end_time': '10:30',
+            'teacher': self.teacher1.id,
+            'group': self.group1.id,
+            'subject': self.subject.id,
+            'classroom': self.classroom1.id,
+        }
+        base_data.update(overrides)
+        return base_data
+    
+    def test_period_schedule_creation_with_conflict_api(self):
+        """
+        Тест создания периодического расписания с конфликтом - должен вернуть 400 BAD REQUEST
+        
+        Создаем обычное занятие, которое конфликтует с одним из уроков периодического расписания.
+        LessonValidationMixin должен обнаружить конфликт и предотвратить создание PeriodLesson.
+        """
+        # Создаем конфликтующее обычное занятие
+        conflicting_lesson = Lesson.objects.create(
+            title='Конфликтующее занятие',
+            date=date(2024, 1, 15),  # Эта дата попадет в периодическое расписание (понедельник)
+            week_day=1,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        # Пытаемся создать периодическое расписание, которое создаст конфликтующие уроки
+        period_data = self._create_valid_period_schedule_data(
+            start_date='2024-01-01',  # Начинается с 1 января
+            repeat_lessons_until_date='2024-01-31',  # До 31 января
+            start_time='09:00',  # То же время что и у конфликтующего занятия!
+            end_time='10:30'     # То же время!
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 400 BAD REQUEST - конфликт с существующим занятием 15 января
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response.data)
+        
+        # Проверяем что PeriodLesson не создался
+        self.assertEqual(PeriodLesson.objects.count(), 0)
+    
+    def test_period_schedule_update_with_conflict_api(self):
+        """
+        Тест обновления периодического расписания с созданием конфликта - 400 BAD REQUEST
+        
+        Создаем PeriodLesson без конфликтов, затем обновляем его так, чтобы создались конфликтующие уроки.
+        """
+        # Создаем конфликтующее обычное занятие
+        conflicting_lesson = Lesson.objects.create(
+            title='Конфликтующее занятие',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(11, 0),  # Изначально без конфликта
+            end_time=time(12, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        # Создаем PeriodLesson изначально без конфликта
+        period_data = self._create_valid_period_schedule_data(
+            start_time='09:00',  # Без конфликта
+            end_time='10:30'
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        period_id = response.data['id']
+        
+        # Пытаемся обновить PeriodLesson на конфликтующее время
+        update_data = {
+            'start_time': '11:00',  # Теперь конфликт с existing_lesson!
+            'end_time': '12:30'
+        }
+        
+        response_update = self.client.patch(
+            reverse('period_lesson-detail', kwargs={'pk': period_id}),
+            update_data,
+            format='json'
+        )
+        
+        # Должен вернуть 400 BAD REQUEST - конфликт для урока 15 января
+        self.assertEqual(response_update.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Проверяем что время не изменилось
+        period_lesson_updated = PeriodLesson.objects.get(id=period_id)
+        self.assertEqual(period_lesson_updated.start_time, time(9, 0))  # Осталось исходное время
+    
+    def test_period_schedule_force_update_with_conflicts_api(self):
+        """
+        Тест принудительного обновления PeriodLesson с конфликтами - 200 OK
+        
+        С флагом is_force_update=true можно обновить PeriodLesson даже если это создаст конфликтующие уроки.
+        """
+        # Создаем конфликтующее занятие
+        conflicting_lesson = Lesson.objects.create(
+            title='Конфликтующее занятие',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(11, 0),
+            end_time=time(12, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        # Создаем PeriodLesson
+        period_data = self._create_valid_period_schedule_data(
+            start_time='09:00',  # Без конфликта изначально
+            end_time='10:30'
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        period_id = response.data['id']
+        
+        # Пытаемся обновить с флагом принудительного обновления
+        update_data = {
+            'start_time': '11:00',  # Конфликт!
+            'end_time': '12:30'
+        }
+        
+        response_update = self.client.patch(
+            f"{reverse('period_lesson-detail', kwargs={'pk': period_id})}?is_force_update=true",
+            update_data,
+            format='json'
+        )
+        
+        # С is_force_update=true должно пройти несмотря на конфликт
+        self.assertEqual(response_update.status_code, status.HTTP_200_OK)
+        
+        # Проверяем что время изменилось
+        period_lesson_updated = PeriodLesson.objects.get(id=period_id)
+        self.assertEqual(period_lesson_updated.start_time, time(11, 0))
+        self.assertEqual(period_lesson_updated.end_time, time(12, 30))
+    
+    def test_period_schedule_partial_overlap_conflict_api(self):
+        """
+        Тест ЧАСТИЧНОГО пересечения периодического расписания - 400 BAD REQUEST
+        
+        Проверяем что даже частичное пересечение времени блокирует создание PeriodLesson.
+        """
+        # Создаем занятие с частичным пересечением
+        partial_conflict_lesson = Lesson.objects.create(
+            title='Занятие с частичным пересечением',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(9, 30),  # Начинается во время планируемого периодического занятия
+            end_time=time(11, 0),    # Заканчивается после
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        # Пытаемся создать PeriodLesson с частичным пересечением
+        period_data = self._create_valid_period_schedule_data(
+            start_time='09:00',  # Начинается до конфликтующего занятия
+            end_time='10:30'     # Заканчивается во время конфликтующего занятия
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 400 BAD REQUEST - частичное пересечение тоже конфликт
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_period_schedule_multiple_conflicts_api(self):
+        """
+        Тест множественных конфликтов периодического расписания - 400 BAD REQUEST
+        
+        Создаем несколько конфликтующих занятий в разные даты, которые попадают в периодическое расписание.
+        """
+        # Создаем конфликтующие занятия в разные понедельники
+        conflict_jan_15 = Lesson.objects.create(
+            title='Конфликт 15 января',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        conflict_jan_22 = Lesson.objects.create(
+            title='Конфликт 22 января',
+            date=date(2024, 1, 22),  # Следующий понедельник
+            week_day=1,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        # Пытаемся создать PeriodLesson который конфликтует с обоими занятиями
+        period_data = self._create_valid_period_schedule_data(
+            start_date='2024-01-01',
+            repeat_lessons_until_date='2024-01-31',
+            start_time='09:00',  # Конфликт с обоими занятиями
+            end_time='10:30'
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 400 BAD REQUEST - множественные конфликты
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_period_schedule_no_conflict_different_resources_api(self):
+        """
+        Тест отсутствия конфликта при разных ресурсах - 201 CREATED
+        
+        PeriodLesson может создавать уроки в то же время, но с разными преподавателями/группами/аудиториями.
+        """
+        # Создаем занятие с определенными ресурсами
+        existing_lesson = Lesson.objects.create(
+            title='Существующее занятие',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,    # Преподаватель 1
+            group=self.group1,        # Группа 1
+            classroom=self.classroom1, # Аудитория 1
+            org=self.org
+        )
+        
+        # Создаем PeriodLesson с РАЗНЫМИ ресурсами
+        period_data = self._create_valid_period_schedule_data(
+            start_date='2024-01-01',
+            repeat_lessons_until_date='2024-01-31',
+            start_time='09:00',  # То же время!
+            end_time='10:30',    # То же время!
+            teacher=self.teacher2.id,    # ДРУГОЙ преподаватель
+            group=self.group2.id,        # ДРУГАЯ группа
+            classroom=self.classroom2.id # ДРУГАЯ аудитория
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 201 CREATED - нет конфликта из-за разных ресурсов
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Проверяем что PeriodLesson создался
+        self.assertEqual(PeriodLesson.objects.count(), 1)
+        
+        # Проверяем что создались связанные уроки
+        period_lesson = PeriodLesson.objects.get(id=response.data['id'])
+        created_lessons = Lesson.objects.filter(period_schedule=period_lesson)
+        self.assertGreater(created_lessons.count(), 0)
+
+
+class PeriodScheduleEdgeCaseAPITestCases(BaseAPITestCase):
+    """Тесты граничных случаев периодического расписания"""
+    
+    def _create_valid_period_schedule_data(self, **overrides):
+        """Создает валидные данные для API запроса PeriodLesson"""
+        base_data = {
+            'title': 'Еженедельная математика',
+            'period': 7,
+            'start_date': '2024-01-01',
+            'repeat_lessons_until_date': '2024-01-31',
+            'start_time': '09:00',
+            'end_time': '10:30',
+            'teacher': self.teacher1.id,
+            'group': self.group1.id,
+            'subject': self.subject.id,
+            'classroom': self.classroom1.id,
+        }
+        base_data.update(overrides)
+        return base_data
+    
+    def test_period_schedule_completed_lessons_no_conflict_api(self):
+        """
+        Тест что завершенные занятия не учитываются при проверке конфликтов - 201 CREATED
+        
+        PeriodLesson может создавать уроки в то же время что и завершенные занятия.
+        """
+        # Создаем ЗАВЕРШЕННОЕ занятие
+        completed_lesson = Lesson.objects.create(
+            title='Завершенное занятие',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            is_completed=True,  # ЗАВЕРШЕНО!
+            org=self.org
+        )
+        
+        # Пытаемся создать PeriodLesson с тем же временем
+        period_data = self._create_valid_period_schedule_data(
+            start_time='09:00',  # То же время что и у завершенного занятия
+            end_time='10:30'
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 201 CREATED - завершенные занятия не учитываются
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    def test_period_schedule_canceled_lessons_no_conflict_api(self):
+        """
+        Тест что отмененные занятия не учитываются при проверке конфликтов - 201 CREATED
+        """
+        # Создаем ОТМЕНЕННОЕ занятие
+        canceled_lesson = Lesson.objects.create(
+            title='Отмененное занятие',
+            date=date(2024, 1, 15),  # Понедельник
+            week_day=1,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            is_canceled=True,  # ОТМЕНЕНО!
+            org=self.org
+        )
+        
+        # Пытаемся создать PeriodLesson с тем же временем
+        period_data = self._create_valid_period_schedule_data(
+            start_time='09:00',  # То же время что и у отмененного занятия
+            end_time='10:30'
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 201 CREATED - отмененные занятия не учитываются
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    def test_period_schedule_different_dates_no_conflict_api(self):
+        """
+        Тест что занятия в разные даты не конфликтуют - 201 CREATED
+        
+        PeriodLesson создает уроки только в определенные даты, не конфликтуя с занятиями в другие дни.
+        """
+        # Создаем занятие во ВТОРНИК (день 2)
+        tuesday_lesson = Lesson.objects.create(
+            title='Занятие во вторник',
+            date=date(2024, 1, 16),  # Вторник (день 2)
+            week_day=2,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            teacher=self.teacher1,
+            group=self.group1,
+            subject=self.subject,
+            classroom=self.classroom1,
+            org=self.org
+        )
+        
+        # Создаем PeriodLesson который создает уроки только по ПОНЕДЕЛЬНИКАМ (день 1)
+        period_data = self._create_valid_period_schedule_data(
+            start_date='2024-01-01',
+            repeat_lessons_until_date='2024-01-31',
+            start_time='09:00',  # То же время, но разные дни
+            end_time='10:30'
+        )
+        
+        response = self.client.post(reverse('period_lesson-list'), period_data, format='json')
+        
+        # Должен вернуть 201 CREATED - разные дни недели
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
