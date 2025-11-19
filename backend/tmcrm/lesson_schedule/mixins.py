@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.db.models import QuerySet
 from rest_framework.exceptions import ValidationError
 from mainapp.serializers import BaseSerializerExcludeFields
-from lesson_schedule.models import Schedule
+from lesson_schedule.models import Lesson
 from lesson_schedule.utils import LessonSlot
 
 
@@ -23,7 +23,7 @@ class LessonValidationMixin:
     Миксин для валидации расписания уроков в ViewSet'ах.
 
     Предназначен для повторного использования в представлениях,
-    работающих с расписаниями (Schedule). Обеспечивает удобные методы
+    работающих с расписаниями (Lesson). Обеспечивает удобные методы
     для извлечения связанных уроков, получения ключевых полей урока и
     проверки возможности обновления уроков без конфликтов.
 
@@ -36,7 +36,7 @@ class LessonValidationMixin:
     - Выдача свободных слотов при невозможности изменения.
     """
 
-    def get_lessons_queryset(self) -> QuerySet[Schedule]:
+    def get_lessons_queryset(self) -> QuerySet[Lesson]:
         """
         Метод должен быть реализован в viewset-классе.
         Используется для получения списка уроков, подлежащих валидации.
@@ -45,7 +45,7 @@ class LessonValidationMixin:
             "Метод get_lessons_queryset должен быть реализован в viewset-классе"
         )
 
-    def _get_related_lessons(self, serializer) -> QuerySet[Schedule]:
+    def _get_related_lessons(self, serializer) -> QuerySet[Lesson]:
         """
         Возвращает все связанные сериальные уроки,
         принадлежащие одной периодической записи расписания и не завершённые.
@@ -54,7 +54,7 @@ class LessonValidationMixin:
             serializer: Сериализатор с экземпляром урока.
 
         Returns:
-            QuerySet[Schedule]: Запрос с уроками, связанными через поле period_schedule
+            QuerySet[Lesson]: Запрос с уроками, связанными через поле period_schedule
             и помеченными как незавершённые (is_completed=False).
         """
         return self.get_lessons_queryset().filter(

@@ -1,78 +1,62 @@
-# signals.py - ИСПРАВЬТЕ функцию create_lessons_until_date
 from __future__ import annotations
-from lesson_schedule.models import Schedule, PeriodSchedule
+from lesson_schedule.models import Lesson, PeriodLesson
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_migrate, pre_save
-from datetime import timedelta, datetime
+from datetime import timedelta
 from mainapp.utils import checkout_interval_schedule_table
 from .models import Attendance, Grade
-from django.core.exceptions import ValidationError
 
 
-@receiver(post_save, sender=PeriodSchedule)
-def create_lessons_until_date(sender, instance, created, **kwargs):
+@receiver(post_save, sender=PeriodLesson)
+def create_lessons_until_date(sender, created, instance, **kwargs):
     if created:
         org_settings = instance.org.settings
+        # Получаем дату продлеиня занятий если нет то берем эту дату из настроек
         repeat_until = getattr(instance, 'repeat_lessons_until_date', None) 
         if not repeat_until:
             repeat_until = org_settings.repeat_lessons_until
-            
-            # Если repeat_until - строка, преобразуем в дату
-            if isinstance(repeat_until, str):
-                try:
-                    current_year = datetime.now().year
-                    repeat_until = datetime.strptime(f"{current_year}-{repeat_until}", "%Y-%m-%d").date()
-                except ValueError:
-                    repeat_until = instance.start_date + timedelta(days=180)
 
         period = instance.period
         current_date = instance.start_date
 
-        if not period:
-            raise ValueError('не указана периодичность')
-
+        # получение атрибутов экземпляра чтобы на его омнове создать другие
         data = {f.name: getattr(instance, f.name) 
                 for f in instance._meta.fields 
-                if f.name not in ('id', 'created_by', 'period', 'repeat_lessons_until_date', 'start_date') 
-                and getattr(instance, f.name) is not None}
+                if f.name not in ('date', 'created_by', 'id', 'period', 'repeat_lessons_until_date', 'start_date', 'title')}
 
-        lessons_to_create = []
-        # Создаем занятия до конечной даты
-        while current_date <= repeat_until:
-            new_lesson = Schedule(
-                date=current_date,
-                created_by=instance.created_by,
-                week_day=current_date.isoweekday(),  
-                period_schedule=instance,
-                **data
-            )
-            
-            try:
-                new_lesson.full_clean()
+        if period:
+            lessons_to_create = []
+            # Цикл отвечает за создание списка, 
+            while current_date <= repeat_until:
+                new_lesson = Lesson(
+                    date=current_date,
+                    created_by=instance.created_by,
+                    week_day=current_date.isoweekday(),
+                    period_schedule=instance,
+                    **data
+                )
                 lessons_to_create.append(new_lesson)
-            except ValidationError:
-                pass
-                
-            current_date += timedelta(days=period)
+                current_date += timedelta(days=period)
 
-        if lessons_to_create:
-            Schedule.objects.bulk_create(lessons_to_create)
+            Lesson.objects.bulk_create(lessons_to_create)
+        else:
+            raise ValueError('не указана периодичность')
 
-@receiver(post_save, sender=PeriodSchedule)
-def update_data_not_complete_lessons(sender, instance, created, **kwargs):
+
+@receiver(post_save, sender=PeriodLesson)
+def update_data_not_complete_lessons(sender, created, instance, **kwargs):
     if not created:
-        lessons = Schedule.objects.filter(period_schedule=instance, is_completed=False)
+        lessons = Lesson.objects.filter(period_schedule=instance, is_completed=False)
+
+        data = {
+            f.name: getattr(instance, f.name)
+            for f in instance._meta.fields
+            if f.name not in ('date', 'created_by', 'id', 'period', 'repeat_lessons_until_date', 'start_date', 'title')
+            and getattr(instance, f.name) is not None
+        }
         
-        # Обновляем ВСЕ поля, включая title
-        update_fields = {}
-        for field in instance._meta.fields:
-            if field.name not in ('id', 'created_by', 'period', 'repeat_lessons_until_date', 'start_date'):
-                value = getattr(instance, field.name)
-                if value is not None:  
-                    update_fields[field.name] = value
-        
-        if update_fields:
-            lessons.update(**update_fields)
+
+        lessons.update(**data)
 
 
 @receiver(post_migrate)
@@ -85,6 +69,7 @@ def setup_periodic_tasks(sender, **kwargs):
     init_task_create_update_complete_lessons_task()
     init_task_create_attendences_for_all_passes()
     
+
 
 @receiver(pre_save, sender=Attendance)
 def set_attendance_date(sender, instance, **kwargs) -> None:

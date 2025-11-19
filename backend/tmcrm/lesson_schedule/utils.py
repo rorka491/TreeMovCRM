@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 from rest_framework.response import Response
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
-from .models import Attendance, Schedule
+from .models import Attendance, Lesson
 
     
 
@@ -154,24 +154,22 @@ class LessonSlot:
         )
 
 
-def _create_missing_attendances_for_lesson(lesson: Schedule) -> list[Attendance]:
-    org = lesson.get_org
-    group_students = lesson.group.students.all()
-    lesson_date = lesson.date
-    existing_students_ids = Attendance.objects.filter(lesson=lesson).values_list(
-        "student_id", flat=True
-    )
-    missing_students = group_students.exclude(id__in=existing_students_ids)
+    def _create_missing_attendances_for_lesson(lesson: Lesson) -> list[Attendance]:
+        org = lesson.get_org
+        group_students = lesson.group.students.all()
+        lesson_date = lesson.date
+        existing_students_ids = Attendance.objects.filter(lesson=lesson).values_list(
+            "student_id", flat=True
+        )
+        missing_students = group_students.exclude(id__in=existing_students_ids)
 
-    return [
-        Attendance(student=student, lesson=lesson, org=org, was_present=False, lesson_date=lesson_date)
-        for student in missing_students
-    ]
-
-
-def _get_complited_lessons_for_org(org: "Organization") -> list[Schedule]:
-    return Schedule.objects.filter_by_org(org).filter(
-        is_canceled=False, is_completed=True
-    )
+        return [
+            Attendance(student=student, lesson=lesson, org=org, was_present=False, lesson_date=lesson_date)
+            for student in missing_students
+        ]
 
 
+    def _get_complited_lessons_for_org(org: "Organization") -> list[Lesson]:
+        return Lesson.objects.filter_by_org(org).filter(
+            is_canceled=False, is_completed=True
+        )

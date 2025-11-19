@@ -8,10 +8,11 @@ from django.db.models import Q
 from .filters import LessonFilter
 from .serializers.read import AttendanceReadSerializer, ClassroomReadSerializer, GradeReadSerializer, ScheduleReadSerializer, SubjectReadSerializer, PeriodScheduleReadSerializer
 from .serializers.write import AttendanceWriteSerializer, ClassroomWriteSerializer, GradeWriteSerializer, PeriodScheduleWriteSerializer, ScheduleWriteSerializer, SubjectWriteSerializer
-from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet, base_search
+from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
+from mainapp.decorators import base_search
 from mainapp.filters import DateRangeMixin
 from .utils import _grouped_response
-from .models import Attendance, Schedule, Subject, PeriodSchedule, Grade, Classroom
+from .models import Attendance, Lesson, Subject, PeriodLesson, Grade, Classroom
 from .mixins import SerializerUpdateMixin, LessonValidationMixin
 from .serializers.other import GroupScheduleSerializer, TeacherScheduleSerializer, ClassroomScheduleSerializer
 
@@ -20,7 +21,7 @@ from .serializers.other import GroupScheduleSerializer, TeacherScheduleSerialize
 class ScheduleFilter(DateRangeMixin, django_filters.FilterSet):
 
     class Meta:
-        model = Schedule
+        model = Lesson
         exclude = ["duration"]
 
 
@@ -52,11 +53,11 @@ class AbstractScheduleViewSet(
         raise NotImplementedError("Метод не был реализован в наслдениках")
 
     def get_lessons_queryset(self):
-        queryset = Schedule.objects.all()
+        queryset = Lesson.objects.all()
         return queryset
 
     def update(self, request, *args, **kwargs):
-        is_force_update = request.query_params.get("is_force_update")
+        is_force_update = request.query_params.get("is_force_update") == "true"
         data = request.data
         partial = kwargs.get("partial", False) # Если false то запрос PUT в обратном случае PATCH
         instance = self.get_object()
@@ -73,7 +74,7 @@ class AbstractScheduleViewSet(
 
 
 class ScheduleViewSet(AbstractScheduleViewSet):
-    queryset = Schedule.objects.all()
+    queryset = Lesson.objects.all()
     filterset_class = LessonFilter
     read_serializer_class = ScheduleReadSerializer
     write_serializer_class = ScheduleWriteSerializer
@@ -152,11 +153,11 @@ class ScheduleViewSet(AbstractScheduleViewSet):
 
 
 class PeriodScheduleViewSet(AbstractScheduleViewSet):
-    queryset = PeriodSchedule.objects.all()
+    queryset = PeriodLesson.objects.all()
     write_serializer_class = PeriodScheduleWriteSerializer
     read_serializer_class = PeriodScheduleReadSerializer
 
-    
+
     critical_fields = (
         "start_time",
         "end_time",
@@ -203,3 +204,7 @@ class AttendanceViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     read_serializer_class = AttendanceReadSerializer
     write_serializer_class = AttendanceWriteSerializer
 
+    def perform_create(self, serializer):        
+        lesson = serializer.validated_data.get('lesson')
+        date = lesson.date  
+        super().perform_create(serializer, lesson_date=date)

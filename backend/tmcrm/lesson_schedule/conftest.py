@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from datetime import date, time
 
-from lesson_schedule.models import Schedule, Subject, Classroom, PeriodSchedule, Attendance, Grade
+from lesson_schedule.models import Lesson, Subject, Classroom, PeriodLesson, Attendance, Grade
 from students.models import StudentGroup, Student
 from employers.models import Teacher, Employer
 from mainapp.models import Organization, User, SubjectColor, OrgSettings
@@ -271,9 +271,9 @@ def student_org2(organization2):
 
 
 @pytest.fixture
-def schedule(organization, teacher, student_group, subject, classroom):
+def lesson(organization, teacher, student_group, subject, classroom):
     """Фикстура занятия"""
-    return Schedule.objects.create(
+    return Lesson.objects.create(
         title="Тестовое занятие",
         date=date(2024, 1, 15),
         week_day=1,
@@ -288,9 +288,9 @@ def schedule(organization, teacher, student_group, subject, classroom):
 
 
 @pytest.fixture
-def schedule_org1(organization, teacher, student_group, subject):
+def lesson_org1(organization, teacher, student_group, subject):
     """Фикстура занятия первой организации"""
-    return Schedule.objects.create(
+    return Lesson.objects.create(
         title="Урок Org1",
         date=date(2024, 1, 15),
         week_day=1,  
@@ -302,9 +302,9 @@ def schedule_org1(organization, teacher, student_group, subject):
 
 
 @pytest.fixture
-def schedule_org2(organization2, teacher_org2, student_group_org2, subject_org2):
+def lesson_org2(organization2, teacher_org2, student_group_org2, subject_org2):
     """Фикстура занятия второй организации"""
-    return Schedule.objects.create(
+    return Lesson.objects.create(
         title="Урок Org2",
         date=date(2024, 1, 15),
         week_day=1,  
@@ -316,33 +316,33 @@ def schedule_org2(organization2, teacher_org2, student_group_org2, subject_org2)
 
 
 @pytest.fixture
-def attendance(organization, schedule, student):
+def attendance(organization, lesson, student):
     """Фикстура посещения"""
     return Attendance.objects.create(
         student=student,
-        lesson=schedule,
+        lesson=lesson,
         was_present=True,
         org=organization
     )
 
 
 @pytest.fixture
-def attendance_org2(organization2, schedule_org2, student_org2):
+def attendance_org2(organization2, lesson_org2, student_org2):
     """Фикстура посещения второй организации"""
     return Attendance.objects.create(
         student=student_org2,
-        lesson=schedule_org2,
+        lesson=lesson_org2,
         was_present=True,
         org=organization2
     )
 
 
 @pytest.fixture
-def grade(organization, schedule, student):
+def grade(organization, lesson, student):
     """Фикстура оценки"""
     return Grade.objects.create(
         student=student,
-        lesson=schedule,
+        lesson=lesson,
         value=5,
         org=organization
     )
@@ -355,9 +355,9 @@ def period_schedule(organization, teacher, student_group, subject, classroom):
     from django.db.models.signals import post_save
     
     # Отключаем сигнал для контроля тестирования
-    post_save.disconnect(lesson_signals.create_lessons_until_date, sender=PeriodSchedule)
+    post_save.disconnect(lesson_signals.create_lessons_until_date, sender=PeriodLesson)
     
-    period_schedule = PeriodSchedule.objects.create(
+    period_schedule = PeriodLesson.objects.create(
         period=7,
         title="Еженедельная математика",
         start_time=time(9, 0),
@@ -374,7 +374,7 @@ def period_schedule(organization, teacher, student_group, subject, classroom):
     yield period_schedule
     
     # Восстанавливаем сигнал
-    post_save.connect(lesson_signals.create_lessons_until_date, sender=PeriodSchedule)
+    post_save.connect(lesson_signals.create_lessons_until_date, sender=PeriodLesson)
 
 
 @pytest.fixture
@@ -395,9 +395,9 @@ def valid_schedule_data(teacher, subject, classroom, student_group):
 
 # Новые фикстуры для тестирования
 @pytest.fixture
-def completed_schedule(organization, teacher, student_group, subject, classroom):
+def completed_lesson(organization, teacher, student_group, subject, classroom):
     """Фикстура завершенного занятия для тестов Celery"""
-    return Schedule.objects.create(
+    return Lesson.objects.create(
         title="Завершенное занятие",
         date=date(2023, 12, 1),
         week_day=5,
