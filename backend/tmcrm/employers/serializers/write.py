@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from mainapp.serializers import BaseWriteSerializer
 from employers.models import Department, Teacher, Employer, Leave, TeacherNote
-
+from mainapp.models import TeacherProfile
 
 class EmployerWriteSerializer(BaseWriteSerializer):
 
@@ -32,3 +32,11 @@ class TeacherNoteWriteSerializer(BaseWriteSerializer):
     class Meta(BaseWriteSerializer.Meta):
         model = TeacherNote
         read_only_fields = ["teacher_profile"]
+
+
+class TeacherProfileWriteSerializer(BaseWriteSerializer):
+
+    class Meta(BaseWriteSerializer.Meta):
+        model = TeacherProfile
+
+

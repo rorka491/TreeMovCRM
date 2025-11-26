@@ -49,6 +49,9 @@ class AbstractScheduleViewSet(
     def _has_critical_fields(self, data: dict) -> bool:
         return any(field in data for field in self.critical_fields)
 
+    def _can_create(self, serializer, is_force_create):
+        raise NotImplementedError("Метод не был реализован в наслдениках")
+
     def _can_update(self, serializer, is_force_update) -> bool:
         raise NotImplementedError("Метод не был реализован в наслдениках")
 
@@ -79,7 +82,6 @@ class ScheduleViewSet(AbstractScheduleViewSet):
     read_serializer_class = ScheduleReadSerializer
     write_serializer_class = ScheduleWriteSerializer
 
-
     critical_fields = (
         "classroom",
         "teacher",
@@ -96,6 +98,7 @@ class ScheduleViewSet(AbstractScheduleViewSet):
         "group",
         "org",
         "classroom",
+        "period_schedule",
     ]
 
     grouped_fields = {
@@ -103,7 +106,6 @@ class ScheduleViewSet(AbstractScheduleViewSet):
         "by-groups": ("group", GroupScheduleSerializer),
         "by-classrooms": ("classroom", ClassroomScheduleSerializer),
     }
-
 
     def _can_update(self, serializer, is_force_update) -> bool:
         return self.can_update_alone_lesson(

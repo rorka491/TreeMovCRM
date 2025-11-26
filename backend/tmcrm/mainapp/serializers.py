@@ -107,3 +107,5 @@ class RegisterStartSerializer(serializers.Serializer):
 class RegeisterConfirmSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     code = serializers.CharField(required=True, max_length=6, min_length=6)
+
+

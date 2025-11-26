@@ -71,12 +71,10 @@ class Classroom(BaseModelOrg):
 class AbstrctLesson(BaseModelOrg):
     title = models.CharField(max_length=200)
     start_time = models.TimeField(
-        blank=False,
         null=True,
         help_text="Please use the following format: <em>YYYY-MM-DD</em>.",
     )
     end_time = models.TimeField(
-        blank=False,
         null=True,
         help_text="Please use the following format: <em>YYYY-MM-DD</em>.",
     )

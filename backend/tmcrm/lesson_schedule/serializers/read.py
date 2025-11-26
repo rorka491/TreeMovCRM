@@ -11,6 +11,7 @@ from lesson_schedule.models import (
 from mainapp.models import SubjectColor
 from students.serializers.read import StudentGroupReadSerializer, StudentReadSerializer
 from employers.serializers.read import TeacherReadSerializer
+from rest_framework.serializers import SerializerMethodField
 
 
 class ClassroomReadSerializer(BaseReadSerializer):
@@ -32,16 +33,6 @@ class AttendanceReadSerializer(BaseReadSerializer):
         model = Attendance
 
 
-class ScheduleReadSerializer(BaseReadSerializer):
-    teacher = TeacherReadSerializer()
-    subject = SubjectReadSerializer(exclude_fields=["teacher"])
-    group = StudentGroupReadSerializer(exclude_fields=["students"])
-    classroom = ClassroomReadSerializer()
-
-    class Meta(BaseReadSerializer.Meta):
-        model = Lesson
-
-
 class PeriodScheduleReadSerializer(BaseReadSerializer):
     teacher = TeacherReadSerializer()
     subject = SubjectReadSerializer()
@@ -50,6 +41,19 @@ class PeriodScheduleReadSerializer(BaseReadSerializer):
 
     class Meta(BaseReadSerializer.Meta):
         model = PeriodLesson
+
+class ScheduleReadSerializer(BaseReadSerializer):
+    teacher = TeacherReadSerializer()
+    subject = SubjectReadSerializer(exclude_fields=["teacher"])
+    group = StudentGroupReadSerializer(exclude_fields=["students"])
+    classroom = ClassroomReadSerializer()
+    period_lesson = SerializerMethodField()
+
+    class Meta(BaseReadSerializer.Meta):
+        model = Lesson
+
+    def get_period_lesson(self, obj: Lesson):
+        return PeriodScheduleReadSerializer(obj.period_schedule, un_exclude_fields=['period']).data
 
 
 class GradeReadSerializer(BaseReadSerializer):

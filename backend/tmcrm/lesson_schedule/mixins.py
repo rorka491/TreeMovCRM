@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal
 from django.db.models import Q
 from django.db.models import QuerySet
 from rest_framework.exceptions import ValidationError
@@ -82,7 +83,42 @@ class LessonValidationMixin:
             "teacher": new_data.get("teacher", instance.teacher),
             "classroom": new_data.get("classroom", instance.classroom),
             "group": new_data.get("group", instance.group),
+            "date": new_data.get("date", instance.date)
         }
+
+    def can_create_alone_lesson_by_fields(
+        self,
+        *,
+        start_time,
+        end_time,
+        date,
+        teacher,
+        classroom,
+        group,
+    ) -> Literal[True]:
+
+        all_lessons_at_day = (
+            self.get_lessons_queryset()
+            .filter(date=date)
+            .filter(Q(teacher=teacher) | Q(classroom=classroom) | Q(group=group))
+        )
+
+        lesson_list = [
+            LessonSlot(lesson.start_time, lesson.end_time)
+            for lesson in all_lessons_at_day
+        ]
+        current_lesson = LessonSlot(start_time, end_time)
+
+        if LessonSlot.can_add_lesson(lesson_list, current_lesson):
+            return True
+        else:
+            slots = LessonSlot.find_free_slots_at_day(lesson_list)
+            raise ValidationError({
+                "detail": "Невозможно обновить время урока на заданное время",
+                "free_slots": [f"{s[0]} - {s[1]}" for s in slots],
+                "lesson_list": [str(lesson) for lesson in lesson_list],
+                "current_date": date.isoformat(),
+            })
 
     def can_update_alone_lesson_by_fields(
         self,
@@ -94,7 +130,7 @@ class LessonValidationMixin:
         teacher,
         classroom,
         group,
-    ):
+    ) -> Literal[True]:
         """
         Проверяет, можно ли обновить указанный урок с заданными параметрами без пересечения с другими уроками.
         Метод ищет все уроки на тот же день, где учитель, аудитория или группа совпадают с переданными параметрами,
@@ -102,7 +138,7 @@ class LessonValidationMixin:
         Если пересечений нет — возвращает True.
         Если пересечения есть — возбуждает ValidationError с информацией о свободных слотах и текущем дне.
         """
-        all_lessons_at_day = (
+        all_lessons_at_day: QuerySet[Lesson] = (
             self.get_lessons_queryset()
             .filter(date=date)
             .filter(Q(teacher=teacher) | Q(classroom=classroom) | Q(group=group))
@@ -127,6 +163,15 @@ class LessonValidationMixin:
                 "current_date": date.isoformat(),
             })
 
+    def can_create_alone_lesson(
+        self, serializer: BaseSerializerExcludeFields, is_force_create
+    ) -> bool:
+        if is_force_create:
+            return True
+
+        fields = self._extract_lesson_fields(serializer=serializer)
+        return self.can_create_alone_lesson_by_fields(**fields)   
+
     def can_update_alone_lesson(
         self,
         serializer: BaseSerializerExcludeFields,
@@ -148,7 +193,7 @@ class LessonValidationMixin:
             return True
 
         all_lessons_to_update = self._get_related_lessons(serializer=serializer)
-        
+
         fields = self._extract_lesson_fields(serializer=serializer)
         for lesson in all_lessons_to_update:
             self.can_update_alone_lesson_by_fields(lesson, date=lesson.date, **fields)

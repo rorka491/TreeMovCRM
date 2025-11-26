@@ -1,14 +1,15 @@
 from rest_framework.exceptions import ValidationError
 from django.http import FileResponse
 from rest_framework.permissions import BasePermission, IsAuthenticated
-from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer, LeaveReadSerializer, TeacherNoteReadSerializer
-from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer, LeaveWriteSerializer, TeacherNoteWriteSerializer
+from .serializers.read import EmployerReadSerializer, TeacherReadSerializer, DepartmentReadSerializer, LeaveReadSerializer, TeacherNoteReadSerializer, TeacherProfileReadSerializer
+from .serializers.write import EmployerWriteSerializer, TeacherWriteSerializer, DepartmentWriteSerializer, LeaveWriteSerializer, TeacherNoteWriteSerializer, TeacherProfileWriteSerializer
 from .serializers.other import DocumentsSerializer
 from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
 from .models import Teacher, Employer, Documents, Department, Leave, TeacherNote
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .permissions import IsTeacherProfile
+from mainapp.models import TeacherProfile
 
 
 class TeacherViewset(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
@@ -52,6 +53,24 @@ class LeaveViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
     queryset = Leave.objects.all()
     read_serializer_class = LeaveReadSerializer
     write_serializer_class = LeaveWriteSerializer
+
+
+class TeacherProfileViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
+    queryset = TeacherProfile.objects.all()
+    write_serializer_class = TeacherProfileWriteSerializer
+    read_serializer_class = TeacherProfileReadSerializer
+
+    def get_object(self):
+        return TeacherProfile.objects.get(user=self.request.user)
+
+    @action(detail=False, methods=["get", "put", "patch"])
+    def me(self, request):
+        profile = TeacherProfile.objects.get(user=request.user)
+        serializer = self.get_serializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        if request.method != "GET":
+            serializer.save()
+        return Response(serializer.data)
 
 
 class TeacherNoteViewSet(SelectRelatedViewSet, BaseViewSetWithOrdByOrg):
