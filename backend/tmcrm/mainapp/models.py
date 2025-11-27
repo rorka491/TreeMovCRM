@@ -115,15 +115,26 @@ class User(AbstractUser, BaseModelOrg):
     def __str__(self):
         return f"{self.username} ({self.role})"
 
+    # def get_user_profile(self):
+    #     if profile := self.get_student_profile():
+    #         return profile
+    #     elif profile := self.get_manager_profile():
+    #         return profile
+    #     elif profile := self.get_teacher_profile():
+    #         return profile
+    #     return None
+
+    def get_user_profile(self):
+        return getattr(self, "profile", None), self.role
 
     def get_student_profile(self):
-        return getattr(self, "student_profile", None)
+        return getattr(self, "student_profile", None), UserRole.STUDENT
 
     def get_manager_profile(self):
-        return getattr(self, "manager_profile", None)
+        return getattr(self, "manager_profile", None), UserRole.MANAGER
 
     def get_teacher_profile(self):
-        return getattr(self, "teacher_profile", None)
+        return getattr(self, "teacher_profile", None), UserRole.TEACHER
 
 
 class UserSettings(BaseModelOrg):
@@ -162,15 +173,26 @@ class OrgSettings(BaseModelOrg):
 
 class ManagerProfile(BaseModelOrg):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="manager_profile", null=True)
-    employer = models.OneToOneField("employers.Employer", on_delete=models.CASCADE, related_name="profile")      
+    employer = models.OneToOneField("employers.Employer", on_delete=models.CASCADE, related_name="profile")     
+
+    def clean(self):
+        if hasattr(self.user, 'student_profile') or hasattr(self.user, 'teacher_profile'):
+            raise ValidationError("Пользователь уже имеет другой профиль")
 
 class TeacherProfile(BaseModelOrg):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile", null=True)
     teacher = models.OneToOneField("employers.Teacher", on_delete=models.CASCADE, related_name="profile")      
 
+    def clean(self):
+        if hasattr(self.user, 'student_profile') or hasattr(self.user, 'manager_profile'):
+            raise ValidationError("Пользователь уже имеет другой профиль")
 
 class StudentProfile(BaseModelOrg): 
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="student_profile", null=True
     )
     student = models.OneToOneField("students.Student", on_delete=models.CASCADE, related_name="profile")
+
+    def clean(self):
+        if hasattr(self.user, 'teacher_profile') or hasattr(self.user, 'manager_profile'):
+            raise ValidationError("Пользователь уже имеет другой профиль")

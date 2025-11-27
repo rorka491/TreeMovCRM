@@ -3,8 +3,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
 import django_filters
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 
+from mainapp.models import User
 from .filters import LessonFilter
 from .serializers.read import AttendanceReadSerializer, ClassroomReadSerializer, GradeReadSerializer, ScheduleReadSerializer, SubjectReadSerializer, PeriodScheduleReadSerializer
 from .serializers.write import AttendanceWriteSerializer, ClassroomWriteSerializer, GradeWriteSerializer, PeriodScheduleWriteSerializer, ScheduleWriteSerializer, SubjectWriteSerializer
@@ -12,9 +13,10 @@ from mainapp.views import BaseViewSetWithOrdByOrg, SelectRelatedViewSet
 from mainapp.decorators import base_search
 from mainapp.filters import DateRangeMixin
 from .utils import _grouped_response
-from .models import Attendance, Lesson, Subject, PeriodLesson, Grade, Classroom
+from .models import Attendance, Lesson, Subject, PeriodLesson, Grade, Classroom, AbstrctLesson
 from .mixins import SerializerUpdateMixin, LessonValidationMixin
 from .serializers.other import GroupScheduleSerializer, TeacherScheduleSerializer, ClassroomScheduleSerializer
+from mainapp.constants import UserRole 
 
 
 # filters
@@ -59,6 +61,16 @@ class AbstractScheduleViewSet(
         queryset = Lesson.objects.all()
         return queryset
 
+    def get_queryset(self) -> QuerySet:
+        qs: AbstrctLesson = super().get_queryset()
+        user: User = self.request.user
+        user_profile, role = user.get_user_profile()
+        if role == UserRole.TEACHER:
+            qs = qs.filter(teacher=user_profile.teacher)
+        if role == UserRole.STUDENT:
+            qs = qs.filter(student=user_profile.student)
+        return qs
+
     def update(self, request, *args, **kwargs):
         is_force_update = request.query_params.get("is_force_update") == "true"
         data = request.data
@@ -81,6 +93,7 @@ class ScheduleViewSet(AbstractScheduleViewSet):
     filterset_class = LessonFilter
     read_serializer_class = ScheduleReadSerializer
     write_serializer_class = ScheduleWriteSerializer
+
 
     critical_fields = (
         "classroom",

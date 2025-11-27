@@ -2,7 +2,7 @@ from lesson_schedule.models import Attendance
 from mainapp.serializers import BaseWriteSerializer
 from rest_framework import serializers
 from students.models import StudentGroup, Student, Parent, Accrual
-from mainapp.models import TeacherProfile
+from mainapp.models import TeacherProfile, StudentProfile
 
 
 class StudentWriteSerializer(BaseWriteSerializer):
@@ -42,4 +42,9 @@ class AccrualWriteSerializer(BaseWriteSerializer):
 
     class Meta(BaseWriteSerializer.Meta):
         model = Accrual
-        
+
+
+class StudentProfileWriteSerializer(BaseWriteSerializer):
+
+    class Meta(BaseWriteSerializer.Meta):
+        model = StudentProfile

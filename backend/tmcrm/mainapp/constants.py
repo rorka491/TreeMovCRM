@@ -9,6 +9,8 @@ class UserRole(models.TextChoices):
     ADMIN = "admin", "Администратор"
     MANAGER = "manager", "Менеджер"
     USER = "user", "Пользователь"
+    STUDENT = 'student', 'Ученик'
+    TEACHER = 'teacher', 'Учитель'
 
 
 TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.all_timezones]
